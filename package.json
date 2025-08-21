@@ -4,6 +4,7 @@
     "description": "PWA template with PHP SSR and Vite-powered TypeScript build",
     "scripts": {
         "dev": "vite",
+        "start": "php -S localhost:8000",
         "build": "tsc && vite build",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
         "test": "echo \"No tests\""
