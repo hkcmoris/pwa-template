@@ -15,7 +15,7 @@ A template project for basic pwa/spa.
 **Windows (winget):**
 
 ```powershell
-winget install -e --id PHP.PHP
+winget install -e --id PHP.PHP.8.4
 ```
 
 **macOS (Homebrew):**
@@ -41,10 +41,26 @@ Verify with `php -v`.
 winget install -e --id Oracle.MySQL
 ```
 
-After installation, secure the root account and create a regular user:
+After installation, add mysql to path:
+- Locate the MySQL Installation Directory (MySQL installed via winget is typically located in `C:\Program Files\MySQL\MySQL Server <version>\bin`)
+- Open File Explorer and navigate to `C:\Program Files\MySQL` to confirm the exact path.
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::Machine) + ";C:\Program Files\MySQL\MySQL Server 8.4\bin", [EnvironmentVariableTarget]::Machine)
+```
+
+Install the MySQL service
+```powershell
+& "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe" --install
+& "C:\Program Files\MySQL\MySQL Server 8.4\bin\mysqld.exe" --initialize --console
+```
+
+a temporary password will be generated for user `root@localhost`
+
+Start MySQL service, secure the root account and create a regular user:
 
 ```sql
-mysql -u root
+mysql -u root -p
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
 CREATE USER 'user'@'localhost' IDENTIFIED BY 'user_password';
 GRANT ALL PRIVILEGES ON app.* TO 'user'@'localhost';
