@@ -12,6 +12,12 @@ A template project for basic pwa/spa.
 
 ### Install PHP
 
+**Windows (winget):**
+
+```powershell
+winget install -e --id PHP.PHP
+```
+
 **macOS (Homebrew):**
 
 ```bash
@@ -28,6 +34,23 @@ sudo apt install php php-mysql
 Verify with `php -v`.
 
 ### Install SQL server
+
+**Windows (winget):**
+
+```powershell
+winget install -e --id Oracle.MySQL
+```
+
+After installation, secure the root account and create a regular user:
+
+```sql
+mysql -u root
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
+CREATE USER 'user'@'localhost' IDENTIFIED BY 'user_password';
+GRANT ALL PRIVILEGES ON app.* TO 'user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+```
 
 **macOS:**
 
@@ -47,20 +70,20 @@ Verify with `mysql --version`.
 
 ### Configure database
 
-```sql
-mysql -u root -p
-CREATE DATABASE app;
-CREATE USER 'appuser'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON app.* TO 'appuser'@'localhost';
-FLUSH PRIVILEGES;
-```
-
 Copy the example environment file and update it with your credentials:
 
 ```bash
 cp env.example .env
-# edit .env to match the database details above
+# Use the root credentials above for the initial setup
 ```
+
+Run the provided installation script to create the database and `users` table:
+
+```bash
+php install.php
+```
+
+Afterwards, update `.env` to use the `user` account you created.
 
 ### Install dependencies
 
