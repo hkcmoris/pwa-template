@@ -1,3 +1,6 @@
 export default function init() {
-    console.log('home route loaded');
+    const content = document.getElementById('content');
+    if (content) {
+        content.innerHTML = '<h1>Home</h1><p>Welcome to the home page.</p>';
+    }
 }

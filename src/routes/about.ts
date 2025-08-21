@@ -1,3 +1,6 @@
 export default function init() {
-    console.log('about route loaded');
+    const content = document.getElementById('content');
+    if (content) {
+        content.innerHTML = '<h1>About</h1><p>About this app.</p>';
+    }
 }
