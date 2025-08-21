@@ -1,20 +1,20 @@
 {
-  "name": "pwa-template",
-  "version": "0.1.0",
-  "description": "PWA template with PHP SSR and Vite-powered TypeScript build",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "test": "echo \"No tests\""
-  },
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
-    "eslint": "^8.57.0",
-    "eslint-config-prettier": "^9.1.0",
-    "prettier": "^3.2.5",
-    "typescript": "^5.4.0",
-    "vite": "^5.0.0"
-  }
+    "name": "pwa-template",
+    "version": "0.1.0",
+    "description": "PWA template with PHP SSR and Vite-powered TypeScript build",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "lint": "eslint \"src/**/*.{ts,tsx}\"",
+        "test": "echo \"No tests\""
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^6.21.0",
+        "@typescript-eslint/parser": "^6.21.0",
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "prettier": "^3.2.5",
+        "typescript": "^5.4.0",
+        "vite": "^5.0.0"
+    }
 }
