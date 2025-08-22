@@ -23,28 +23,34 @@ export default function init() {
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            const response = await fetch('/api/register.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                }),
-            });
-              if (message) {
-                  if (response.ok) {
-                      message.textContent = 'Registration successful';
-                      const email = formData.get('email') as string;
-                      document.dispatchEvent(
-                          new CustomEvent('auth-changed', { detail: email })
-                      );
-                  } else {
-                      const data = await response.json().catch(() => ({}));
-                      message.textContent =
-                          data.error || 'Registration failed';
-                  }
-              }
+            try {
+                const response = await fetch('/api/register.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        email: formData.get('email'),
+                        password: formData.get('password'),
+                    }),
+                });
+                const data = await response.json().catch(() => ({}));
+                if (message) {
+                    if (response.ok && data.token) {
+                        message.textContent = 'Registration successful';
+                        const email = formData.get('email') as string;
+                        document.dispatchEvent(
+                            new CustomEvent('auth-changed', { detail: email })
+                        );
+                    } else {
+                        message.textContent =
+                            data.error || 'Registration failed';
+                    }
+                }
+            } catch {
+                if (message) {
+                    message.textContent = 'Registration failed';
+                }
+            }
         });
     }
 }
