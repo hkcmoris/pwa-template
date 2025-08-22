@@ -7,7 +7,7 @@ try {
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ];
-    $pdo = new PDO($dsn, DB_USER_A, DB_PASS_A, $options);
+    $pdo = new PDO($dsn, DB_A_USER, DB_A_PASS, $options);
 
     $pdo->exec('CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
     $pdo->exec('USE `' . DB_NAME . '`');
