@@ -62,6 +62,10 @@ document.getElementById('register-btn')?.addEventListener('click', () => {
     navigate('register');
 });
 
+document.getElementById('users-btn')?.addEventListener('click', () => {
+    navigate('users');
+});
+
 window.addEventListener('popstate', () => {
     const path = window.location.pathname.replace(/^\/+/, '') || 'home';
     route = path;
