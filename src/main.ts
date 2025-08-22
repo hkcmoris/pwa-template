@@ -1,9 +1,15 @@
 const pathRoute = window.location.pathname.replace(/^\/+/, '');
-const route = pathRoute || document.body.dataset.route || 'home';
+let route = pathRoute || document.body.dataset.route || 'home';
 
-const loadRoute = async () => {
-    const module = await import(`./routes/${route}.ts`);
+const loadRoute = async (name: string) => {
+    const module = await import(`./routes/${name}.ts`);
     module.default?.();
+};
+
+const navigate = (name: string) => {
+    route = name;
+    loadRoute(route);
+    history.pushState(null, '', `/${name}`);
 };
 
 const onIdle =
@@ -13,7 +19,7 @@ const onIdle =
         }
     ).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 0));
 
-onIdle(loadRoute);
+onIdle(() => loadRoute(route));
 
 const menuButton = document.getElementById('menu-toggle');
 const navMenu = document.getElementById('nav-menu');
@@ -39,4 +45,18 @@ themeToggle?.addEventListener('click', () => {
         document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     applyTheme(next);
     localStorage.setItem(THEME_KEY, next);
+});
+
+document.getElementById('login-btn')?.addEventListener('click', () => {
+    navigate('login');
+});
+
+document.getElementById('register-btn')?.addEventListener('click', () => {
+    navigate('register');
+});
+
+window.addEventListener('popstate', () => {
+    const path = window.location.pathname.replace(/^\/+/, '') || 'home';
+    route = path;
+    loadRoute(route);
 });
