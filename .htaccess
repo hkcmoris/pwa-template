@@ -1,25 +1,27 @@
 # Apache configuration for PWA Template
 
 <IfModule mod_rewrite.c>
-  RewriteEngine On
+    RewriteEngine On
+    
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-  # Directly serve existing files or directories
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^ - [L]
+    # Directly serve existing files or directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
 
-  # Fallback to index.php for application routing
-  RewriteRule ^ index.php [QSA,L]
+    # Fallback to index.php for application routing
+    RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
 <IfModule mod_headers.c>
-  # Long-term caching for hashed static assets
-  <FilesMatch "\.(css|js|mjs|png|jpg|jpeg|gif|svg|webp|avif|ico)$">
-    Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
+    # Long-term caching for hashed static assets
+    <FilesMatch "\.(css|js|mjs|png|jpg|jpeg|gif|svg|webp|avif|ico)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
 
-  # Micro-cache HTML/PHP responses for 5s with stale-while-revalidate
-  <FilesMatch "\.(html|php)$">
-    Header set Cache-Control "s-maxage=5, stale-while-revalidate=60"
-  </FilesMatch>
+    # Micro-cache HTML/PHP responses for 5s with stale-while-revalidate
+    <FilesMatch "\.(html|php)$">
+        Header set Cache-Control "s-maxage=5, stale-while-revalidate=60"
+    </FilesMatch>
 </IfModule>
