@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__.'/config.php';
+require_once __DIR__.'/logger.php';
 
 function get_db_connection(): PDO {
     $dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
@@ -7,5 +8,10 @@ function get_db_connection(): PDO {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ];
-    return new PDO($dsn, DB_USER, DB_PASS, $options);
+    try {
+        return new PDO($dsn, DB_USER, DB_PASS, $options);
+    } catch (PDOException $e) {
+        log_message('DB connection error: ' . $e->getMessage(), 'ERROR');
+        throw $e;
+    }
 }
