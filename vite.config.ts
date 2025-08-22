@@ -3,7 +3,7 @@ import { resolve } from "path";
 
 export default defineConfig({
     build: {
-        outDir: "public/assets",
+        outDir: "dist/assets",
         emptyOutDir: true,
         rollupOptions: {
             input: resolve(__dirname, "src/main.ts"),
