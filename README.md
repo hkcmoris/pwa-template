@@ -93,6 +93,13 @@ cp env.example .env
 # Use the root credentials above for the initial setup
 ```
 
+You can generate JWT secret with
+```powershell
+$bytes = New-Object byte[] 64
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[Convert]::ToBase64String($bytes)
+```
+
 Run the provided installation script to create the database and `users` table:
 
 ```bash
