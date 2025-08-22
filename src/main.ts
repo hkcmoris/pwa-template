@@ -28,6 +28,13 @@ menuButton?.addEventListener('click', () => {
     navMenu?.classList.toggle('open');
 });
 
+navMenu?.addEventListener('click', (e) => {
+    const target = (e.target as HTMLElement).closest('a,button');
+    if (navMenu.classList.contains('open') && target) {
+        navMenu.classList.remove('open');
+    }
+});
+
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'theme';
 
