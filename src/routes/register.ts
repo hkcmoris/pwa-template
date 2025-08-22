@@ -5,10 +5,6 @@ export default function init() {
             <h1>Register</h1>
             <form id="register-form">
                 <label>
-                    Username
-                    <input type="text" name="username" required />
-                </label>
-                <label>
                     Email
                     <input type="email" name="email" required />
                 </label>
@@ -18,7 +14,34 @@ export default function init() {
                 </label>
                 <button type="submit">Register</button>
             </form>
+            <div id="register-message"></div>
         `;
+        const form = document.getElementById(
+            'register-form'
+        ) as HTMLFormElement | null;
+        const message = document.getElementById('register-message');
+        form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const response = await fetch('/api/register.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                }),
+            });
+            if (message) {
+                if (response.ok) {
+                    message.textContent = 'Registration successful';
+                } else {
+                    const data = await response.json().catch(() => ({}));
+                    message.textContent =
+                        data.error || 'Registration failed';
+                }
+            }
+        });
     }
 }
 
