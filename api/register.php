@@ -15,19 +15,28 @@ if (!$email || !$password) {
 }
 
 $db = get_db_connection();
-$stmt = $db->prepare('SELECT id FROM users WHERE email = :email');
-$stmt->execute([':email' => $email]);
 
-if ($stmt->fetch()) {
-    http_response_code(409);
-    echo json_encode(['error' => 'Email already registered']);
+try {
+    $stmt = $db->prepare('SELECT id FROM users WHERE email = :email');
+    $stmt->execute([':email' => $email]);
+
+    if ($stmt->fetch()) {
+        http_response_code(409);
+        echo json_encode(['error' => 'Email already registered']);
+        exit;
+    }
+
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt = $db->prepare(
+        'INSERT INTO users (email, password) VALUES (:email, :password)'
+    );
+    $stmt->execute([':email' => $email, ':password' => $hash]);
+    $userId = $db->lastInsertId();
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Database error']);
     exit;
 }
-
-$hash = password_hash($password, PASSWORD_DEFAULT);
-$stmt = $db->prepare('INSERT INTO users (email, password) VALUES (:email, :password)');
-$stmt->execute([':email' => $email, ':password' => $hash]);
-$userId = $db->lastInsertId();
 
 $token = generate_jwt(['sub' => $userId, 'email' => $email], JWT_SECRET);
 setcookie('token', $token, [
@@ -36,4 +45,6 @@ setcookie('token', $token, [
     'path' => '/',
 ]);
 
+http_response_code(201);
 echo json_encode(['token' => $token]);
+exit;
