@@ -23,9 +23,20 @@ menuButton?.addEventListener('click', () => {
 });
 
 const themeToggle = document.getElementById('theme-toggle');
+const THEME_KEY = 'theme';
+
+const applyTheme = (theme: string) => {
+    document.documentElement.dataset.theme = theme;
+};
+
+const stored = localStorage.getItem(THEME_KEY);
+if (stored) {
+    applyTheme(stored);
+}
 
 themeToggle?.addEventListener('click', () => {
     const next =
         document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.dataset.theme = next;
+    applyTheme(next);
+    localStorage.setItem(THEME_KEY, next);
 });
