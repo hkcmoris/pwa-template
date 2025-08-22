@@ -32,15 +32,19 @@ export default function init() {
                     password: formData.get('password'),
                 }),
             });
-            if (message) {
-                if (response.ok) {
-                    message.textContent = 'Registration successful';
-                } else {
-                    const data = await response.json().catch(() => ({}));
-                    message.textContent =
-                        data.error || 'Registration failed';
-                }
-            }
+              if (message) {
+                  if (response.ok) {
+                      message.textContent = 'Registration successful';
+                      const email = formData.get('email') as string;
+                      document.dispatchEvent(
+                          new CustomEvent('auth-changed', { detail: email })
+                      );
+                  } else {
+                      const data = await response.json().catch(() => ({}));
+                      message.textContent =
+                          data.error || 'Registration failed';
+                  }
+              }
         });
     }
 }
