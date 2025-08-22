@@ -33,7 +33,15 @@ export default function init() {
                         password: formData.get('password'),
                     }),
                 });
-                const data = await response.json().catch(() => ({}));
+
+                let data: { token?: string; error?: string } = {};
+                let errorText = '';
+                try {
+                    data = await response.json();
+                } catch {
+                    errorText = (await response.text().catch(() => '')).trim();
+                }
+
                 if (message) {
                     if (response.ok && data.token) {
                         message.textContent = 'Registration successful';
@@ -43,7 +51,7 @@ export default function init() {
                         );
                     } else {
                         message.textContent =
-                            data.error || 'Registration failed';
+                            data.error || errorText || 'Registration failed';
                     }
                 }
             } catch {
@@ -54,4 +62,3 @@ export default function init() {
         });
     }
 }
-
