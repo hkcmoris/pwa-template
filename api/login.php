@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__.'/../db.php';
 require_once __DIR__.'/../jwt.php';
+require_once __DIR__.'/../logger.php';
 
 header('Content-Type: application/json');
 
@@ -8,7 +9,10 @@ $input = json_decode(file_get_contents('php://input'), true);
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
 
+log_message("Login attempt for {$email}");
+
 if (!$email || !$password) {
+    log_message('Login failed: missing email or password', 'ERROR');
     http_response_code(400);
     echo json_encode(['error' => 'Email and password required']);
     exit;
@@ -20,6 +24,7 @@ $stmt->execute([':email' => $email]);
 $user = $stmt->fetch();
 
 if (!$user || !password_verify($password, $user['password'])) {
+    log_message("Login failed: invalid credentials for {$email}", 'ERROR');
     http_response_code(401);
     echo json_encode(['error' => 'Invalid credentials']);
     exit;
@@ -31,5 +36,7 @@ setcookie('token', $token, [
     'samesite' => 'Lax',
     'path' => '/',
 ]);
+
+log_message("User logged in: {$email}");
 
 echo json_encode(['token' => $token]);
