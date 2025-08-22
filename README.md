@@ -63,7 +63,8 @@ Start MySQL service, secure the root account and create a regular user:
 mysql -u root -p
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'new_password';
 CREATE USER 'user'@'localhost' IDENTIFIED BY 'user_password';
-GRANT ALL PRIVILEGES ON app.* TO 'user'@'localhost';
+GRANT ALL PRIVILEGES ON app.* TO 'root'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE ON app.* TO 'user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
