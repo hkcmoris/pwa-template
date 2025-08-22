@@ -64,6 +64,7 @@ document.getElementById('register-btn')?.addEventListener('click', () => {
 
 document.getElementById('users-btn')?.addEventListener('click', () => {
     navigate('users');
+});
 
 const usernameEl = document.getElementById('username');
 const loginBtn = document.getElementById('login-btn') as HTMLButtonElement | null;
