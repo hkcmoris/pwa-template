@@ -64,6 +64,50 @@ document.getElementById('register-btn')?.addEventListener('click', () => {
 
 document.getElementById('users-btn')?.addEventListener('click', () => {
     navigate('users');
+
+const usernameEl = document.getElementById('username');
+const loginBtn = document.getElementById('login-btn') as HTMLButtonElement | null;
+const registerBtn = document.getElementById('register-btn') as HTMLButtonElement | null;
+const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement | null;
+const USER_KEY = 'userEmail';
+
+const updateAuthUI = (email: string | null) => {
+    if (usernameEl) {
+        usernameEl.textContent = email || 'Guest';
+    }
+    if (loginBtn && registerBtn && logoutBtn) {
+        if (email) {
+            loginBtn.style.display = 'none';
+            registerBtn.style.display = 'none';
+            logoutBtn.style.display = '';
+        } else {
+            loginBtn.style.display = '';
+            registerBtn.style.display = '';
+            logoutBtn.style.display = 'none';
+        }
+    }
+};
+
+const storedUser = localStorage.getItem(USER_KEY);
+updateAuthUI(storedUser);
+
+document.addEventListener('auth-changed', (e) => {
+    const email = (e as CustomEvent<string | null>).detail;
+    if (email) {
+        localStorage.setItem(USER_KEY, email);
+    } else {
+        localStorage.removeItem(USER_KEY);
+    }
+    updateAuthUI(email);
+});
+
+logoutBtn?.addEventListener('click', async () => {
+    await fetch('/api/logout.php', {
+        method: 'POST',
+        credentials: 'include',
+    });
+    document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
+    navigate('home');
 });
 
 window.addEventListener('popstate', () => {
