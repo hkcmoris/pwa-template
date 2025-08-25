@@ -25,6 +25,12 @@ export default function init() {
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
+            console.log(
+                JSON.stringify({
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                })
+            );
             try {
                 const response = await fetch(`${API_BASE}/register.php`, {
                     method: 'POST',
