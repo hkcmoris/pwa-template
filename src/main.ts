@@ -78,21 +78,26 @@ const registerBtn = document.getElementById(
 const logoutBtn = document.getElementById(
     'logout-btn'
 ) as HTMLButtonElement | null;
+const usersBtn = document.getElementById(
+    'users-btn'
+) as HTMLButtonElement | null;
 const USER_KEY = 'userEmail';
 
 const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
         usernameEl.textContent = email || 'Guest';
     }
-    if (loginBtn && registerBtn && logoutBtn) {
+    if (loginBtn && registerBtn && logoutBtn && usersBtn) {
         if (email) {
             loginBtn.style.display = 'none';
             registerBtn.style.display = 'none';
             logoutBtn.style.display = '';
+            usersBtn.style.display = '';
         } else {
             loginBtn.style.display = '';
             registerBtn.style.display = '';
             logoutBtn.style.display = 'none';
+            usersBtn.style.display = 'none';
         }
     }
 };
