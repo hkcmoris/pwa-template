@@ -7,8 +7,12 @@ export default function init() {
             <h1>Register</h1>
             <form id="register-form">
                 <label>
+                    Username
+                    <input type="text" name="username" required autocomplete="username" />
+                </label>
+                <label>
                     Email
-                    <input type="email" name="email" required autocomplete="username" />
+                    <input type="email" name="email" required autocomplete="email" />
                 </label>
                 <label>
                     Password
@@ -25,18 +29,13 @@ export default function init() {
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(form);
-            console.log(
-                JSON.stringify({
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                })
-            );
             try {
                 const response = await fetch(`${API_BASE}/register.php`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
                     body: JSON.stringify({
+                        username: formData.get('username'),
                         email: formData.get('email'),
                         password: formData.get('password'),
                     }),

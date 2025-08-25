@@ -7,15 +7,16 @@ require_once __DIR__.'/../logger.php';
 header('Content-Type: application/json');
 
 $input = json_decode(file_get_contents('php://input'), true);
+$username = $input['username'] ?? '';
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
 
 log_message("Registration attempt for {$email}");
 
-if (!$email || !$password) {
-    log_message('Registration failed: missing email or password', 'ERROR');
+if (!$username || !$email || !$password) {
+    log_message('Registration failed: missing username, email or password', 'ERROR');
     http_response_code(400);
-    echo json_encode(['error' => 'Email and password required']);
+    echo json_encode(['error' => 'Username, email and password required']);
     exit;
 }
 
@@ -34,9 +35,9 @@ try {
 
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $stmt = $db->prepare(
-        'INSERT INTO users (email, password) VALUES (:email, :password)'
+        'INSERT INTO users (username, email, password) VALUES (:username, :email, :password)'
     );
-    $stmt->execute([':email' => $email, ':password' => $hash]);
+    $stmt->execute([':username' => $username, ':email' => $email, ':password' => $hash]);
     $userId = $db->lastInsertId();
     log_message("User registered: {$email}");
 } catch (PDOException $e) {
