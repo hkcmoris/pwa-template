@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__.'/cors.php';
-require_once __DIR__.'/../logger.php';
+require_once __DIR__.'/../server/lib/logger.php';
 
 header('Content-Type: application/json');
 

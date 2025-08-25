@@ -1,6 +1,6 @@
 <?php
 $env = [];
-$envFile = __DIR__.'/.env';
+$envFile = __DIR__.'/../../.env';
 if (file_exists($envFile)) {
     $env = parse_ini_file($envFile, false, INI_SCANNER_TYPED);
 }

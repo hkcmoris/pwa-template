@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/config-root.php';
+require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/config/config-root.php';
 
 try {
     $dsn = 'mysql:host=' . DB_HOST . ';charset=utf8mb4';
