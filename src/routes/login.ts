@@ -8,11 +8,11 @@ export default function init() {
             <form id="login-form">
                 <label>
                     Email
-                    <input type="email" name="email" required />
+                    <input type="email" name="email" required autocomplete="username" />
                 </label>
                 <label>
                     Password
-                    <input type="password" name="password" required />
+                    <input type="password" name="password" required autocomplete="current-password" />
                 </label>
                 <button type="submit">Login</button>
             </form>
