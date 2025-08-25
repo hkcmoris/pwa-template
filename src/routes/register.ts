@@ -5,18 +5,64 @@ export default function init() {
     if (content) {
         content.innerHTML = `
             <h1>Register</h1>
-            <form id="register-form">
-                <label>
+            <form
+                id="register-form"
+                style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    max-width: 300px;
+                    margin: 0 auto;
+                "
+            >
+                <label
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                    "
+                >
                     Username
-                    <input type="text" name="username" required autocomplete="username" />
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                        autocomplete="username"
+                        style="width: 100%;"
+                    />
                 </label>
-                <label>
+                <label
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                    "
+                >
                     Email
-                    <input type="email" name="email" required autocomplete="email" />
+                    <input
+                        type="email"
+                        name="email"
+                        required
+                        autocomplete="email"
+                        style="width: 100%;"
+                    />
                 </label>
-                <label>
+                <label
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                    "
+                >
                     Password
-                    <input type="password" name="password" required autocomplete="new-password" />
+                    <input
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="new-password"
+                        style="width: 100%;"
+                    />
                 </label>
                 <button type="submit">Register</button>
             </form>
