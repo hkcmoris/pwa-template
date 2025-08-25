@@ -1,3 +1,5 @@
+import { API_BASE } from '../utils/api';
+
 export default function init() {
     const content = document.getElementById('content');
     if (content) {
@@ -24,7 +26,7 @@ export default function init() {
             e.preventDefault();
             const formData = new FormData(form);
             try {
-                const response = await fetch('/api/register.php', {
+                const response = await fetch(`${API_BASE}/register.php`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
