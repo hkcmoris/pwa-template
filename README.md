@@ -104,7 +104,7 @@ $bytes = New-Object byte[] 64
 Run the provided installation script to create the database and `users` table:
 
 ```bash
-php install.php
+php server/install.php
 ```
 
 Afterwards, update `.env` to use the `user` account you created.
