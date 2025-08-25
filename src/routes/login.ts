@@ -5,14 +5,48 @@ export default function init() {
     if (content) {
         content.innerHTML = `
             <h1>Login</h1>
-            <form id="login-form">
-                <label>
+            <form
+                id="login-form"
+                style="
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.5rem;
+                    max-width: 300px;
+                    margin: 0 auto;
+                "
+            >
+                <label
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                    "
+                >
                     Email
-                    <input type="email" name="email" required autocomplete="username" />
+                    <input
+                        type="email"
+                        name="email"
+                        required
+                        autocomplete="username"
+                        style="width: 100%;"
+                    />
                 </label>
-                <label>
+                <label
+                    style="
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                    "
+                >
                     Password
-                    <input type="password" name="password" required autocomplete="current-password" />
+                    <input
+                        type="password"
+                        name="password"
+                        required
+                        autocomplete="current-password"
+                        style="width: 100%;"
+                    />
                 </label>
                 <button type="submit">Login</button>
             </form>
