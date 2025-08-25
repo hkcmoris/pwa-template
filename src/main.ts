@@ -1,3 +1,5 @@
+import { API_BASE } from './utils/api';
+
 const pathRoute = window.location.pathname.replace(/^\/+/, '');
 let route = pathRoute || document.body.dataset.route || 'home';
 
@@ -67,9 +69,15 @@ document.getElementById('users-btn')?.addEventListener('click', () => {
 });
 
 const usernameEl = document.getElementById('username');
-const loginBtn = document.getElementById('login-btn') as HTMLButtonElement | null;
-const registerBtn = document.getElementById('register-btn') as HTMLButtonElement | null;
-const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement | null;
+const loginBtn = document.getElementById(
+    'login-btn'
+) as HTMLButtonElement | null;
+const registerBtn = document.getElementById(
+    'register-btn'
+) as HTMLButtonElement | null;
+const logoutBtn = document.getElementById(
+    'logout-btn'
+) as HTMLButtonElement | null;
 const USER_KEY = 'userEmail';
 
 const updateAuthUI = (email: string | null) => {
@@ -103,7 +111,7 @@ document.addEventListener('auth-changed', (e) => {
 });
 
 logoutBtn?.addEventListener('click', async () => {
-    await fetch('/api/logout.php', {
+    await fetch(`${API_BASE}/logout.php`, {
         method: 'POST',
         credentials: 'include',
     });
