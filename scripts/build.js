@@ -30,4 +30,8 @@ try {
   if (apiStat.isDirectory()) {
     cpSync('api', join(distDir, 'api'), { recursive: true });
   }
-} catch {}
+  const serverStat = statSync('server');
+  if (serverStat.isDirectory()) {
+    cpSync('server', join(distDir, 'server'), { recursive: true });
+  }
+} catch { /* empty */}
