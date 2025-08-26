@@ -52,6 +52,7 @@ function vite_asset(string $entry) {
           <a id="login-link" href="/login" hx-get="/login" hx-push-url="true" hx-target="#content" hx-select="#content">Login</a>
           <a id="register-link" href="/register" hx-get="/register" hx-push-url="true" hx-target="#content" hx-select="#content">Register</a>
           <a id="users-link" href="/users" hx-get="/users" hx-push-url="true" hx-target="#content" hx-select="#content" class="hidden">Users</a>
+          <a id="about-link" href="/about" hx-get="/about" hx-push-url="true" hx-target="#content" hx-select="#content" class="hidden">About</a>
           <button id="logout-btn" class="hidden">Logout</button>
           <button id="theme-toggle">Toggle Theme</button>
         </nav>

@@ -73,23 +73,28 @@ themeToggle?.addEventListener('click', () => {
   const usersLink = document.getElementById(
       'users-link'
   ) as HTMLAnchorElement | null;
+  const aboutLink = document.getElementById(
+      'about-link'
+  ) as HTMLAnchorElement | null;
 const USER_KEY = 'userEmail';
 
 const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
         usernameEl.textContent = email || 'Guest';
     }
-  if (loginLink && registerLink && logoutBtn && usersLink) {
+  if (loginLink && registerLink && logoutBtn && usersLink && aboutLink) {
       if (email) {
           loginLink.classList.add('hidden');
           registerLink.classList.add('hidden');
           logoutBtn.classList.remove('hidden');
           usersLink.classList.remove('hidden');
+          aboutLink.classList.remove('hidden');
       } else {
           loginLink.classList.remove('hidden');
           registerLink.classList.remove('hidden');
           logoutBtn.classList.add('hidden');
           usersLink.classList.add('hidden');
+          aboutLink.classList.add('hidden');
       }
   }
 };
