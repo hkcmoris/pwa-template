@@ -7,7 +7,7 @@ export default defineConfig({
         emptyOutDir: true,
         manifest: true, 
         rollupOptions: {
-            input: resolve(__dirname, '/src/main.ts'),
+            input: resolve(__dirname, 'src/main.ts'),
             output: {
                 entryFileNames: '[name]-[hash].js',
                 chunkFileNames: '[name]-[hash].js',
