@@ -7,7 +7,7 @@ export default defineConfig({
         emptyOutDir: true,
         manifest: true, 
         rollupOptions: {
-            input: resolve(__dirname, 'src/main.ts'),
+            input: resolve(__dirname, '/src/main.ts'),
             output: {
                 entryFileNames: '[name]-[hash].js',
                 chunkFileNames: '[name]-[hash].js',
@@ -18,12 +18,12 @@ export default defineConfig({
     server: {
         port: 5173,
         strictPort: true,
-        hmr: { port: 5173, host: 'localhost' },
-        proxy: {
-            '/api': {
-                target: 'http://localhost:8000',
-                changeOrigin: true,
-            },
-        },
+        // hmr: { port: 5173, host: 'localhost' },
+        // proxy: {
+        //     '/api': {
+        //         target: 'http://localhost:8000',
+        //         changeOrigin: true,
+        //     },
+        // },
     },
 });
