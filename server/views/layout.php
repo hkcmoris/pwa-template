@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__.'/config/config.php';
+require_once __DIR__.'/../config/config.php';
 $title  = $title  ?? 'PWA Template';
 $route  = $route  ?? 'home';
 $theme  = $_COOKIE['theme'] ?? 'light';
@@ -34,7 +34,7 @@ function vite_asset(string $entry) {
       main{padding:1rem}
       .hidden{display:none}
     </style>
-    <?php if (!IS_DEV):
+    <?php if (!APP_ENV === 'dev'):
       $main = vite_asset('src/main.ts');
       if ($main && !empty($main['css'])):
         foreach ($main['css'] as $css): ?>
@@ -66,7 +66,7 @@ function vite_asset(string $entry) {
       ?>
     </main>
 
-    <?php if (IS_DEV): ?>
+    <?php if (APP_ENV === 'dev'): ?>
       <script type="module" src="http://localhost:5173/@vite/client"></script>
       <script type="module" src="http://localhost:5173/src/main.ts"></script>
     <?php else: ?>
