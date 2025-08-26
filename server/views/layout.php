@@ -12,7 +12,7 @@ function vite_asset(string $entry) {
 }
 ?>
 <!doctype html>
-<html lang="en" data-theme="<?= htmlspecialchars($theme) ?>">
+  <html lang="en" data-theme="<?= htmlspecialchars($theme) ?>">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -43,20 +43,20 @@ function vite_asset(string $entry) {
       endif;
     endif; ?>
   </head>
-  <body data-route="<?= htmlspecialchars($route) ?>">
+    <body>
     <header>
       <div class="logo">Logo</div>
       <button id="menu-toggle" aria-label="Menu">☰</button>
-      <nav id="nav-menu">
-        <span id="username"><?= htmlspecialchars($username ?? 'Guest') ?></span>
-        <button id="login-btn">Login</button>
-        <button id="register-btn">Register</button>
-        <button id="users-btn" class="hidden">Users</button>
-        <button id="logout-btn" class="hidden">Logout</button>
-        <button id="theme-toggle">Toggle Theme</button>
-      </nav>
-    </header>
-    <main id="content">
+        <nav id="nav-menu">
+          <span id="username"><?= htmlspecialchars($username ?? 'Guest') ?></span>
+          <a id="login-link" href="/login" hx-get="/login" hx-push-url="true" hx-target="#content" hx-select="#content">Login</a>
+          <a id="register-link" href="/register" hx-get="/register" hx-push-url="true" hx-target="#content" hx-select="#content">Register</a>
+          <a id="users-link" href="/users" hx-get="/users" hx-push-url="true" hx-target="#content" hx-select="#content" class="hidden">Users</a>
+          <button id="logout-btn" class="hidden">Logout</button>
+          <button id="theme-toggle">Toggle Theme</button>
+        </nav>
+      </header>
+      <main id="content">
       <?php
         if (!empty($view) && is_file(__DIR__ . "/{$view}.php")) {
           require __DIR__ . "/{$view}.php";
@@ -66,14 +66,15 @@ function vite_asset(string $entry) {
       ?>
     </main>
 
-    <?php if (APP_ENV === 'dev'): ?>
-      <script type="module" src="http://localhost:5173/@vite/client"></script>
-      <script type="module" src="http://localhost:5173/src/main.ts"></script>
-    <?php else: ?>
-      <?php if (!empty($main['file'])): ?>
-        <script type="module" src="/assets/<?= htmlspecialchars($main['file']) ?>"></script>
+      <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+      <?php if (APP_ENV === 'dev'): ?>
+        <script type="module" src="http://localhost:5173/@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/main.ts"></script>
+      <?php else: ?>
+        <?php if (!empty($main['file'])): ?>
+          <script type="module" src="/assets/<?= htmlspecialchars($main['file']) ?>"></script>
+        <?php endif; ?>
       <?php endif; ?>
-    <?php endif; ?>
 
     <script>
       requestIdleCallback?.(()=>navigator.serviceWorker?.register('/sw.js'));

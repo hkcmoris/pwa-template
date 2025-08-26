@@ -1,0 +1,38 @@
+import { API_BASE } from '../utils/api';
+import './auth-form.css';
+
+export default function init(el: HTMLElement) {
+    const form = el.querySelector('#login-form') as HTMLFormElement | null;
+    const message = el.querySelector('#login-message');
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        try {
+            const response = await fetch(`${API_BASE}/login.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    email: formData.get('email'),
+                    password: formData.get('password'),
+                }),
+            });
+            const data = await response.json().catch(() => ({}));
+            if (message) {
+                if (response.ok && data.token) {
+                    message.textContent = 'Login successful';
+                    const email = formData.get('email') as string;
+                    document.dispatchEvent(
+                        new CustomEvent('auth-changed', { detail: email })
+                    );
+                } else {
+                    message.textContent = data.error || 'Login failed';
+                }
+            }
+        } catch {
+            if (message) {
+                message.textContent = 'Login failed';
+            }
+        }
+    });
+}
