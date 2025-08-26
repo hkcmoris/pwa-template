@@ -124,6 +124,14 @@ logoutBtn?.addEventListener('click', async () => {
     navigate('home');
 });
 
+document.body.addEventListener('click', (e) => {
+    const link = (e.target as HTMLElement).closest('a[data-route]');
+    if (link) {
+        e.preventDefault();
+        navigate(link.getAttribute('data-route')!);
+    }
+});
+
 window.addEventListener('popstate', () => {
     const path = window.location.pathname.replace(/^\/+/, '') || 'home';
     route = path;
