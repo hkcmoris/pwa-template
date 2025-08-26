@@ -3,8 +3,9 @@ import { resolve } from 'path';
 
 export default defineConfig({
     build: {
-        outDir: 'dist/assets',
+        outDir: 'server/public/assets',
         emptyOutDir: true,
+        manifest: true, 
         rollupOptions: {
             input: resolve(__dirname, 'src/main.ts'),
             output: {
@@ -15,12 +16,13 @@ export default defineConfig({
         },
     },
     server: {
+        port: 5173,
+        strictPort: true,
+        hmr: { port: 5173, host: 'localhost' },
         proxy: {
             '/api': {
                 target: 'http://localhost:8000',
                 changeOrigin: true,
-                // optional: if PHP serves /api/register.php literally, no rewrite needed
-                // rewrite: (path) => path.replace(/^\/api/, '/api'),
             },
         },
     },

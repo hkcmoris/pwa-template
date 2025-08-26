@@ -1,6 +1,7 @@
 # Apache configuration for PWA Template
 
 <IfModule mod_rewrite.c>
+    Options -MultiViews
     RewriteEngine On
     
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
