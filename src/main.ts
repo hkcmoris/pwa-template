@@ -89,15 +89,15 @@ const updateAuthUI = (email: string | null) => {
     }
     if (loginBtn && registerBtn && logoutBtn && usersBtn) {
         if (email) {
-            loginBtn.style.display = 'none';
-            registerBtn.style.display = 'none';
-            logoutBtn.style.display = '';
-            usersBtn.style.display = '';
+            loginBtn.classList.add('hidden');
+            registerBtn.classList.add('hidden');
+            logoutBtn.classList.remove('hidden');
+            usersBtn.classList.remove('hidden');
         } else {
-            loginBtn.style.display = '';
-            registerBtn.style.display = '';
-            logoutBtn.style.display = 'none';
-            usersBtn.style.display = 'none';
+            loginBtn.classList.remove('hidden');
+            registerBtn.classList.remove('hidden');
+            logoutBtn.classList.add('hidden');
+            usersBtn.classList.add('hidden');
         }
     }
 };

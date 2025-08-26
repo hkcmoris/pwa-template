@@ -129,7 +129,32 @@
 
 ---
 
-## 9) Release & Build
+## 9) Styling Policy
+
+1) First flight
+- Keep a **single inline `<style>`** with only above-the-fold, critical rules (target: 3–6 KB gz).
+- No webfonts/icon fonts in first flight; use system font stack.
+
+2) Non-essential CSS
+- **Prefer CSS Modules or per-feature CSS files** with content hashes.
+- Load non-critical CSS via `<link rel="preload" as="style" …>` and switch to `rel="stylesheet"` on load.
+- Do **not** emit widespread per-element `style=""` attributes. Use classes + CSS variables instead.
+
+3) Islands
+- Each island must **scope its styles** (CSS Modules or a small island CSS file) and **lazy-load** them at mount.
+- No global CSS bloat from islands. If an island is not on the page, its CSS must not be loaded.
+
+4) CSP & a11y
+- Prefer external CSS to maintain a strict CSP (no `'unsafe-inline'`).
+- Avoid style attributes that interfere with focus/hover states—use classes and :focus/:hover rules.
+
+5) Budgets
+- Inline critical CSS counts toward the **14 KB first-flight** budget.
+- A route’s non-critical CSS file(s) should be ≤ **10–20 KB gz** and load after first paint.
+
+---
+
+## 10) Release & Build
 
 - Build tool: Vite/Rollup (local only). Output hashed bundles under `public/assets/`.
 - Server cannot run Node; deploy the **built** artifacts only.
@@ -137,7 +162,7 @@
 
 ---
 
-## 10) PR Checklist (agents must copy/paste and tick)
+## 11) PR Checklist (agents must copy/paste and tick)
 
 - [ ] First-flight bundle still ≤ **14 KB** (attach Lighthouse/Bundle report).
 - [ ] No new runtime dep, or size/security justification provided.
@@ -151,7 +176,7 @@
 
 ---
 
-## 11) Special Notes for Agents
+## 12) Special Notes for Agents
 
 - If a requirement conflicts with your suggestion, **the requirement wins**. Propose an alternative that keeps the budgets.
 - When uncertain, choose **HTML-first** with progressive enhancement.

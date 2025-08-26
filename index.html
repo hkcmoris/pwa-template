@@ -69,6 +69,9 @@
             main {
                 padding: 1rem;
             }
+            .hidden {
+                display: none;
+            }
         </style>
     </head>
     <body data-route="home">
@@ -79,8 +82,8 @@
                 <span id="username">Guest</span>
                 <button id="login-btn">Login</button>
                 <button id="register-btn">Register</button>
-                <button id="users-btn" style="display: none">Users</button>
-                <button id="logout-btn" style="display: none">Logout</button>
+                <button id="users-btn" class="hidden">Users</button>
+                <button id="logout-btn" class="hidden">Logout</button>
                 <button id="theme-toggle">Toggle Theme</button>
             </nav>
         </header>
