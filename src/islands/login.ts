@@ -25,6 +25,7 @@ export default function init(el: HTMLElement) {
                     document.dispatchEvent(
                         new CustomEvent('auth-changed', { detail: email })
                     );
+                    window.location.href = '/';
                 } else {
                     message.textContent = data.error || 'Login failed';
                 }
