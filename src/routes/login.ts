@@ -1,51 +1,30 @@
 import { API_BASE } from '../utils/api';
+import './auth-form.css';
 
 export default function init() {
     const content = document.getElementById('content');
     if (content) {
         content.innerHTML = `
             <h1>Login</h1>
-            <form
-                id="login-form"
-                style="
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    gap: 0.5rem;
-                    max-width: 300px;
-                    margin: 0 auto;
-                "
-            >
-                <label
-                    style="
-                        display: flex;
-                        flex-direction: column;
-                        width: 100%;
-                    "
-                >
+            <form id="login-form" class="auth-form">
+                <label class="auth-form__field">
                     Email
                     <input
                         type="email"
                         name="email"
                         required
                         autocomplete="username"
-                        style="width: 100%;"
+                        class="auth-form__input"
                     />
                 </label>
-                <label
-                    style="
-                        display: flex;
-                        flex-direction: column;
-                        width: 100%;
-                    "
-                >
+                <label class="auth-form__field">
                     Password
                     <input
                         type="password"
                         name="password"
                         required
                         autocomplete="current-password"
-                        style="width: 100%;"
+                        class="auth-form__input"
                     />
                 </label>
                 <button type="submit">Login</button>
