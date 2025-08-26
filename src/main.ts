@@ -118,7 +118,7 @@ document.addEventListener('auth-changed', (e) => {
           credentials: 'include',
       });
       document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
-      window.location.href = '/';
+      window.location.href = '/login';
   });
 
   document.body.addEventListener('htmx:afterSwap', (e) => {
