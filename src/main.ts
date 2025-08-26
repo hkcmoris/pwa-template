@@ -1,19 +1,5 @@
 import { API_BASE } from './utils/api';
 
-const pathRoute = window.location.pathname.replace(/^\/+/, '');
-let route = pathRoute || document.body.dataset.route || 'home';
-
-const loadRoute = async (name: string) => {
-    const module = await import(`./routes/${name}.ts`);
-    module.default?.();
-};
-
-const navigate = (name: string) => {
-    route = name;
-    loadRoute(route);
-    history.pushState(null, '', `/${name}`);
-};
-
 const onIdle =
     (
         window as Window & {
@@ -21,7 +7,25 @@ const onIdle =
         }
     ).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 0));
 
-onIdle(() => loadRoute(route));
+const islandModules = import.meta.glob('./islands/*.ts');
+
+const mountIslands = (root: Document | HTMLElement = document) => {
+    root
+        .querySelectorAll<HTMLElement>('[data-island]:not([data-island-mounted])')
+        .forEach(async (el) => {
+            const name = el.dataset.island!;
+            const loader = islandModules[`./islands/${name}.ts`];
+            if (loader) {
+                const module = (await loader()) as {
+                    default?: (el: HTMLElement) => void;
+                };
+                module.default?.(el);
+                el.setAttribute('data-island-mounted', '');
+            }
+        });
+};
+
+onIdle(() => mountIslands());
 
 const menuButton = document.getElementById('menu-toggle');
 const navMenu = document.getElementById('nav-menu');
@@ -56,50 +60,38 @@ themeToggle?.addEventListener('click', () => {
     localStorage.setItem(THEME_KEY, next);
 });
 
-document.getElementById('login-btn')?.addEventListener('click', () => {
-    navigate('login');
-});
-
-document.getElementById('register-btn')?.addEventListener('click', () => {
-    navigate('register');
-});
-
-document.getElementById('users-btn')?.addEventListener('click', () => {
-    navigate('users');
-});
-
-const usernameEl = document.getElementById('username');
-const loginBtn = document.getElementById(
-    'login-btn'
-) as HTMLButtonElement | null;
-const registerBtn = document.getElementById(
-    'register-btn'
-) as HTMLButtonElement | null;
-const logoutBtn = document.getElementById(
-    'logout-btn'
-) as HTMLButtonElement | null;
-const usersBtn = document.getElementById(
-    'users-btn'
-) as HTMLButtonElement | null;
+  const usernameEl = document.getElementById('username');
+  const loginLink = document.getElementById(
+      'login-link'
+  ) as HTMLAnchorElement | null;
+  const registerLink = document.getElementById(
+      'register-link'
+  ) as HTMLAnchorElement | null;
+  const logoutBtn = document.getElementById(
+      'logout-btn'
+  ) as HTMLButtonElement | null;
+  const usersLink = document.getElementById(
+      'users-link'
+  ) as HTMLAnchorElement | null;
 const USER_KEY = 'userEmail';
 
 const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
         usernameEl.textContent = email || 'Guest';
     }
-    if (loginBtn && registerBtn && logoutBtn && usersBtn) {
-        if (email) {
-            loginBtn.classList.add('hidden');
-            registerBtn.classList.add('hidden');
-            logoutBtn.classList.remove('hidden');
-            usersBtn.classList.remove('hidden');
-        } else {
-            loginBtn.classList.remove('hidden');
-            registerBtn.classList.remove('hidden');
-            logoutBtn.classList.add('hidden');
-            usersBtn.classList.add('hidden');
-        }
-    }
+  if (loginLink && registerLink && logoutBtn && usersLink) {
+      if (email) {
+          loginLink.classList.add('hidden');
+          registerLink.classList.add('hidden');
+          logoutBtn.classList.remove('hidden');
+          usersLink.classList.remove('hidden');
+      } else {
+          loginLink.classList.remove('hidden');
+          registerLink.classList.remove('hidden');
+          logoutBtn.classList.add('hidden');
+          usersLink.classList.add('hidden');
+      }
+  }
 };
 
 const storedUser = localStorage.getItem(USER_KEY);
@@ -115,25 +107,15 @@ document.addEventListener('auth-changed', (e) => {
     updateAuthUI(email);
 });
 
-logoutBtn?.addEventListener('click', async () => {
-    await fetch(`${API_BASE}/logout.php`, {
-        method: 'POST',
-        credentials: 'include',
-    });
-    document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
-    navigate('home');
-});
+  logoutBtn?.addEventListener('click', async () => {
+      await fetch(`${API_BASE}/logout.php`, {
+          method: 'POST',
+          credentials: 'include',
+      });
+      document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
+      window.location.href = '/';
+  });
 
-document.body.addEventListener('click', (e) => {
-    const link = (e.target as HTMLElement).closest('a[data-route]');
-    if (link) {
-        e.preventDefault();
-        navigate(link.getAttribute('data-route')!);
-    }
-});
-
-window.addEventListener('popstate', () => {
-    const path = window.location.pathname.replace(/^\/+/, '') || 'home';
-    route = path;
-    loadRoute(route);
-});
+  document.body.addEventListener('htmx:afterSwap', (e) => {
+      mountIslands(e.target as HTMLElement);
+  });
