@@ -73,9 +73,6 @@ const logoutBtn = document.getElementById(
 const usersLink = document.getElementById(
     'users-link'
 ) as HTMLAnchorElement | null;
-const aboutLink = document.getElementById(
-    'about-link'
-) as HTMLAnchorElement | null;
 const USER_KEY = 'userEmail';
 
 const updateAuthUI = (email: string | null) => {
