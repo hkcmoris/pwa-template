@@ -18,25 +18,28 @@ function vite_asset(string $entry) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><?= htmlspecialchars($title) ?></title>
     <style>
-      :root{--bg:#fff;--fg:#111}
-      *,*::before,*::after{box-sizing:border-box;}
+      :root{--bg:#fff;--fg:#111;--primary:#3b82f6}
+      *,*::before,*::after{box-sizing:border-box}
       [data-theme='dark']{--bg:#111;--fg:#f5f5f5}
-      body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif}
-      header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;width:calc(100dvw - 2rem);}
+      body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
+      a{color:var(--primary);text-decoration:none}
+      a:hover{text-decoration:underline}
+      header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
       .logo{font-weight:bold}
       nav{display:flex;gap:.5rem}
-      #menu-toggle{display:none;background:none;border:none;font-size:1.5rem}
+      #menu-toggle{display:none;background:none;border:1px solid var(--fg);color:var(--fg);font-size:1.5rem;border-radius:.25rem}
       @media (max-width:600px){
         nav{display:none;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--bg);border-top:1px solid var(--fg)}
         nav.open{display:flex}
         #menu-toggle{display:block}
       }
-      button{cursor:pointer;background:none;border:1px solid var(--fg);color:var(--fg);padding:.25rem .5rem}
-      main{padding:1rem;padding-top:2.5rem;min-height:calc(100dvb - 3.5rem);}
+      button{cursor:pointer;background:var(--primary);color:#fff;border:none;border-radius:.25rem;padding:.25rem .75rem;transition:background .2s}
+      button:hover{background:#2563eb}
+      main{padding:1rem;padding-top:3.5rem;min-height:calc(100dvb - 3.5rem);max-width:800px;margin:0 auto}
       .hidden{display:none}
-      .auth-form{display:flex;flex-direction:column;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto;}
-      .auth-form__field{display:flex;flex-direction:column;width:100%;}
-      .auth-form__input{width: 100%;}
+      .auth-form{display:flex;flex-direction:column;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto}
+      .auth-form__field{display:flex;flex-direction:column;width:100%}
+      .auth-form__input{width:100%;padding:.5rem;border:1px solid var(--fg);border-radius:.25rem}
     </style>
     <?php if (APP_ENV !== 'dev'):
       $main = vite_asset('src/main.ts');
