@@ -1,5 +1,5 @@
 export default async function init(el: HTMLElement) {
-    const list = el.querySelector('#users-list');
+    const list = el.querySelector<HTMLTableSectionElement>('#users-list');
     const message = el.querySelector('#users-message');
     try {
         const response = await fetch('/api/users.php', {
@@ -12,9 +12,13 @@ export default async function init(el: HTMLElement) {
                     .map(
                         (u: {
                             id: number;
+                            username: string;
                             email: string;
                             created_at: string;
-                        }) => `<li>${u.email}</li>`
+                        }) =>
+                            `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${new Date(
+                                u.created_at
+                            ).toLocaleString()}</td></tr>`
                     )
                     .join('');
             } else if (message) {

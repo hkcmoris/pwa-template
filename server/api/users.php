@@ -18,7 +18,7 @@ if (!$payload) {
 log_message("Users list requested by {$payload['email']}");
 
 $db = get_db_connection();
-$stmt = $db->prepare('SELECT id, email, created_at FROM users');
+$stmt = $db->prepare('SELECT id, username, email, created_at FROM users');
 $stmt->execute();
 $users = $stmt->fetchAll();
 
