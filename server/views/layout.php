@@ -3,6 +3,7 @@ require_once __DIR__.'/../config/config.php';
 $title  = $title  ?? 'PWA Template';
 $route  = $route  ?? 'home';
 $theme  = $_COOKIE['theme'] ?? 'light';
+if ($theme !== 'dark' && $theme !== 'light') $theme = 'light';
 
 function vite_asset(string $entry) {
   static $m = null;
