@@ -29,6 +29,16 @@ onIdle(() => mountIslands());
 
 const menuButton = document.getElementById('menu-toggle');
 const navMenu = document.getElementById('nav-menu');
+const navLinks = navMenu?.querySelectorAll<HTMLAnchorElement>('a');
+
+const highlightNav = () => {
+    const path = window.location.pathname;
+    navLinks?.forEach((link) => {
+        link.classList.toggle('active', link.getAttribute('href') === path);
+    });
+};
+
+highlightNav();
 
 menuButton?.addEventListener('click', () => {
     navMenu?.classList.toggle('open');
@@ -127,4 +137,5 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
     }
 
     mountIslands();
+    highlightNav();
 });
