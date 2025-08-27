@@ -24,6 +24,7 @@ function vite_asset(string $entry) {
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
+      nav a.active{font-weight:bold;text-decoration:underline}
       header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
       .logo{font-weight:bold}
       nav{display:flex;gap:.5rem}
