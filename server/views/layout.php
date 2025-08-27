@@ -19,6 +19,7 @@ function vite_asset(string $entry) {
     <title><?= htmlspecialchars($title) ?></title>
     <style>
       :root{--bg:#fff;--fg:#111}
+      *,*::before,*::after{box-sizing:border-box;}
       [data-theme='dark']{--bg:#111;--fg:#f5f5f5}
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif}
       header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;width:calc(100dvw - 2rem);}
@@ -37,7 +38,7 @@ function vite_asset(string $entry) {
       .auth-form__field{display:flex;flex-direction:column;width:100%;}
       .auth-form__input{width: 100%;}
     </style>
-    <?php if (!APP_ENV === 'dev'):
+    <?php if (APP_ENV !== 'dev'):
       $main = vite_asset('src/main.ts');
       if ($main && !empty($main['css'])):
         foreach ($main['css'] as $css): ?>
@@ -70,7 +71,7 @@ function vite_asset(string $entry) {
       ?>
     </main>
 
-      <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+      <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
       <?php if (APP_ENV === 'dev'): ?>
         <script type="module" src="http://localhost:5173/@vite/client"></script>
         <script type="module" src="http://localhost:5173/src/main.ts"></script>

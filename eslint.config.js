@@ -5,26 +5,26 @@ const globals = require('globals');
 const eslintConfigPrettier = require('eslint-config-prettier');
 
 module.exports = [
-  {
-    ignores: ['dist/**', 'public/assets/**']
-  },
-  js.configs.recommended,
-  {
-    files: ['src/**/*.{ts,tsx}'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module'
-      },
-      globals: globals.browser
+    {
+        ignores: ['dist/**', 'public/assets/**'],
     },
-    plugins: {
-      '@typescript-eslint': tsPlugin
+    js.configs.recommended,
+    {
+        files: ['src/**/*.{ts,tsx}'],
+        languageOptions: {
+            parser: tsParser,
+            parserOptions: {
+                ecmaVersion: 'latest',
+                sourceType: 'module',
+            },
+            globals: globals.browser,
+        },
+        plugins: {
+            '@typescript-eslint': tsPlugin,
+        },
+        rules: {
+            ...tsPlugin.configs.recommended.rules,
+        },
     },
-    rules: {
-      ...tsPlugin.configs.recommended.rules
-    }
-  },
-  eslintConfigPrettier
+    eslintConfigPrettier,
 ];

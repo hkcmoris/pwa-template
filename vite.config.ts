@@ -5,7 +5,9 @@ export default defineConfig({
     build: {
         outDir: 'server/public/assets',
         emptyOutDir: true,
-        manifest: true, 
+        manifest: true,
+        target: 'es2020',
+        modulePreload: { polyfill: false },
         rollupOptions: {
             input: resolve(__dirname, 'src/main.ts'),
             output: {
