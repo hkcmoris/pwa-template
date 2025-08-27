@@ -122,7 +122,10 @@ logoutBtn?.addEventListener('click', async () => {
 });
 
 document.body.addEventListener('htmx:afterSwap', (e) => {
-    const target = (e as CustomEvent).detail?.target as HTMLElement;
+    const target =
+        ((e as CustomEvent).detail &&
+            ((e as CustomEvent).detail as { target?: HTMLElement })
+                .target) || (e.target as HTMLElement);
 
     if (target?.id === 'content') {
         window.scrollTo(0, 0);
