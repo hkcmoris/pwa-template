@@ -54,11 +54,22 @@ navMenu?.addEventListener('click', (e) => {
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'theme';
 
-const applyTheme = (theme: string) => {
-    document.documentElement.dataset.theme = theme;
+const setThemeCookie = (theme: string) => {
+    document.cookie = `theme=${theme};path=/;max-age=31536000;SameSite=Lax`;
 };
 
-const stored = localStorage.getItem(THEME_KEY);
+const applyTheme = (theme: string) => {
+    document.documentElement.dataset.theme = theme;
+    setThemeCookie(theme);
+};
+
+const getCookie = (name: string) =>
+    document.cookie
+        .split('; ')
+        .find((row) => row.startsWith(`${name}=`))
+        ?.split('=')[1];
+
+const stored = localStorage.getItem(THEME_KEY) ?? getCookie(THEME_KEY);
 if (stored) {
     applyTheme(stored);
 }
