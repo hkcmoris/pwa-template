@@ -122,10 +122,13 @@ logoutBtn?.addEventListener('click', async () => {
 });
 
 document.body.addEventListener('htmx:afterSwap', (e) => {
-    /** FIX EXTRA PADDING AFTER PAGE RELOAD :: BLOCK START */
-    if ((e.target as HTMLElement).id === 'content') {
+    const target = (e as CustomEvent).detail?.target as HTMLElement;
+
+    if (target?.id === 'content') {
         window.scrollTo(0, 0);
     }
-    /** FIX EXTRA PADDING AFTER PAGE RELOAD :: BLOCK END */
-    mountIslands(e.target as HTMLElement);
+
+    if (target) {
+        mountIslands(target);
+    }
 });
