@@ -131,7 +131,5 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
         window.scrollTo(0, 0);
     }
 
-    if (target) {
-        mountIslands(target);
-    }
+    mountIslands();
 });
