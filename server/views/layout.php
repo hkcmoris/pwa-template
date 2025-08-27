@@ -21,7 +21,7 @@ function vite_asset(string $entry) {
       :root{--bg:#fff;--fg:#111}
       [data-theme='dark']{--bg:#111;--fg:#f5f5f5}
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif}
-      header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:relative}
+      header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;width:calc(100dvw - 2rem);}
       .logo{font-weight:bold}
       nav{display:flex;gap:.5rem}
       #menu-toggle{display:none;background:none;border:none;font-size:1.5rem}
@@ -31,8 +31,11 @@ function vite_asset(string $entry) {
         #menu-toggle{display:block}
       }
       button{cursor:pointer;background:none;border:1px solid var(--fg);color:var(--fg);padding:.25rem .5rem}
-      main{padding:1rem}
+      main{padding:1rem;padding-top:2.5rem;min-height:calc(100dvb - 3.5rem);}
       .hidden{display:none}
+      .auth-form{display:flex;flex-direction:column;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto;}
+      .auth-form__field{display:flex;flex-direction:column;width:100%;}
+      .auth-form__input{width: 100%;}
     </style>
     <?php if (!APP_ENV === 'dev'):
       $main = vite_asset('src/main.ts');

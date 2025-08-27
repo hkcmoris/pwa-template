@@ -1,5 +1,4 @@
 import { API_BASE } from '../utils/api';
-import './auth-form.css';
 
 export default function init(el: HTMLElement) {
     const form = el.querySelector('#register-form') as HTMLFormElement | null;
