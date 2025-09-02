@@ -31,7 +31,7 @@
                 class="auth-form__input"
             />
         </label>
-        <button type="submit">Registrovat se</button>
+        <button type="submit">REGISTROVAT SE</button>
     </form>
     <div id="register-message"></div>
 </div>

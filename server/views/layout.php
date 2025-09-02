@@ -33,14 +33,14 @@ function vite_asset(string $entry) {
       header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
       .logo{font-weight:bold;line-height:0}
       .logo img,.logo svg{display:block}
-      nav{display:flex;gap:.5rem}
+      nav{display:flex;gap:.5rem;align-items:center;}
       #menu-toggle{display:none;background:none;border:1px solid var(--fg);color:var(--fg);font-size:1.5rem;border-radius:.25rem}
       @media (max-width:600px){
         nav{display:none;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--bg);border-top:1px solid var(--fg)}
         nav.open{display:flex}
         #menu-toggle{display:block}
       }
-      button{cursor:pointer;background:var(--primary);color:#fff;border:none;border-radius:.25rem;padding:.25rem .75rem;transition:background .2s}
+      button{cursor:pointer;background:var(--primary);color:#fff;border:none;border-radius:.25rem;padding:.5rem .75rem;transition:background .2s}
       button:hover{background:#2563eb}
       table{width:100%;border-collapse:collapse}
       th{text-align:left}
@@ -49,6 +49,7 @@ function vite_asset(string $entry) {
       .auth-form{display:flex;flex-direction:column;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto}
       .auth-form__field{display:flex;flex-direction:column;width:100%}
       .auth-form__input{width:100%;padding:.5rem;border:1px solid var(--fg);border-radius:.25rem}
+      .auth-form button{width:100%;font-size:1.1rem;margin-top:1rem}
     </style>
     <?php if (APP_ENV !== 'dev'):
       $main = vite_asset('src/main.ts');
@@ -130,6 +131,8 @@ function vite_asset(string $entry) {
       <?php if (APP_ENV === 'dev'): ?>
         <script type="module" src="http://localhost:5173/@vite/client"></script>
         <script type="module" src="http://localhost:5173/src/main.ts"></script>
+        <link rel="preload" as="style" href="http://localhost:5173/src/styles/fonts.css" onload="this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="http://localhost:5173/src/styles/fonts.css"></noscript>
       <?php else: ?>
         <?php if (!empty($main['file'])): ?>
           <script type="module" src="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($main['file']) ?>"></script>

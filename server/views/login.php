@@ -21,7 +21,7 @@
                 class="auth-form__input"
             />
         </label>
-        <button type="submit">Přihlásit se</button>
+        <button type="submit">PŘIHLÁSIT SE</button>
     </form>
     <div id="login-message"></div>
 </div>
