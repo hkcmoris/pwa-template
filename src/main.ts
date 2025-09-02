@@ -32,6 +32,11 @@ const mountIslands = (root: Document | HTMLElement = document) => {
 
 onIdle(() => mountIslands());
 
+// In dev, lazy-load font CSS from Vite server after first paint
+if (import.meta.env.DEV) {
+    onIdle(() => import('/src/styles/fonts.css'));
+}
+
 const menuButton = document.getElementById('menu-toggle');
 const navMenu = document.getElementById('nav-menu');
 const navLinks = navMenu?.querySelectorAll<HTMLAnchorElement>('a');

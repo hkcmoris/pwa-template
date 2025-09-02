@@ -9,7 +9,10 @@ export default defineConfig({
         target: 'es2020',
         modulePreload: { polyfill: false },
         rollupOptions: {
-            input: resolve(__dirname, 'src/main.ts'),
+            input: {
+                main: resolve(__dirname, 'src/main.ts'),
+                fonts: resolve(__dirname, 'src/styles/fonts.css'),
+            },
             output: {
                 entryFileNames: '[name]-[hash].js',
                 chunkFileNames: '[name]-[hash].js',

@@ -52,11 +52,16 @@ function vite_asset(string $entry) {
     </style>
     <?php if (APP_ENV !== 'dev'):
       $main = vite_asset('src/main.ts');
+      $fontsCss = vite_asset('src/styles/fonts.css');
       if ($main && !empty($main['css'])):
         foreach ($main['css'] as $css): ?>
           <link rel="stylesheet" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($css) ?>"><?php
         endforeach;
       endif;
+      if ($fontsCss && !empty($fontsCss['file'])): ?>
+        <link rel="preload" as="style" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>" onload="this.rel='stylesheet'">
+        <noscript><link rel="stylesheet" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"></noscript>
+      <?php endif;
     endif; ?>
   </head>
     <body>
