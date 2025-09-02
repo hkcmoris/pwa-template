@@ -1,8 +1,8 @@
 <div data-island="register">
-    <h1>Register</h1>
+    <h1>Registrace</h1>
     <form id="register-form" class="auth-form">
         <label class="auth-form__field">
-            Username
+            Uživatelské jméno
             <input
                 type="text"
                 name="username"
@@ -12,7 +12,7 @@
             />
         </label>
         <label class="auth-form__field">
-            Email
+            E‑mail
             <input
                 type="email"
                 name="email"
@@ -22,7 +22,7 @@
             />
         </label>
         <label class="auth-form__field">
-            Password
+            Heslo
             <input
                 type="password"
                 name="password"
@@ -31,7 +31,7 @@
                 class="auth-form__input"
             />
         </label>
-        <button type="submit">Register</button>
+        <button type="submit">Registrovat se</button>
     </form>
     <div id="register-message"></div>
 </div>

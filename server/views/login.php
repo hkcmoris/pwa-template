@@ -1,8 +1,8 @@
 <div data-island="login">
-    <h1>Login</h1>
+    <h1>Přihlášení</h1>
     <form id="login-form" class="auth-form">
         <label class="auth-form__field">
-            Email
+            E‑mail
             <input
                 type="email"
                 name="email"
@@ -12,7 +12,7 @@
             />
         </label>
         <label class="auth-form__field">
-            Password
+            Heslo
             <input
                 type="password"
                 name="password"
@@ -21,7 +21,7 @@
                 class="auth-form__input"
             />
         </label>
-        <button type="submit">Login</button>
+        <button type="submit">Přihlásit se</button>
     </form>
     <div id="login-message"></div>
 </div>

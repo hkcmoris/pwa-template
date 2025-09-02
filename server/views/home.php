@@ -1,2 +1,2 @@
 <h1>HAGEMANN konfigurátor</h1>
-<p>PHP SSR + Vite dev assets. ✨</p>
+<p>PHP SSR + Vite vývojové assety.</p>

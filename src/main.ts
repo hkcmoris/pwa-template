@@ -111,7 +111,7 @@ const USER_KEY = 'userEmail';
 
 const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
-        usernameEl.textContent = email || 'Guest';
+        usernameEl.textContent = email || 'Návštěvník';
     }
     if (loginLink && registerLink && logoutBtn && usersLink) {
         if (email) {

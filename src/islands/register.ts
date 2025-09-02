@@ -28,19 +28,19 @@ export default function init(el: HTMLElement) {
 
             if (message) {
                 if (response.ok && data.token) {
-                    message.textContent = 'Registration successful';
+                    message.textContent = 'Registrace úspěšná';
                     const email = formData.get('email') as string;
                     document.dispatchEvent(
                         new CustomEvent('auth-changed', { detail: email })
                     );
                 } else {
                     message.textContent =
-                        data.error || errorText || 'Registration failed';
+                        data.error || errorText || 'Registrace se nezdařila';
                 }
             }
         } catch {
             if (message) {
-                message.textContent = 'Registration failed';
+                message.textContent = 'Registrace se nezdařila';
             }
         }
     });

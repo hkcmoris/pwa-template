@@ -20,13 +20,14 @@ if (is_file($viewPath)) {
 
 $titleMap = [
   'home' => 'HAGEMANN konfigurátor',
-  'login' => 'Login',
-  'register' => 'Register',
-  'users' => 'Users',
-  'about' => 'About',
+  'login' => 'Přihlášení',
+  'register' => 'Registrace',
+  'users' => 'Uživatelé',
+  'about' => 'O aplikaci',
   'demo' => 'Demo',
-  '404' => 'Not Found'
+  '404' => 'Stránka nenalezena'
 ];
 $title = $titleMap[$view] ?? ucfirst($view);
 
 require __DIR__ . '/views/layout.php';
+

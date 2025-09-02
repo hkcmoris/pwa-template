@@ -24,19 +24,19 @@ export default function init(el: HTMLElement) {
             const data = await response.json().catch(() => ({}));
             if (message) {
                 if (response.ok && data.token) {
-                    message.textContent = 'Login successful';
+                    message.textContent = 'Přihlášení úspěšné';
                     const email = formData.get('email') as string;
                     document.dispatchEvent(
                         new CustomEvent('auth-changed', { detail: email })
                     );
                     window.location.href = `${BASE}/`;
                 } else {
-                    message.textContent = data.error || 'Login failed';
+                    message.textContent = data.error || 'Přihlášení se nezdařilo';
                 }
             }
         } catch {
             if (message) {
-                message.textContent = 'Login failed';
+                message.textContent = 'Přihlášení se nezdařilo';
             }
         }
     });

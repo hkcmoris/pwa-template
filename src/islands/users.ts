@@ -22,18 +22,18 @@ export default async function init(el: HTMLElement) {
                     )
                     .join('');
             } else if (message) {
-                message.textContent = 'No users found';
+                message.textContent = 'Žádní uživatelé nenalezeni';
             }
         } else {
             const data = await response.json().catch(() => ({}));
             if (message) {
                 message.textContent =
-                    data.error || 'Failed to load users';
+                    data.error || 'Načtení uživatelů se nezdařilo';
             }
         }
     } catch {
         if (message) {
-            message.textContent = 'Failed to load users';
+            message.textContent = 'Načtení uživatelů se nezdařilo';
         }
     }
 }

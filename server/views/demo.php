@@ -1,42 +1,42 @@
-<h1>Demo</h1>
+<h1>Ukázka</h1>
 
 <section>
-  <h2>Headings</h2>
-  <h1>Heading 1</h1>
-  <h2>Heading 2</h2>
-  <h3>Heading 3</h3>
-  <h4>Heading 4</h4>
-  <h5>Heading 5</h5>
-  <h6>Heading 6</h6>
+  <h2>Nadpisy</h2>
+  <h1>Nadpis 1</h1>
+  <h2>Nadpis 2</h2>
+  <h3>Nadpis 3</h3>
+  <h4>Nadpis 4</h4>
+  <h5>Nadpis 5</h5>
+  <h6>Nadpis 6</h6>
 </section>
 
 <section>
-  <h2>Text and Links</h2>
-  <p>This is a paragraph with <a href="#">a link</a> inside.</p>
-  <blockquote>Blockquote example</blockquote>
-  <pre><code>code sample</code></pre>
+  <h2>Text a odkazy</h2>
+  <p>Toto je odstavec s <a href="#">odkazem</a> uvnitř.</p>
+  <blockquote>Příklad citace</blockquote>
+  <pre><code>ukázka kódu</code></pre>
 </section>
 
 <section>
-  <h2>Lists</h2>
+  <h2>Seznamy</h2>
   <ul>
-    <li>Unordered item one</li>
-    <li>Unordered item two</li>
+    <li>Nepočítaný bod 1</li>
+    <li>Nepočítaný bod 2</li>
   </ul>
   <ol>
-    <li>Ordered item one</li>
-    <li>Ordered item two</li>
+    <li>Počítaný bod 1</li>
+    <li>Počítaný bod 2</li>
   </ol>
 </section>
 
 <section>
-  <h2>Form</h2>
+  <h2>Formulář</h2>
   <form class="auth-form">
     <div class="auth-form__field">
-      <label for="demo-input">Input</label>
-      <input id="demo-input" type="text" class="auth-form__input" placeholder="Text input" />
+      <label for="demo-input">Vstup</label>
+      <input id="demo-input" type="text" class="auth-form__input" placeholder="Textový vstup" />
     </div>
-    <button type="submit">Submit</button>
+    <button type="submit">Odeslat</button>
   </form>
 </section>
 

@@ -1,12 +1,12 @@
 <div data-island="users">
-    <h1>Users</h1>
+    <h1>Uživatelé</h1>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Date Created</th>
+                <th>Uživatelské jméno</th>
+                <th>E‑mail</th>
+                <th>Datum vytvoření</th>
             </tr>
         </thead>
         <tbody id="users-list"></tbody>
