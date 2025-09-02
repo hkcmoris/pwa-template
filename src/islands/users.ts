@@ -1,10 +1,10 @@
+import { apiFetch } from '../utils/api';
+
 export default async function init(el: HTMLElement) {
     const list = el.querySelector<HTMLTableSectionElement>('#users-list');
     const message = el.querySelector('#users-message');
     try {
-        const response = await fetch('/api/users.php', {
-            credentials: 'include',
-        });
+        const response = await apiFetch('/users.php');
         if (response.ok) {
             const data = await response.json();
             if (Array.isArray(data.users) && list) {

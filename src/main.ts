@@ -1,5 +1,10 @@
 import { API_BASE } from './utils/api';
 
+const BASE =
+    (typeof document !== 'undefined' &&
+        document.documentElement?.dataset?.base) ||
+    '';
+
 const onIdle =
     (
         window as Window & {
@@ -34,7 +39,9 @@ const navLinks = navMenu?.querySelectorAll<HTMLAnchorElement>('a');
 const highlightNav = () => {
     const path = window.location.pathname;
     navLinks?.forEach((link) => {
-        link.classList.toggle('active', link.getAttribute('href') === path);
+        // Use resolved pathname so relative hrefs like 'about' compare correctly
+        const linkPath = link.pathname;
+        link.classList.toggle('active', linkPath === path);
     });
 };
 
@@ -55,7 +62,8 @@ const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'theme';
 
 const setThemeCookie = (theme: string) => {
-    document.cookie = `theme=${theme};path=/;max-age=31536000;SameSite=Lax`;
+    const path = BASE || '/';
+    document.cookie = `theme=${theme};path=${path};max-age=31536000;SameSite=Lax`;
 };
 
 const applyTheme = (theme: string) => {
@@ -134,7 +142,7 @@ logoutBtn?.addEventListener('click', async () => {
         credentials: 'include',
     });
     document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
-    window.location.href = '/login';
+    window.location.href = `${BASE}/login`;
 });
 
 document.body.addEventListener('htmx:afterSwap', (e) => {

@@ -2,6 +2,7 @@
 require_once __DIR__.'/cors.php';
 require_once __DIR__.'/../lib/db.php';
 require_once __DIR__.'/../lib/jwt.php';
+require_once __DIR__.'/../lib/auth.php';
 require_once __DIR__.'/../lib/logger.php';
 
 header('Content-Type: application/json');
@@ -47,11 +48,24 @@ try {
     exit;
 }
 
-$token = generate_jwt(['sub' => $userId, 'email' => $email], JWT_SECRET);
+// Issue access token (10 minutes)
+$accessTtl = 600;
+$token = generate_jwt(['sub' => $userId, 'email' => $email], JWT_SECRET, $accessTtl);
 setcookie('token', $token, [
     'httponly' => true,
     'samesite' => 'Lax',
-    'path' => '/',
+    'expires' => time() + $accessTtl,
+    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+]);
+
+// Issue refresh token (14 days)
+$refreshTtl = 14 * 24 * 3600;
+$refresh = create_refresh_token((int)$userId, $refreshTtl);
+setcookie('refresh_token', $refresh, [
+    'httponly' => true,
+    'samesite' => 'Lax',
+    'expires' => time() + $refreshTtl,
+    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
 ]);
 
 http_response_code(201);

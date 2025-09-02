@@ -5,15 +5,19 @@ $route  = $route  ?? 'home';
 $theme  = $_COOKIE['theme'] ?? 'light';
 if ($theme !== 'dark' && $theme !== 'light') $theme = 'light';
 
+// Normalized base path for subfolder deployments ('' or '/subdir')
+$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
+
 function vite_asset(string $entry) {
   static $m = null;
-  $path = __DIR__ . '/../public/assets/manifest.json'; // adjust if needed
+  // Vite manifest location under outDir
+  $path = __DIR__ . '/../public/assets/.vite/manifest.json';
   if ($m === null && is_file($path)) $m = json_decode(file_get_contents($path), true);
   return $m[$entry] ?? null;
 }
 ?>
 <!doctype html>
-  <html lang="en" data-theme="<?= htmlspecialchars($theme) ?>">
+  <html lang="en" data-theme="<?= htmlspecialchars($theme) ?>" data-base="<?= htmlspecialchars($BASE) ?>">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -49,7 +53,7 @@ function vite_asset(string $entry) {
       $main = vite_asset('src/main.ts');
       if ($main && !empty($main['css'])):
         foreach ($main['css'] as $css): ?>
-          <link rel="stylesheet" href="/assets/<?= htmlspecialchars($css) ?>"><?php
+          <link rel="stylesheet" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($css) ?>"><?php
         endforeach;
       endif;
     endif; ?>
@@ -60,12 +64,12 @@ function vite_asset(string $entry) {
       <button id="menu-toggle" aria-label="Menu">☰</button>
         <nav id="nav-menu">
           <span id="username"><?= htmlspecialchars($username ?? 'Guest') ?></span>
-          <a id="home-link" href="/" hx-get="/" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Home</a>
-          <a id="users-link" href="/users" hx-get="/users" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Users</a>
-          <a id="about-link" href="/about" hx-get="/about" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">About</a>
-          <a id="demo-link" href="/demo" hx-get="/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
-          <a id="login-link" href="/login" hx-get="/login" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Login</a>
-          <a id="register-link" href="/register" hx-get="/register" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Register</a>
+          <a id="home-link" href="<?= htmlspecialchars($BASE) ?>/" hx-get="<?= htmlspecialchars($BASE) ?>/" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Home</a>
+          <a id="users-link" href="<?= htmlspecialchars($BASE) ?>/users" hx-get="<?= htmlspecialchars($BASE) ?>/users" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Users</a>
+          <a id="about-link" href="<?= htmlspecialchars($BASE) ?>/about" hx-get="<?= htmlspecialchars($BASE) ?>/about" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">About</a>
+          <a id="demo-link" href="<?= htmlspecialchars($BASE) ?>/demo" hx-get="<?= htmlspecialchars($BASE) ?>/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
+          <a id="login-link" href="<?= htmlspecialchars($BASE) ?>/login" hx-get="<?= htmlspecialchars($BASE) ?>/login" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Login</a>
+          <a id="register-link" href="<?= htmlspecialchars($BASE) ?>/register" hx-get="<?= htmlspecialchars($BASE) ?>/register" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Register</a>
           <button id="logout-btn" class="hidden">Logout</button>
           <button id="theme-toggle">Toggle Theme</button>
         </nav>
@@ -86,12 +90,12 @@ function vite_asset(string $entry) {
         <script type="module" src="http://localhost:5173/src/main.ts"></script>
       <?php else: ?>
         <?php if (!empty($main['file'])): ?>
-          <script type="module" src="/assets/<?= htmlspecialchars($main['file']) ?>"></script>
+          <script type="module" src="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($main['file']) ?>"></script>
         <?php endif; ?>
       <?php endif; ?>
 
     <script>
-      requestIdleCallback?.(()=>navigator.serviceWorker?.register('/sw.js'));
+      requestIdleCallback?.(()=>navigator.serviceWorker?.register('<?= htmlspecialchars($BASE) ?>/sw.js', { scope: '<?= htmlspecialchars($BASE) ?>/' }));
     </script>
   </body>
 </html>

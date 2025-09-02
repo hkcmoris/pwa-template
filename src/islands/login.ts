@@ -1,5 +1,10 @@
 import { API_BASE } from '../utils/api';
 
+const BASE =
+    (typeof document !== 'undefined' &&
+        document.documentElement?.dataset?.base) ||
+    '';
+
 export default function init(el: HTMLElement) {
     const form = el.querySelector('#login-form') as HTMLFormElement | null;
     const message = el.querySelector('#login-message');
@@ -24,7 +29,7 @@ export default function init(el: HTMLElement) {
                     document.dispatchEvent(
                         new CustomEvent('auth-changed', { detail: email })
                     );
-                    window.location.href = '/';
+                    window.location.href = `${BASE}/`;
                 } else {
                     message.textContent = data.error || 'Login failed';
                 }
