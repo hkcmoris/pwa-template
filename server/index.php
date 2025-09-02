@@ -19,7 +19,7 @@ if (is_file($viewPath)) {
 }
 
 $titleMap = [
-  'home' => 'PWA Template',
+  'home' => 'HAGEMANN konfigurátor',
   'login' => 'Login',
   'register' => 'Register',
   'users' => 'Users',
