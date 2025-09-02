@@ -23,6 +23,7 @@ $titleMap = [
   'login' => 'Přihlášení',
   'register' => 'Registrace',
   'users' => 'Uživatelé',
+  'editor' => 'Editor',
   'about' => 'O aplikaci',
   'demo' => 'Demo',
   '404' => 'Stránka nenalezena'

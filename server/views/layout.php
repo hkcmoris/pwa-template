@@ -109,6 +109,7 @@ function vite_asset(string $entry) {
           <span id="username"><?= htmlspecialchars($username ?? 'Návštěvník') ?></span>
           <a id="home-link" href="<?= htmlspecialchars($BASE) ?>/" hx-get="<?= htmlspecialchars($BASE) ?>/" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Domů</a>
           <a id="users-link" href="<?= htmlspecialchars($BASE) ?>/users" hx-get="<?= htmlspecialchars($BASE) ?>/users" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Uživatelé</a>
+          <a id="editor-link" href="<?= htmlspecialchars($BASE) ?>/editor" hx-get="<?= htmlspecialchars($BASE) ?>/editor" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Editor</a>
           <a id="about-link" href="<?= htmlspecialchars($BASE) ?>/about" hx-get="<?= htmlspecialchars($BASE) ?>/about" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">O aplikaci</a>
           <a id="demo-link" href="<?= htmlspecialchars($BASE) ?>/demo" hx-get="<?= htmlspecialchars($BASE) ?>/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
           <a id="login-link" href="<?= htmlspecialchars($BASE) ?>/login" hx-get="<?= htmlspecialchars($BASE) ?>/login" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Přihlásit se</a>

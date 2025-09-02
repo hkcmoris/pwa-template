@@ -42,11 +42,14 @@ const navMenu = document.getElementById('nav-menu');
 const navLinks = navMenu?.querySelectorAll<HTMLAnchorElement>('a');
 
 const highlightNav = () => {
-    const path = window.location.pathname;
+    // Normalize trailing slashes
+    const path = (window.location.pathname.replace(/\/+$/, '') || '/');
     navLinks?.forEach((link) => {
-        // Use resolved pathname so relative hrefs like 'about' compare correctly
-        const linkPath = link.pathname;
-        link.classList.toggle('active', linkPath === path);
+        const linkPath = (link.pathname.replace(/\/+$/, '') || '/');
+        const isActive = linkPath === '/'
+            ? path === '/'
+            : path === linkPath || path.startsWith(linkPath + '/');
+        link.classList.toggle('active', isActive);
     });
 };
 
