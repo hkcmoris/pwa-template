@@ -121,7 +121,7 @@ npm install
 2. Start the PHP development server from the project root:
 
    ```bash
-   php -S localhost:8000
+   npm run start
    ```
 
 3. In another terminal, run the Vite dev server for client assets:
@@ -131,3 +131,44 @@ npm install
    ```
 
 Visit <http://localhost:8000> in your browser to test the app.
+
+## PHP configuration (uploads + WebP)
+
+Large image uploads and server‑side conversion to WebP require a couple of PHP settings and extensions.
+
+1) Locate your php.ini
+- Run `php --ini` and note the “Loaded Configuration File”.
+- Examples:
+  - Windows (winget PHP): typically `C:\Program Files\PHP\8.x\php.ini`
+  - macOS (Homebrew): `/opt/homebrew/etc/php/8.x/php.ini`
+  - Ubuntu/Debian: `/etc/php/8.x/cli/php.ini` (CLI/built‑in server) and `/etc/php/8.x/fpm/php.ini` (FPM)
+
+2) Enable an image library (pick one)
+- GD (recommended, lightweight): ensure this line is present/uncommented in php.ini:
+  - `extension=gd`
+- Imagick (optional alternative): if installed, enable:
+  - `extension=imagick`
+
+3) Verify WebP support
+- Restart your PHP server, then check:
+  - Cross‑platform: `php -i | findstr /I "gd\|webp"` (Windows PowerShell/CMD)
+  - Linux/macOS: `php -i | grep -iE "gd|webp"`
+- You should see `GD Support => enabled` and `WebP Support => enabled` or Imagick installed.
+
+4) Allow larger uploads (e.g., 32 MB)
+- Edit php.ini and set:
+  - `upload_max_filesize = 32M`
+  - `post_max_size = 32M` (must be ≥ upload_max_filesize)
+  - Optionally, increase `memory_limit` (e.g., `256M`) for processing large images.
+- Restart your PHP server after saving changes.
+
+5) Web servers (if not using the built‑in dev server)
+- Apache (mod_php): you may alternatively set in `.htaccess`:
+  - `php_value upload_max_filesize 32M`
+  - `php_value post_max_size 32M`
+- Nginx + PHP‑FPM: also set in Nginx site config:
+  - `client_max_body_size 32M;` and reload Nginx.
+
+Notes
+- For local development, the npm script `npm run dev:php` starts PHP with higher limits (`post_max_size` and `upload_max_filesize` set to 32M). If you run `php -S` manually, prefer editing php.ini as above.
+- If neither GD (with WebP) nor Imagick is available, image conversion will fail; the UI will show a warning. Enable one of them to convert PNG/JPEG/GIF to WebP on upload.

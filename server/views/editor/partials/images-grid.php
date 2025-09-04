@@ -1,0 +1,55 @@
+<?php
+require_once __DIR__ . '/../../../lib/images.php';
+
+$BASE = $BASE ?? (defined('BASE_PATH') ? rtrim(BASE_PATH, '/') : '');
+$path = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GET['path']) : '';
+[$dir, $path] = img_resolve($path);
+$list = img_list($path, img_root_url($BASE));
+
+// Compute parent path
+$parentRel = '';
+if ($path !== '') {
+  $parentRel = str_contains($path, '/') ? dirname($path) : '';
+}
+?>
+
+<div id="image-grid" class="grid" data-current-path="<?= htmlspecialchars($path) ?>">
+  <?php if ($path !== ''): ?>
+  <div class="tile folder" tabindex="0"
+       data-folder-rel="<?= htmlspecialchars($parentRel) ?>"
+       hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($parentRel) ?>"
+       hx-target="#image-grid"
+       hx-select="#image-grid"
+       hx-swap="outerHTML"
+       hx-trigger="dblclick">
+    <div class="thumb" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M10 4H4c-1.1 0-2 .9-2 2v2h20V8c0-1.1-.9-2-2-2h-8l-2-2zM2 10v8c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-8H2z"/></svg>
+    </div>
+    <div class="label">↥ Nahoru</div>
+  </div>
+  <?php endif; ?>
+
+  <?php foreach ($list['dirs'] as $d): ?>
+  <div class="tile folder" tabindex="0"
+       data-folder-rel="<?= htmlspecialchars($d['rel']) ?>"
+       hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($d['rel']) ?>"
+       hx-target="#image-grid"
+       hx-select="#image-grid"
+       hx-swap="outerHTML"
+       hx-trigger="dblclick">
+    <div class="thumb" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>
+    </div>
+    <div class="label" title="<?= htmlspecialchars($d['name']) ?>"><?= htmlspecialchars($d['name']) ?></div>
+  </div>
+  <?php endforeach; ?>
+
+  <?php foreach ($list['images'] as $img): ?>
+  <div class="tile image" tabindex="0"
+       data-image-rel="<?= htmlspecialchars($img['rel']) ?>"
+       data-image-url="<?= htmlspecialchars($img['url']) ?>">
+    <div class="thumb"><img loading="lazy" decoding="async" src="<?= htmlspecialchars($img['url']) ?>" alt="<?= htmlspecialchars($img['name']) ?>"></div>
+    <div class="label" title="<?= htmlspecialchars($img['name']) ?>"><?= htmlspecialchars($img['name']) ?></div>
+  </div>
+  <?php endforeach; ?>
+</div>

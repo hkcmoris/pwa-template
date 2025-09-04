@@ -8,7 +8,7 @@
     },
     "scripts": {
         "dev": "vite",
-        "dev:php": "php -S localhost:8000 -t server server/router.php",
+        "dev:php": "php -d post_max_size=32M -d upload_max_filesize=32M -S localhost:8000 -t server server/router.php",
         "start": "npm run dev:php",
         "build": "node scripts/build.mjs",
         "lint": "eslint \"src/**/*.{ts,tsx}\"",
