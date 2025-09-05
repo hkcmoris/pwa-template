@@ -17,7 +17,7 @@ function vite_asset(string $entry) {
 }
 ?>
 <!doctype html>
-  <html lang="cs" data-theme="<?= htmlspecialchars($theme) ?>" data-base="<?= htmlspecialchars($BASE) ?>" data-pretty="<?= (defined('PRETTY_URLS') && PRETTY_URLS) ? '1' : '0' ?>">
+  <html lang="cs" data-theme="<?= htmlspecialchars($theme) ?>" data-base="<?= htmlspecialchars($BASE) ?>">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -143,35 +143,8 @@ function vite_asset(string $entry) {
     <script>
       requestIdleCallback?.(()=>navigator.serviceWorker?.register('<?= htmlspecialchars($BASE) ?>/sw.js', { scope: '<?= htmlspecialchars($BASE) ?>/' }));
     </script>
-    <?php if (defined('PRETTY_URLS') && !PRETTY_URLS): ?>
-    <script>
-      // Fallback: rewrite in-app links to query-string routing when pretty URLs are blocked by parent .htaccess
-      (function(){
-        const base = document.documentElement.getAttribute('data-base') || '';
-        function toQuery(u){
-          try{
-            const url = new URL(u, location.origin);
-            let path = url.pathname;
-            if (base && path.startsWith(base)) path = path.slice(base.length);
-            path = path.replace(/^\/+/, '');
-            if (!path) return base + '/';
-            const qs = base + '/?r=' + encodeURIComponent(path);
-            return qs + (url.search ? (qs.includes('?')? '&' : '?') + url.search.replace(/^\?/, '') : '');
-          }catch(e){ return u; }
-        }
-        document.querySelectorAll('a[href]').forEach(a=>{
-          const href = a.getAttribute('href');
-          if (!href || /^https?:|^mailto:|^#/.test(href)) return;
-          a.setAttribute('href', toQuery(href));
-        });
-        document.querySelectorAll('[hx-get]').forEach(el=>{
-          const val = el.getAttribute('hx-get');
-          if (val) el.setAttribute('hx-get', toQuery(val));
-        });
-      })();
-    </script>
-    <?php endif; ?>
   </body>
 </html>
+
 
 

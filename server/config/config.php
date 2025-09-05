@@ -1,6 +1,6 @@
 <?php
 $env = [];
-$envFile = __DIR__.'/../../.env';
+$envFile = __DIR__.'/../.env';
 if (file_exists($envFile)) {
     $env = parse_ini_file($envFile, false, INI_SCANNER_TYPED);
 }
@@ -26,4 +26,12 @@ if (!defined('BASE_PATH')) {
         $base = ($dir === '' || $dir === '/') ? '' : $dir;
     }
     define('BASE_PATH', $base);
+}
+
+// Prefer pretty URLs, but allow query-string routing fallback on constrained hosts
+// APP_PRETTY_URLS can be: 1/0, true/false (string) or boolean
+$pretty = $env['APP_PRETTY_URLS'] ?? getenv('APP_PRETTY_URLS') ?? '1';
+if (!defined('PRETTY_URLS')) {
+    $prettyNorm = is_bool($pretty) ? $pretty : (is_int($pretty) ? ($pretty === 1) : (strtolower((string)$pretty) === '1' || strtolower((string)$pretty) === 'true'));
+    define('PRETTY_URLS', $prettyNorm ? true : false);
 }

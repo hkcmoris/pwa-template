@@ -42,13 +42,23 @@ const navMenu = document.getElementById('nav-menu');
 const navLinks = navMenu?.querySelectorAll<HTMLAnchorElement>('a');
 
 const highlightNav = () => {
-    // Normalize trailing slashes
-    const path = (window.location.pathname.replace(/\/+$/, '') || '/');
+    const base = BASE || '';
+    const current = (() => {
+        const url = new URL(window.location.href);
+        let p = url.pathname;
+        if (base && p.startsWith(base)) p = p.slice(base.length);
+        p = p.replace(/^\/+|\/+$/g, '');
+        const r = url.searchParams.get('r');
+        return (r ? r : p).replace(/^\/+|\/+$/g, '');
+    })();
     navLinks?.forEach((link) => {
-        const linkPath = (link.pathname.replace(/\/+$/, '') || '/');
-        const isActive = linkPath === '/'
-            ? path === '/'
-            : path === linkPath || path.startsWith(linkPath + '/');
+        const u = new URL(link.href, window.location.href);
+        let lp = u.pathname;
+        if (base && lp.startsWith(base)) lp = lp.slice(base.length);
+        lp = lp.replace(/^\/+|\/+$/g, '');
+        const lr = (u.searchParams.get('r') || lp).replace(/^\/+|\/+$/g, '');
+        const isHome = lr === '';
+        const isActive = isHome ? current === '' : (current === lr || current.startsWith(lr + '/'));
         link.classList.toggle('active', isActive);
     });
 };
@@ -150,7 +160,8 @@ logoutBtn?.addEventListener('click', async () => {
         credentials: 'include',
     });
     document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
-    window.location.href = `${BASE}/login`;
+    const pretty = (document.documentElement.dataset.pretty ?? '1') !== '0';
+    window.location.href = pretty ? `${BASE}/login` : `${BASE}/?r=login`;
 });
 
 document.body.addEventListener('htmx:afterSwap', (e) => {

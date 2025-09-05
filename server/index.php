@@ -2,16 +2,31 @@
 // index.php
 require_once __DIR__.'/config/config.php';
 
-// Normalize request path and strip BASE_PATH when deployed in subfolder
-$uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
-if (defined('BASE_PATH') && BASE_PATH !== '') {
-  $prefix = '#^' . preg_quote(BASE_PATH, '#') . '/?#';
-  $uriPath = preg_replace($prefix, '/', $uriPath, 1);
+// Resolve route from query-string fallback or pretty URL path
+$qsRoute = isset($_GET['r']) ? trim((string)$_GET['r'], '/') : '';
+
+if (!$qsRoute || (defined('PRETTY_URLS') && PRETTY_URLS)) {
+  // Use path-based routing when pretty URLs are enabled (or no r= provided)
+  $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+  if (defined('BASE_PATH') && BASE_PATH !== '') {
+    $prefix = '#^' . preg_quote(BASE_PATH, '#') . '/?#';
+    $uriPath = preg_replace($prefix, '/', $uriPath, 1);
+  }
+  $route = trim($uriPath, '/');
+} else {
+  // Forced query routing
+  $route = $qsRoute;
 }
-$route = trim($uriPath, '/') ?: 'home';
+
+// Treat empty and direct index.php hits as home
+if ($route === '' || $route === 'index.php') {
+  $route = 'home';
+}
+
 $viewPath = __DIR__ . "/views/{$route}.php";
 
 if (is_file($viewPath)) {
+  http_response_code(200);
   $view = $route;
 } else {
   http_response_code(404);

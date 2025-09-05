@@ -2,7 +2,9 @@
 // Determine active subpage: definitions (default), components, images
 $active = isset($editorActive) && is_string($editorActive)
   ? $editorActive
-  : (str_starts_with($route ?? '', 'editor/') ? explode('/', $route, 2)[1] : 'definitions');
+  : ((isset($route) && is_string($route) && strpos($route, 'editor/') === 0)
+      ? explode('/', $route, 2)[1]
+      : 'definitions');
 if (!in_array($active, ['definitions','components','images'], true)) {
   $active = 'definitions';
 }
