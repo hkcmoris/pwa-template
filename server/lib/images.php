@@ -110,8 +110,14 @@ function img_list(string $rel, string $baseUrl): array {
   [$dir, $rel, $root] = img_resolve($rel);
   img_ensure_dir($dir);
   $baseUrl = rtrim($baseUrl, '/');
-  $relUrl = $rel === '' ? '' : ('/' . $rel);
-  $urlPrefix = $baseUrl . $relUrl;
+  // Build a URL-safe prefix by percent-encoding each segment of the relative path
+  $relUrlEnc = '';
+  if ($rel !== '') {
+    $segments = explode('/', $rel);
+    $segments = array_map(static fn($s) => rawurlencode($s), $segments);
+    $relUrlEnc = '/' . implode('/', $segments);
+  }
+  $urlPrefix = $baseUrl . $relUrlEnc;
 
   $dirs = [];
   $images = [];
@@ -125,10 +131,21 @@ function img_list(string $rel, string $baseUrl): array {
     } else {
       $ext = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
       if (in_array($ext, ['webp','jpg','jpeg','png','gif','avif','svg'], true)) {
+        // Skip generated thumbnails (e.g., *.thumb.webp)
+        if ($ext === 'webp' && preg_match('#\.thumb\.webp$#i', $entry)) continue;
+        $thumbUrl = $url;
+        if ($ext === 'webp') {
+          $thumbFull = preg_replace('#\.webp$#i', '.thumb.webp', $full);
+          if (is_file($thumbFull)) {
+            $thumbName = basename($thumbFull);
+            $thumbUrl = $urlPrefix . '/' . rawurlencode($thumbName);
+          }
+        }
         $images[] = [
           'name' => $entry,
           'rel' => $relChild,
           'url' => $url,
+          'thumbUrl' => $thumbUrl,
           'mtime' => @filemtime($full) ?: 0,
           'size' => @filesize($full) ?: 0,
         ];
@@ -145,7 +162,7 @@ function img_list(string $rel, string $baseUrl): array {
 function img_safe_name(string $name, string $dir): string {
   $name = preg_replace('#\.[^.]+$#', '', $name); // strip extension
   $name = preg_replace('#[^\p{L}\p{N}._ -]#u', '_', $name);
-  if ($name === '' || $name === '.' || $name === '..') $name = 'image';
+  if ($name === '' || $name === '.' || $name === '..') $name = 'obrázek';
   $base = $name;
   $i = 0;
   do {
@@ -202,7 +219,7 @@ function img_convert_to_webp(string $tmpFile, string $destPath): bool {
       return @move_uploaded_file($tmpFile, $destPath) || @copy($tmpFile, $destPath);
     }
     if (img__try_cwebp($tmpFile, $destPath, 85)) return true;
-    img__set_error('Image is too large to process on this server. Please resize before uploading.');
+    img__set_error('Obrázek je příliš velký pro zpracování na tomto serveru. Před nahráním jej prosím zmenšete.');
     return false;
   }
 
@@ -244,13 +261,20 @@ function img_move(string $relFile, string $relDestDir): bool {
   if (!is_file($fullFile)) return false;
   if (!img_ensure_dir($destDir)) return false;
   $name = basename($fullFile);
+  $srcThumb = preg_replace('#\.webp$#i', '.thumb.webp', $fullFile);
+  $hasThumb = is_file($srcThumb);
   $target = $destDir . '/' . $name;
   $i = 0;
-  while (file_exists($target) && $i < 10000) {
+  do {
+    $target = $destDir . '/' . ($i === 0 ? $name : preg_replace('#(.*?)(?:_(\d+))?\.(webp|[^.]+)$#', '$1_' . $i . '.$3', $name));
+    $targetThumb = preg_replace('#\.webp$#i', '.thumb.webp', $target);
     $i++;
-    $target = $destDir . '/' . preg_replace('#(.*?)(?:_(\d+))?\.(webp|[^.]+)$#', '$1_' . $i . '.$3', $name);
+  } while ((file_exists($target) || ($hasThumb && file_exists($targetThumb))) && $i < 10000);
+  $ok = @rename($fullFile, $target);
+  if ($ok && $hasThumb) {
+    @rename($srcThumb, $targetThumb);
   }
-  return @rename($fullFile, $target);
+  return (bool)$ok;
 }
 
 // Rename a file to new base name (without extension), keeping/forcing .webp
@@ -261,20 +285,29 @@ function img_rename(string $relFile, string $newBase): bool {
   $newBase = preg_replace('#[^\p{L}\p{N}._ -]#u', '_', $newBase);
   if ($newBase === '' || $newBase === '.' || $newBase === '..') return false;
   $newName = $newBase . '.webp';
-  $target = $dir . '/' . $newName;
+  $srcThumb = preg_replace('#\.webp$#i', '.thumb.webp', $fullFile);
+  $hasThumb = is_file($srcThumb);
   $i = 0;
-  while (file_exists($target) && $i < 10000) {
+  do {
+    $target = $dir . '/' . ($i === 0 ? $newName : ($newBase . '_' . $i . '.webp'));
+    $targetThumb = preg_replace('#\.webp$#i', '.thumb.webp', $target);
     $i++;
-    $target = $dir . '/' . $newBase . '_' . $i . '.webp';
+  } while ((file_exists($target) || ($hasThumb && file_exists($targetThumb))) && $i < 10000);
+  $ok = @rename($fullFile, $target);
+  if ($ok && $hasThumb) {
+    @rename($srcThumb, $targetThumb);
   }
-  return @rename($fullFile, $target);
+  return (bool)$ok;
 }
 
 // Delete a file safely within the root
 function img_delete(string $relFile): bool {
   [$fullFile, $relFile] = img_resolve($relFile);
   if (!is_file($fullFile)) return false;
-  return @unlink($fullFile);
+  $ok = @unlink($fullFile);
+  $thumb = preg_replace('#\.webp$#i', '.thumb.webp', $fullFile);
+  if (is_file($thumb)) @unlink($thumb);
+  return $ok;
 }
 
 // Rename a directory under the root
@@ -289,6 +322,26 @@ function img_rename_dir(string $relDir, string $newBase): bool {
   while (file_exists($target) && $i < 10000) {
     $i++;
     $target = $parent . '/' . $newBase . '_' . $i;
+  }
+  return @rename($fullDir, $target);
+}
+
+// Move a directory under the root into another directory
+function img_move_dir(string $relDir, string $relDestDir): bool {
+  [$fullDir, $relDir, $root] = img_resolve($relDir);
+  [$destDir, $relDestDir, $root2] = img_resolve($relDestDir);
+  if (!is_dir($fullDir)) return false;
+  if (!img_ensure_dir($destDir)) return false;
+  // Prevent moving a dir into itself or its own descendant
+  $normFull = str_replace('\\', '/', realpath($fullDir) ?: $fullDir);
+  $normDest = str_replace('\\', '/', realpath($destDir) ?: $destDir);
+  if ($normDest === $normFull || strpos($normDest . '/', $normFull . '/') === 0) return false;
+  $name = basename($fullDir);
+  $target = $destDir . '/' . $name;
+  $i = 0;
+  while (file_exists($target) && $i < 10000) {
+    $i++;
+    $target = $destDir . '/' . preg_replace('#(.*?)(?:_(\d+))?$#', '$1_' . $i, $name);
   }
   return @rename($fullDir, $target);
 }
@@ -326,7 +379,7 @@ function img_create_dir(string $relParent, string $name): bool {
   // Sanitize single-segment folder name
   $seg = trim(str_replace(['\\','/'], '-', $name));
   $seg = preg_replace('#[^\p{L}\p{N}._ -]#u', '_', $seg);
-  if ($seg === '' || $seg === '.' || $seg === '..') $seg = 'folder';
+  if ($seg === '' || $seg === '.' || $seg === '..') $seg = 'složka';
   $base = $seg;
   $i = 0;
   do {
@@ -335,4 +388,49 @@ function img_create_dir(string $relParent, string $name): bool {
     $target = $parentFull . '/' . $candidate;
   } while (file_exists($target) && $i < 10000);
   return @mkdir($target, 0775, true);
+}
+
+// Generate a small WebP thumbnail next to the given WebP image (e.g., foo.webp -> foo.thumb.webp)
+function img_generate_thumb(string $webpPath, int $size = 96): bool {
+  $thumbPath = preg_replace('#\.webp$#i', '.thumb.webp', $webpPath);
+  if (!$thumbPath || !is_file($webpPath)) return false;
+  // Imagick path
+  if (class_exists('Imagick')) {
+    try {
+      $im = new Imagick();
+      if ($im->readImage($webpPath)) {
+        $im->setImageFormat('webp');
+        if (method_exists($im, 'setImageCompressionQuality')) $im->setImageCompressionQuality(75);
+        $im->thumbnailImage($size, $size, true, true);
+        $ok = $im->writeImage($thumbPath);
+        $im->clear();
+        $im->destroy();
+        return (bool)$ok;
+      }
+    } catch (Throwable $e) {
+      // fall through to GD
+    }
+  }
+  // GD path
+  if (function_exists('imagecreatefromwebp') && function_exists('imagewebp')) {
+    $src = @imagecreatefromwebp($webpPath);
+    if (!$src) return false;
+    $w = imagesx($src); $h = imagesy($src);
+    $ratio = min($size / max(1,$w), $size / max(1,$h), 1);
+    $nw = max(1, (int)floor($w * $ratio));
+    $nh = max(1, (int)floor($h * $ratio));
+    $dst = @imagecreatetruecolor($nw, $nh);
+    if (!$dst) { @imagedestroy($src); return false; }
+    // preserve alpha
+    @imagealphablending($dst, false);
+    @imagesavealpha($dst, true);
+    $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+    @imagefilledrectangle($dst, 0, 0, $nw, $nh, $transparent);
+    @imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
+    $ok = @imagewebp($dst, $thumbPath, 75);
+    @imagedestroy($dst);
+    @imagedestroy($src);
+    return (bool)$ok;
+  }
+  return false;
 }

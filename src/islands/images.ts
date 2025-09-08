@@ -21,6 +21,17 @@ const swapGridFromHTML = (html: string) => {
     try {
       (window as any).htmx?.process?.(incoming);
     } catch {}
+    // Disable native browser drag on thumbnails to keep custom DnD UX
+    try {
+      (incoming as HTMLElement).addEventListener(
+        'dragstart',
+        (ev) => ev.preventDefault(),
+        { capture: true }
+      );
+      incoming.querySelectorAll('img').forEach((img) => {
+        (img as HTMLImageElement).draggable = false;
+      });
+    } catch {}
   }
 };
 
@@ -37,6 +48,10 @@ function mount(el: HTMLElement) {
   const modal = qs<HTMLElement>(el, '#img-modal')!;
   const menu = qs<HTMLElement>(el, '#img-context-menu')!;
   const newFolderBtn = qs<HTMLButtonElement>(el, '#new-folder-btn');
+  // Disable native drag inside the island root as a safety net
+  el.addEventListener('dragstart', (ev) => ev.preventDefault(), { capture: true });
+  const g0 = document.getElementById('image-grid');
+  g0?.querySelectorAll('img').forEach((img) => ((img as HTMLImageElement).draggable = false));
   const syncCurrentFromGrid = () => {
     const g = grid();
     if (g) el.dataset.currentPath = g.dataset.currentPath || '';
@@ -163,6 +178,9 @@ function mount(el: HTMLElement) {
             </form>
           `, (root) => {
             const form = root.querySelector<HTMLFormElement>('#rename-form')!;
+            const input = form.querySelector<HTMLInputElement>('input[name="newName"]');
+            // Focus and preselect entire name so user can type immediately
+            if (input) { input.focus(); input.select(); }
             form.addEventListener('submit', async (ev) => {
               ev.preventDefault();
               const fd = new FormData(form);
@@ -188,6 +206,8 @@ function mount(el: HTMLElement) {
             </form>
           `, (root) => {
             const form = root.querySelector<HTMLFormElement>('#rename-form')!;
+            const input = form.querySelector<HTMLInputElement>('input[name="newName"]');
+            if (input) { input.focus(); input.select(); }
             form.addEventListener('submit', async (ev) => {
               ev.preventDefault();
               const fd = new FormData(form);
@@ -260,13 +280,45 @@ function mount(el: HTMLElement) {
   let dragging: HTMLElement | null = null;
   let dragGhost: HTMLElement | null = null;
   let dragRel: string | null = null;
+  let dragKind: 'image' | 'dir' | null = null;
   let dragStart = { x: 0, y: 0 };
-  const DRAG_THRESHOLD = 5;
+  const DRAG_THRESHOLD = 3;
 
   const createGhost = (from: HTMLElement) => {
     const g = document.createElement('div');
     g.className = 'drag-ghost';
-    g.textContent = qs<HTMLElement>(from, '.label')?.textContent || 'Přesunout';
+    const content = document.createElement('div');
+    content.className = 'drag-ghost__content';
+
+    const thumbWrap = document.createElement('div');
+    thumbWrap.className = 'drag-ghost__thumb';
+    const thumbEl =
+      (from.querySelector('.thumb img') as HTMLElement | null) ||
+      (from.querySelector('.thumb svg') as HTMLElement | null);
+    if (thumbEl) {
+      const cloned = thumbEl.cloneNode(true) as HTMLElement;
+      if (cloned instanceof HTMLImageElement) {
+        cloned.decoding = 'async';
+        cloned.loading = 'eager';
+        cloned.style.maxWidth = '100%';
+        cloned.style.maxHeight = '100%';
+      } else if (cloned instanceof SVGElement) {
+        cloned.setAttribute('width', '32');
+        cloned.setAttribute('height', '32');
+      }
+      thumbWrap.appendChild(cloned);
+    } else {
+      // Fallback emoji
+      thumbWrap.textContent = from.classList.contains('tile.folder') ? '📁' : '🖼️';
+    }
+
+    const label = document.createElement('span');
+    label.className = 'drag-ghost__label';
+    label.textContent = qs<HTMLElement>(from, '.label')?.textContent || 'Přesunout';
+
+    content.appendChild(thumbWrap);
+    content.appendChild(label);
+    g.appendChild(content);
     document.body.appendChild(g);
     return g;
   };
@@ -279,7 +331,7 @@ function mount(el: HTMLElement) {
       dragGhost = createGhost(dragging);
     }
     if (dragGhost) {
-      dragGhost.style.transform = `translate(${e.clientX + 8}px, ${e.clientY + 8}px)`;
+      dragGhost.style.transform = `translate3d(${e.clientX + 8}px, ${e.clientY + 8}px, 0)`;
     }
     document.querySelectorAll('.tile.folder').forEach((el) => el.classList.remove('droptarget'));
     const elUnder = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
@@ -293,28 +345,54 @@ function mount(el: HTMLElement) {
     document.removeEventListener('mouseup', onMouseUp);
     document.querySelectorAll('.tile.folder').forEach((el) => el.classList.remove('droptarget'));
     dragging = null; dragRel = null;
+    dragKind = null;
+    document.body.classList.remove('images-dragging');
   };
 
   const onMouseUp = async (e: MouseEvent) => {
-    if (!dragging || !dragRel) return endDrag();
+    if (!dragging || !dragRel || !dragKind) return endDrag();
     const elUnder = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
     const folder = elUnder?.closest<HTMLElement>('.tile.folder');
     if (folder) {
       const to = folder.dataset.folderRel || '';
-      await postAndSwap(`${BASE}/editor/images-move`, { file: dragRel, to, current: el.dataset.currentPath || '' });
-      syncCurrentFromGrid();
+      if (dragKind === 'image') {
+        // No-op if dropping into same directory
+        const currentPath = el.dataset.currentPath || '';
+        if (to === currentPath) { endDrag(); return; }
+        await postAndSwap(`${BASE}/editor/images-move`, { file: dragRel, to, current: currentPath });
+        syncCurrentFromGrid();
+      } else if (dragKind === 'dir') {
+        // Prevent moving a folder into itself or descendant
+        if (to === dragRel || (to + '/').startsWith(dragRel + '/')) { endDrag(); return; }
+        await postAndSwap(`${BASE}/editor/images-dir-move`, { dir: dragRel, to, current: el.dataset.currentPath || '' });
+        syncCurrentFromGrid();
+      }
     }
     endDrag();
   };
 
   el.addEventListener('mousedown', (e) => {
-    const tile = (e.target as HTMLElement).closest<HTMLElement>('.tile.image');
-    if (!tile) return;
+    const tgt = e.target as HTMLElement;
+    const imageTile = tgt.closest<HTMLElement>('.tile.image');
+    const folderTile = imageTile ? null : tgt.closest<HTMLElement>('.tile.folder');
+    let tile: HTMLElement | null = null;
+    if (imageTile) {
+      tile = imageTile;
+      dragRel = imageTile.dataset.imageRel || null;
+      dragKind = 'image';
+    } else if (folderTile && !folderTile.hasAttribute('data-up')) {
+      tile = folderTile;
+      dragRel = folderTile.dataset.folderRel || null;
+      dragKind = 'dir';
+    }
+    if (!tile || !dragRel) { dragging = null; dragKind = null; return; }
+    // Prevent text selection and native interactions when starting a drag
+    e.preventDefault();
     dragging = tile;
-    dragRel = tile.dataset.imageRel || null;
     dragStart = { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+    document.body.classList.add('images-dragging');
   });
 
   // Double click image to open modal

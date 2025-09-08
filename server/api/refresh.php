@@ -10,14 +10,14 @@ header('Content-Type: application/json');
 $refresh = $_COOKIE['refresh_token'] ?? '';
 if (!$refresh) {
     http_response_code(401);
-    echo json_encode(['error' => 'Missing refresh token']);
+    echo json_encode(['error' => 'Chybí obnovovací token']);
     exit;
 }
 
 $row = find_valid_refresh_token($refresh);
 if (!$row) {
     http_response_code(401);
-    echo json_encode(['error' => 'Invalid refresh token']);
+    echo json_encode(['error' => 'Neplatný obnovovací token']);
     exit;
 }
 
@@ -28,7 +28,7 @@ $stmt->execute([':id' => $userId]);
 $user = $stmt->fetch();
 if (!$user) {
     http_response_code(401);
-    echo json_encode(['error' => 'Invalid user']);
+    echo json_encode(['error' => 'Neplatný uživatel']);
     exit;
 }
 
@@ -37,7 +37,7 @@ $refreshTtl = 14 * 24 * 3600;
 $newRefresh = rotate_refresh_token($refresh, $userId, $refreshTtl);
 if (!$newRefresh) {
     http_response_code(401);
-    echo json_encode(['error' => 'Invalid refresh token']);
+    echo json_encode(['error' => 'Neplatný obnovovací token']);
     exit;
 }
 
@@ -57,4 +57,3 @@ setcookie('token', $access, [
 ]);
 
 echo json_encode(['token' => $access, 'expires_in' => 600]);
-

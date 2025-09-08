@@ -17,7 +17,7 @@ log_message("Registration attempt for {$email}");
 if (!$username || !$email || !$password) {
     log_message('Registration failed: missing username, email or password', 'ERROR');
     http_response_code(400);
-    echo json_encode(['error' => 'Username, email and password required']);
+    echo json_encode(['error' => 'Uživatelské jméno, e‑mail a heslo jsou povinné']);
     exit;
 }
 
@@ -30,7 +30,7 @@ try {
     if ($stmt->fetch()) {
         log_message("Registration failed: email already registered ({$email})", 'ERROR');
         http_response_code(409);
-        echo json_encode(['error' => 'Email already registered']);
+        echo json_encode(['error' => 'E‑mail je již zaregistrován']);
         exit;
     }
 
@@ -44,7 +44,7 @@ try {
 } catch (PDOException $e) {
     log_message('Registration DB error: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
-    echo json_encode(['error' => 'Database error']);
+    echo json_encode(['error' => 'Chyba databáze']);
     exit;
 }
 

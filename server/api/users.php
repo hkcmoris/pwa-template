@@ -11,7 +11,7 @@ $payload = verify_jwt($token, JWT_SECRET);
 if (!$payload) {
     log_message('Users request unauthorized', 'ERROR');
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    echo json_encode(['error' => 'Neautorizováno']);
     exit;
 }
 

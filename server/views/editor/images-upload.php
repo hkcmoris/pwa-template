@@ -3,7 +3,8 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/images.php';
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-$path = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GET['path']) : '';
+$pathParam = $_POST['path'] ?? $_GET['path'] ?? '';
+$path = is_string($pathParam) ? img_sanitize_rel($pathParam) : '';
 [$dir, $path] = img_resolve($path);
 img_ensure_dir($dir);
 
@@ -15,16 +16,20 @@ if (!empty($_FILES['images']) && is_array($_FILES['images']['name'])) {
   $count = count($names);
   for ($i=0; $i<$count; $i++) {
     if (($errs[$i] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-      $errors[] = $names[$i] . ': upload failed';
+      $errors[] = $names[$i] . ': nahrání se nezdařilo';
       continue;
     }
     $tmp = $tmps[$i];
     $safe = img_safe_name($names[$i], $dir);
     $dest = $dir . '/' . $safe;
     $ok = img_convert_to_webp($tmp, $dest);
+    if ($ok) {
+      // Generate a small preview thumbnail (e.g., 96x96)
+      @img_generate_thumb($dest, 96);
+    }
     if (!$ok) {
       $msg = img_last_error();
-      if ($msg === '') $msg = 'conversion failed';
+      if ($msg === '') $msg = 'konverze se nezdařila';
       $errors[] = $names[$i] . ': ' . $msg;
     }
   }
@@ -41,5 +46,6 @@ if (!empty($errors)) {
   echo '<div id="upload-errors" hx-swap-oob="true" class="upload-errors hidden"></div>';
 }
 
-// Render the grid after upload
+// Render the grid after upload at the same path
+$_GET['path'] = $path;
 require __DIR__ . '/partials/images-grid.php';

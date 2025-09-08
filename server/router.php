@@ -1,7 +1,16 @@
 <?php
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$file = __DIR__ . $path;
-if ($path !== '/' && file_exists($file) && !is_dir($file)) {
-  return false; // serve static files
+// Decode percent-encoded path so files with spaces/diacritics resolve correctly
+$decoded = rawurldecode($path ?? '/');
+$file = __DIR__ . $decoded;
+
+// Normalize and ensure the requested file stays under the server docroot
+$root = str_replace('\\', '/', realpath(__DIR__));
+$cand = str_replace('\\', '/', realpath($file) ?: $file);
+
+if ($decoded !== '/' && $cand && strpos($cand, $root) === 0 && is_file($cand)) {
+  // Let PHP's built-in server serve the static file
+  return false;
 }
+
 require __DIR__ . '/index.php';
