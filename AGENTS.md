@@ -126,6 +126,7 @@
 - **Linters/Formatters:** PHPCS (PHP), ESLint + Prettier (TS/JS), Stylelint if needed.
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `perf:`, `build:`…).
 - **Tests:** At minimum, unit tests for islands and a Lighthouse CI check with budgets.
+- **Linting must pass:** Always run `npm run lint` and fix all reported issues. If ESLint reports any errors, the task/PR does not count as solved.
 
 ---
 
@@ -165,6 +166,7 @@
 ## 11) PR Checklist (agents must copy/paste and tick)
 
 - [ ] First-flight bundle still ≤ **14 KB** (attach Lighthouse/Bundle report).
+- [ ] ESLint passes (`npm run lint`) with 0 errors.
 - [ ] No new runtime dep, or size/security justification provided.
 - [ ] PHP renders complete content without JS; htmx only enhances UX.
 - [ ] New routes are code-split and lazy-loaded.

@@ -2,12 +2,17 @@
 
 import './images.css';
 
+// Minimal query root to avoid referencing global DOM typings like ParentNode
+type QueryRoot = {
+  querySelector<E extends Element = Element>(selectors: string): E | null;
+};
+
 const BASE =
   (typeof document !== 'undefined' &&
     document.documentElement?.dataset?.base) ||
   '';
 
-const qs = <T extends Element = Element>(root: ParentNode, sel: string) =>
+const qs = <T extends Element = Element>(root: QueryRoot, sel: string) =>
   root.querySelector<T>(sel);
 
 const swapGridFromHTML = (html: string) => {
@@ -19,8 +24,13 @@ const swapGridFromHTML = (html: string) => {
     current.parentElement.replaceChild(incoming, current);
     // Re-process htmx attributes on the newly inserted grid so hx-trigger works
     try {
-      (window as any).htmx?.process?.(incoming);
-    } catch {}
+      // Let htmx re-scan the swapped grid if present
+      (window as unknown as { htmx?: { process?: (el: Element) => void } }).htmx?.process?.(
+        incoming
+      );
+    } catch {
+      // noop
+    }
     // Disable native browser drag on thumbnails to keep custom DnD UX
     try {
       (incoming as HTMLElement).addEventListener(
@@ -31,7 +41,9 @@ const swapGridFromHTML = (html: string) => {
       incoming.querySelectorAll('img').forEach((img) => {
         (img as HTMLImageElement).draggable = false;
       });
-    } catch {}
+    } catch {
+      // noop
+    }
   }
 };
 

@@ -10,8 +10,10 @@ const ORIGIN =
 export const API_BASE =
     import.meta.env.VITE_API_BASE_URL || `${ORIGIN}${RUNTIME_BASE}/api`;
 
-export async function apiFetch(path: string, init?: RequestInit) {
-    const opts: RequestInit = { credentials: 'include', ...(init || {}) };
+type FetchInit = NonNullable<Parameters<typeof fetch>[1]>;
+
+export async function apiFetch(path: string, init?: FetchInit) {
+    const opts: FetchInit = { credentials: 'include', ...(init || {}) };
     let res = await fetch(`${API_BASE}${path}`, opts);
     if (res.status === 401) {
         // Attempt to refresh access token
