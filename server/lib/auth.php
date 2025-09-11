@@ -20,7 +20,10 @@ function create_refresh_token(int $userId, int $ttlSeconds = 1209600): string {
     return $token;
 }
 
-function find_valid_refresh_token(string $token): array|false {
+/**
+ * @return array|false Row array if valid, false otherwise
+ */
+function find_valid_refresh_token(string $token) {
     $hash = refresh_token_hash($token);
     $db = get_db_connection();
     $stmt = $db->prepare('SELECT id, user_id, token_hash, expires_at, revoked FROM refresh_tokens WHERE token_hash = :hash LIMIT 1');
@@ -43,10 +46,12 @@ function revoke_refresh_token(string $token): void {
     revoke_refresh_token_by_hash($hash);
 }
 
-function rotate_refresh_token(string $token, int $userId, int $ttlSeconds = 1209600): string|false {
+/**
+ * @return string|false New refresh token string on success, false on failure
+ */
+function rotate_refresh_token(string $token, int $userId, int $ttlSeconds = 1209600) {
     $row = find_valid_refresh_token($token);
     if (!$row || (int)$row['user_id'] !== $userId) return false;
     revoke_refresh_token_by_hash($row['token_hash']);
     return create_refresh_token($userId, $ttlSeconds);
 }
-

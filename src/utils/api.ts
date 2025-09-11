@@ -7,8 +7,12 @@ const ORIGIN =
     (typeof window !== 'undefined' && window.location?.origin) ||
     '';
 
-export const API_BASE =
-    import.meta.env.VITE_API_BASE_URL || `${ORIGIN}${RUNTIME_BASE}/api`;
+// Normalize to avoid accidental double slashes when appending paths
+const RAW_API_BASE =
+    (import.meta.env.VITE_API_BASE_URL as string | undefined) ||
+    `${ORIGIN}${RUNTIME_BASE}/api`;
+
+export const API_BASE = RAW_API_BASE.replace(/\/+$/, '');
 
 type FetchInit = NonNullable<Parameters<typeof fetch>[1]>;
 

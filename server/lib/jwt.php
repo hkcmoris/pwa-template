@@ -24,7 +24,10 @@ function generate_jwt(array $payload, string $secret, int $exp = 3600): string {
     return implode('.', $segments);
 }
 
-function verify_jwt(string $jwt, string $secret): array|false {
+/**
+ * @return array|false Payload array on success, false on failure
+ */
+function verify_jwt(string $jwt, string $secret) {
     $parts = explode('.', $jwt);
     if (count($parts) !== 3) {
         return false;
