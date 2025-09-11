@@ -1,3 +1,8 @@
+# Block .env (and variants like .env.local)
+<FilesMatch "^\.env(\..*)?$">
+    Require all denied
+</FilesMatch>
+
 # Apache configuration for PWA Template
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml
@@ -16,7 +21,8 @@
 </IfModule>
 
 <IfModule mod_rewrite.c>
-    Options -MultiViews
+    # Options -MultiViews was commented out, because it caused errors on the production server
+    # Options -MultiViews
     RewriteEngine On
     
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
