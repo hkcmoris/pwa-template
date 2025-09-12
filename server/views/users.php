@@ -6,6 +6,7 @@
                 <th>ID</th>
                 <th>Uživatelské jméno</th>
                 <th>E‑mail</th>
+                <th>Role</th>
                 <th>Datum vytvoření</th>
             </tr>
         </thead>

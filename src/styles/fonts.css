@@ -1,10 +1,7 @@
 @font-face {
   font-family: "Montserrat";
-  src:
-    local("Montserrat Medium"),
-    local("Montserrat-Medium"),
-    url("../assets/fonts/Montserrat-Medium.woff2") format("woff2");
-  font-weight: 500;
+  src: url("../assets/fonts/Montserrat-VF.woff2") format("woff2");
+  font-weight: 100 900; /* variable weight range */
   font-style: normal;
   font-display: swap;
 }
@@ -12,7 +9,8 @@
 h1,
 h2,
 h3,
-button {
+button,
+nav a {
   font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
   font-weight: 500;
 }

@@ -41,9 +41,9 @@ $titleMap = [
   'editor' => 'Editor',
   'about' => 'O aplikaci',
   'demo' => 'Demo',
+  'konfigurator' => 'Konfigurátor',
   '404' => 'Stránka nenalezena'
 ];
 $title = $titleMap[$view] ?? ucfirst($view);
 
 require __DIR__ . '/views/layout.php';
-

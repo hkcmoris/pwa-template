@@ -1,4 +1,4 @@
-import { API_BASE } from './utils/api';
+import { API_BASE, apiFetch } from './utils/api';
 
 const BASE =
     (typeof document !== 'undefined' &&
@@ -107,7 +107,10 @@ themeToggle?.addEventListener('click', () => {
     localStorage.setItem(THEME_KEY, next);
 });
 
-const usernameEl = document.getElementById('username');
+const usernameEl = document.getElementById('username-right');
+const editorLink = document.getElementById('editor-link') as
+    | HTMLAnchorElement
+    | null;
 const loginLink = document.getElementById(
     'login-link'
 ) as HTMLAnchorElement | null;
@@ -120,7 +123,11 @@ const logoutBtn = document.getElementById(
 const usersLink = document.getElementById(
     'users-link'
 ) as HTMLAnchorElement | null;
+const configuratorLink = document.getElementById(
+    'configurator-link'
+) as HTMLAnchorElement | null;
 const USER_KEY = 'userEmail';
+const ROLE_KEY = 'userRole';
 
 const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
@@ -132,17 +139,52 @@ const updateAuthUI = (email: string | null) => {
             registerLink.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
             usersLink.classList.remove('hidden');
+            configuratorLink?.classList.remove('hidden');
         } else {
             loginLink.classList.remove('hidden');
             registerLink.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
             usersLink.classList.add('hidden');
+            configuratorLink?.classList.add('hidden');
         }
     }
 };
 
+const setRoleUI = (role: string | null) => {
+    const allowed = role === 'admin' || role === 'superadmin';
+    if (editorLink) {
+        editorLink.classList.toggle('hidden', !allowed);
+    }
+};
+
+async function fetchMeAndUpdate() {
+    try {
+        const res = await apiFetch('/me.php', undefined, { skipRefresh: true });
+        if (!res.ok) {
+            setRoleUI(null);
+            return;
+        }
+        const data = (await res.json()) as {
+            user: { email: string; role: string } | null;
+        };
+        if (data.user) {
+            updateAuthUI(data.user.email);
+            localStorage.setItem(USER_KEY, data.user.email);
+            localStorage.setItem(ROLE_KEY, data.user.role);
+            setRoleUI(data.user.role);
+        } else {
+            setRoleUI(null);
+        }
+    } catch (_) {
+        setRoleUI(null);
+    }
+}
+
 const storedUser = localStorage.getItem(USER_KEY);
 updateAuthUI(storedUser);
+// Also restore role-based UI from storage (best effort) and then refresh via API
+setRoleUI(localStorage.getItem(ROLE_KEY));
+onIdle(() => fetchMeAndUpdate());
 
 document.addEventListener('auth-changed', (e) => {
     const email = (e as CustomEvent<string | null>).detail;
@@ -150,8 +192,10 @@ document.addEventListener('auth-changed', (e) => {
         localStorage.setItem(USER_KEY, email);
     } else {
         localStorage.removeItem(USER_KEY);
+        localStorage.removeItem(ROLE_KEY);
     }
     updateAuthUI(email);
+    onIdle(() => fetchMeAndUpdate());
 });
 
 logoutBtn?.addEventListener('click', async () => {

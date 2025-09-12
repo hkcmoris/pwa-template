@@ -17,8 +17,16 @@ try {
         username VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        role VARCHAR(20) NOT NULL DEFAULT "user",
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+
+    // Best-effort migration for existing installs lacking the role column
+    try {
+        $pdo->exec('ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT "user"');
+    } catch (PDOException $e) {
+        // Ignore if column already exists
+    }
 
     $pdo->exec('CREATE TABLE IF NOT EXISTS refresh_tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,

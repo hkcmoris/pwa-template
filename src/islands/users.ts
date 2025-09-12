@@ -14,9 +14,10 @@ export default async function init(el: HTMLElement) {
                             id: number;
                             username: string;
                             email: string;
+                            role?: string;
                             created_at: string;
                         }) =>
-                            `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${new Date(
+                            `<tr><td>${u.id}</td><td>${u.username}</td><td>${u.email}</td><td>${u.role ?? 'user'}</td><td>${new Date(
                                 u.created_at
                             ).toLocaleString()}</td></tr>`
                     )

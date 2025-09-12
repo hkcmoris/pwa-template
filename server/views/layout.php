@@ -1,5 +1,10 @@
 <?php
 require_once __DIR__.'/../config/config.php';
+require_once __DIR__.'/../lib/auth.php';
+// Resolve current user for SSR gating and header state
+$currentUser = app_get_current_user();
+$role = $currentUser['role'] ?? 'guest';
+$username = $username ?? ($currentUser['email'] ?? 'Návštěvník');
 $title  = $title  ?? 'HAGEMANN konfigurátor';
 $route  = $route  ?? 'home';
 $theme  = $_COOKIE['theme'] ?? 'light';
@@ -29,14 +34,32 @@ function vite_asset(string $entry) {
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
-      nav a.active{font-weight:bold;text-decoration:underline}
-      header{display:flex;align-items:center;justify-content:space-between;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
+      /* Navbar link styling */
+      header nav a{ 
+        font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
+        text-transform:uppercase;
+        font-size:13px;
+        letter-spacing:.02em;
+        font-weight:700;
+        color:#6b7280; /* gray-500 on light */
+        text-decoration:none;
+      }
+      header nav a:hover{ text-decoration:none; color:#111; }
+      [data-theme='dark'] header nav a:not(.active){ color:#cbd5e1; /* slate-300 on dark */ }
+      [data-theme='dark'] header nav a:not(.active):hover{ color:#fff; }
+      nav a.active{font-weight:900;color:var(--primary)}
+      nav a.active:hover{color:var(--primary)}
+      header{display:flex;align-items:center;gap:.75rem;justify-content:flex-start;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
       .logo{font-weight:bold;line-height:0}
       .logo img,.logo svg{display:block}
-      nav{display:flex;gap:.5rem;align-items:center;}
-      #menu-toggle{display:none;background:none;border:1px solid var(--fg);color:var(--fg);font-size:1.5rem;border-radius:.25rem}
+      nav{display:flex;gap:.5rem;align-items:center;flex:1;min-width:0}
+      .nav-links{display:flex;gap:.5rem;align-items:center;flex-wrap:nowrap}
+      .nav-actions{display:flex;gap:.5rem;align-items:center;margin-left:auto}
+      #menu-toggle{display:none;background:none;border:1px solid var(--fg);color:var(--fg);font-size:1.5rem;border-radius:.25rem;margin-left:auto}
       @media (max-width:600px){
-        nav{display:none;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--bg);border-top:1px solid var(--fg)}
+        nav{display:none;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--bg);border-top:1px solid var(--fg);padding:.5rem 1rem;gap:.25rem}
+        .nav-links{flex-direction:column;align-items:stretch;gap:.25rem}
+        .nav-actions{flex-direction:column;align-items:stretch;gap:.25rem;margin-left:0}
         nav.open{display:flex}
         #menu-toggle{display:block}
       }
@@ -106,16 +129,23 @@ function vite_asset(string $entry) {
       </div>
       <button id="menu-toggle" aria-label="Menu">☰</button>
         <nav id="nav-menu">
-          <span id="username"><?= htmlspecialchars($username ?? 'Návštěvník') ?></span>
+          <div class="nav-links">
           <a id="home-link" href="<?= htmlspecialchars($BASE) ?>/" hx-get="<?= htmlspecialchars($BASE) ?>/" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Domů</a>
+          <a id="configurator-link" href="<?= htmlspecialchars($BASE) ?>/konfigurator" hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Konfigurátor</a>
           <a id="users-link" href="<?= htmlspecialchars($BASE) ?>/users" hx-get="<?= htmlspecialchars($BASE) ?>/users" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Uživatelé</a>
+          <?php if (in_array($role, ['admin','superadmin'], true)): ?>
           <a id="editor-link" href="<?= htmlspecialchars($BASE) ?>/editor" hx-get="<?= htmlspecialchars($BASE) ?>/editor" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Editor</a>
+          <?php endif; ?>
           <a id="about-link" href="<?= htmlspecialchars($BASE) ?>/about" hx-get="<?= htmlspecialchars($BASE) ?>/about" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">O aplikaci</a>
           <a id="demo-link" href="<?= htmlspecialchars($BASE) ?>/demo" hx-get="<?= htmlspecialchars($BASE) ?>/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
+          </div>
+          <div class="nav-actions">
+            <span id="username-right"><?= htmlspecialchars($username ?? 'N�v�t�vn�k') ?></span>
           <a id="login-link" href="<?= htmlspecialchars($BASE) ?>/login" hx-get="<?= htmlspecialchars($BASE) ?>/login" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Přihlásit se</a>
           <a id="register-link" href="<?= htmlspecialchars($BASE) ?>/register" hx-get="<?= htmlspecialchars($BASE) ?>/register" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Registrovat se</a>
           <button id="logout-btn" class="hidden">Odhlásit se</button>
           <button id="theme-toggle">Přepnout motiv</button>
+          </div>
         </nav>
       </header>
       <main id="content">
@@ -173,5 +203,8 @@ function vite_asset(string $entry) {
     <?php endif; ?>
   </body>
 </html>
+
+
+
 
 

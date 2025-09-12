@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/logger.php';
+require_once __DIR__ . '/jwt.php';
 
 function refresh_token_random(): string {
     return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
@@ -54,4 +55,32 @@ function rotate_refresh_token(string $token, int $userId, int $ttlSeconds = 1209
     if (!$row || (int)$row['user_id'] !== $userId) return false;
     revoke_refresh_token_by_hash($row['token_hash']);
     return create_refresh_token($userId, $ttlSeconds);
+}
+
+/**
+ * Returns the current authenticated user based on the access token cookie.
+ * NOTE: Name intentionally prefixed to avoid clashing with PHP's built-in get_current_user().
+ * @return array|null ['id'=>int,'email'=>string,'username'=>string,'role'=>string] or null
+ */
+function app_get_current_user(): ?array {
+    $token = $_COOKIE['token'] ?? '';
+    if (!$token) return null;
+    $payload = verify_jwt($token, JWT_SECRET);
+    if (!$payload || empty($payload['sub'])) return null;
+    try {
+        $db = get_db_connection();
+        $stmt = $db->prepare('SELECT id, username, email, role FROM users WHERE id = :id');
+        $stmt->execute([':id' => (int)$payload['sub']]);
+        $row = $stmt->fetch();
+        if (!$row) return null;
+        return [
+            'id' => (int)$row['id'],
+            'username' => $row['username'],
+            'email' => $row['email'],
+            'role' => $row['role'] ?? 'user',
+        ];
+    } catch (Throwable $e) {
+        log_message('app_get_current_user error: ' . $e->getMessage(), 'ERROR');
+        return null;
+    }
 }

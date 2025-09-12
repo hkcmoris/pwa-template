@@ -16,10 +16,16 @@ export const API_BASE = RAW_API_BASE.replace(/\/+$/, '');
 
 type FetchInit = NonNullable<Parameters<typeof fetch>[1]>;
 
-export async function apiFetch(path: string, init?: FetchInit) {
+type FetchOptions = { skipRefresh?: boolean };
+
+export async function apiFetch(
+    path: string,
+    init?: FetchInit,
+    options?: FetchOptions
+) {
     const opts: FetchInit = { credentials: 'include', ...(init || {}) };
     let res = await fetch(`${API_BASE}${path}`, opts);
-    if (res.status === 401) {
+    if (res.status === 401 && !options?.skipRefresh) {
         // Attempt to refresh access token
         const refresh = await fetch(`${API_BASE}/refresh.php`, {
             method: 'POST',
