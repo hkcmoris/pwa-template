@@ -37,13 +37,24 @@ function vite_asset(string $entry) {
       /* Navbar link styling */
       header nav a{ 
         font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
-        text-transform:uppercase;
         font-size:13px;
         letter-spacing:.02em;
         font-weight:700;
         color:#6b7280; /* gray-500 on light */
         text-decoration:none;
       }
+      /* Editor subnav links (match header nav style) */
+      .subnav a{
+        font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
+        font-size:13px;
+        letter-spacing:.02em;
+        font-weight:700;
+        color:#6b7280;
+        text-decoration:none;
+      }
+      .subnav a:hover{ text-decoration:none; color:#111; }
+      [data-theme='dark'] .subnav a:not(.active){ color:#cbd5e1; }
+      [data-theme='dark'] .subnav a:not(.active):hover{ color:#fff; }
       header nav a:hover{ text-decoration:none; color:#111; }
       [data-theme='dark'] header nav a:not(.active){ color:#cbd5e1; /* slate-300 on dark */ }
       [data-theme='dark'] header nav a:not(.active):hover{ color:#fff; }

@@ -133,18 +133,16 @@ const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
         usernameEl.textContent = email || 'Návštěvník';
     }
-    if (loginLink && registerLink && logoutBtn && usersLink) {
+    if (loginLink && registerLink && logoutBtn) {
         if (email) {
             loginLink.classList.add('hidden');
             registerLink.classList.add('hidden');
             logoutBtn.classList.remove('hidden');
-            usersLink.classList.remove('hidden');
             configuratorLink?.classList.remove('hidden');
         } else {
             loginLink.classList.remove('hidden');
             registerLink.classList.remove('hidden');
             logoutBtn.classList.add('hidden');
-            usersLink.classList.add('hidden');
             configuratorLink?.classList.add('hidden');
         }
     }
@@ -154,6 +152,9 @@ const setRoleUI = (role: string | null) => {
     const allowed = role === 'admin' || role === 'superadmin';
     if (editorLink) {
         editorLink.classList.toggle('hidden', !allowed);
+    }
+    if (usersLink) {
+        usersLink.classList.toggle('hidden', !allowed);
     }
 };
 

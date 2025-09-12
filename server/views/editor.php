@@ -1,7 +1,7 @@
 <?php
 // Access control: only admin or superadmin may access the editor
+// Status code handled in index.php to avoid header warnings
 if (!isset($role) || !in_array($role, ['admin','superadmin'], true)) {
-  http_response_code(403);
   echo '<h1>Přístup odepřen</h1><p>Nemáte oprávnění pro zobrazení editoru.</p>';
   return;
 }

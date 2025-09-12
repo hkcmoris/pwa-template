@@ -1,7 +1,6 @@
 <?php
-// Require login for Konfigurátor route
+// Require login for Konfigurátor route (status already handled in index.php)
 if (!isset($role) || $role === 'guest') {
-  http_response_code(403);
   echo '<h1>Přístup odepřen</h1><p>Pro zobrazení konfigurátoru se prosím přihlaste.</p>';
   return;
 }

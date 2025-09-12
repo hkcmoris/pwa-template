@@ -1,6 +1,7 @@
 <?php
 // index.php
 require_once __DIR__.'/config/config.php';
+require_once __DIR__.'/lib/auth.php';
 
 // Resolve route from query-string fallback or pretty URL path
 $qsRoute = isset($_GET['r']) ? trim((string)$_GET['r'], '/') : '';
@@ -31,6 +32,19 @@ if (is_file($viewPath)) {
 } else {
   http_response_code(404);
   $view = '404';
+}
+
+$current = app_get_current_user();
+$role = $current['role'] ?? 'guest';
+// Gate protected routes before output to avoid header warnings
+if ($view === 'editor' && !in_array($role, ['admin','superadmin'], true)) {
+  http_response_code(403);
+}
+if ($view === 'konfigurator' && $role === 'guest') {
+  http_response_code(403);
+}
+if ($view === 'users' && !in_array($role, ['admin','superadmin'], true)) {
+  http_response_code(403);
 }
 
 $titleMap = [

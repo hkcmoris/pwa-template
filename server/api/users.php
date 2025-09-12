@@ -15,9 +15,20 @@ if (!$payload) {
     exit;
 }
 
-log_message("Users list requested by {$payload['email']}");
-
 $db = get_db_connection();
+// Verify caller role from DB to prevent stale token claims
+$stmt = $db->prepare('SELECT role, email FROM users WHERE id = :id');
+$stmt->execute([':id' => (int)$payload['sub']]);
+$caller = $stmt->fetch();
+if (!$caller || !in_array(($caller['role'] ?? 'user'), ['admin','superadmin'], true)) {
+    log_message('Users request forbidden for ' . ($caller['email'] ?? 'unknown'), 'ERROR');
+    http_response_code(403);
+    echo json_encode(['error' => 'Zakázáno']);
+    exit;
+}
+
+log_message("Users list requested by {$caller['email']}");
+
 $stmt = $db->prepare('SELECT id, username, email, role, created_at FROM users');
 $stmt->execute();
 $users = $stmt->fetchAll();
