@@ -60,4 +60,18 @@ $titleMap = [
 ];
 $title = $titleMap[$view] ?? ucfirst($view);
 
+// Basic per-route meta descriptions (fallbacks)
+$descMap = [
+  'home' => 'HAGEMANN konfigurátor – rychlá PWA s renderováním na serveru v PHP.',
+  'login' => 'Přihlášení do aplikace.',
+  'register' => 'Registrace nového uživatele.',
+  'users' => 'Správa uživatelů (pouze pro administrátory).',
+  'editor' => 'Editor konfigurátoru (pouze pro administrátory).',
+  'about' => 'Informace o aplikaci a jejích možnostech.',
+  'demo' => 'Ukázková stránka aplikace.',
+  'konfigurator' => 'Konfigurátor produktu s postupným výběrem.',
+  '404' => 'Požadovaná stránka nebyla nalezena.'
+];
+$description = $descMap[$view] ?? 'HAGEMANN konfigurátor – rychlá PWA s PHP SSR.';
+
 require __DIR__ . '/views/layout.php';

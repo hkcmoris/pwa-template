@@ -27,6 +27,7 @@ function vite_asset(string $entry) {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><?= htmlspecialchars($title) ?></title>
+    <meta name="description" content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor – rychlá PWA s PHP SSR.') ?>" />
     <style>
       :root{--bg:#fff;--fg:#111;--primary:#3b82f6}
       *,*::before,*::after{box-sizing:border-box}
