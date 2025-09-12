@@ -1,4 +1,5 @@
 import { apiFetch } from '../utils/api';
+import { enhanceSelects, setSelectValue } from './select';
 
 export default async function init(el: HTMLElement) {
     const list = el.querySelector<HTMLTableSectionElement>('#users-list');
@@ -20,17 +21,16 @@ export default async function init(el: HTMLElement) {
             .map((u) => {
                 const role = u.role ?? 'user';
                 const isSelf = canEdit && myEmail === u.email;
-                const roleCell = canEdit
-                    ? `<select data-role-select data-user-id="${u.id}" data-prev="${role}"${
-                          isSelf
-                              ? ' disabled title="Nelze měnit vlastní roli"'
-                              : ''
-                      }>
-                         <option value="user"${role === 'user' ? ' selected' : ''}>user</option>
-                         <option value="admin"${role === 'admin' ? ' selected' : ''}>admin</option>
-                         <option value="superadmin"${role === 'superadmin' ? ' selected' : ''}>superadmin</option>
-                       </select>`
-                    : role;
+                const roleCell = canEdit && !isSelf
+                    ? `<div class="select" data-select data-user-id="${u.id}" data-prev="${role}">
+                          <button type="button" class="select__button" aria-haspopup="listbox" aria-expanded="false">${role}</button>
+                          <ul class="select__list" role="listbox" tabindex="-1" hidden>
+                            <li role="option" class="select__option" data-value="user" aria-selected="${role === 'user'}">user</li>
+                            <li role="option" class="select__option" data-value="admin" aria-selected="${role === 'admin'}">admin</li>
+                            <li role="option" class="select__option" data-value="superadmin" aria-selected="${role === 'superadmin'}">superadmin</li>
+                          </ul>
+                       </div>`
+                    : role + (isSelf ? ' <small title="Nelze měnit vlastní roli">(nelze změnit)</small>' : '');
                 return `<tr>
                     <td>${u.id}</td>
                     <td>${u.username}</td>
@@ -40,6 +40,8 @@ export default async function init(el: HTMLElement) {
                 </tr>`;
             })
             .join('');
+
+        if (canEdit) enhanceSelects(list);
     };
 
     try {
@@ -58,27 +60,23 @@ export default async function init(el: HTMLElement) {
             if (Array.isArray(data.users)) {
                 render(data.users);
                 if (canEdit && list) {
-                    list.addEventListener('change', async (e) => {
-                        const sel = (e.target as HTMLElement).closest(
-                            'select[data-role-select]'
-                        ) as HTMLSelectElement | null;
+                    list.addEventListener('select:change', async (ev) => {
+                        const sel = (ev.target as HTMLElement).closest(
+                            '.select[data-select]'
+                        ) as HTMLElement | null;
                         if (!sel) return;
-                        if (sel.disabled) return;
                         const userId = parseInt(sel.dataset.userId || '0', 10);
                         const prev = sel.getAttribute('data-prev') || '';
-                        const next = sel.value;
-                        if (!userId || prev === next) return;
+                        const next = (ev as CustomEvent).detail?.value as string;
+                        if (!userId || !next || prev === next) return;
                         try {
-                            const res = await apiFetch(
-                                '/user-role.php',
-                                {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ id: userId, role: next }),
-                                }
-                            );
+                            const res = await apiFetch('/user-role.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ id: userId, role: next }),
+                            });
                             if (!res.ok) {
-                                sel.value = prev;
+                                setSelectValue(sel, prev);
                                 const data = await res.json().catch(() => ({} as any));
                                 if (message)
                                     message.textContent =
@@ -88,7 +86,7 @@ export default async function init(el: HTMLElement) {
                             sel.setAttribute('data-prev', next);
                             if (message) message.textContent = 'Role uložena';
                         } catch {
-                            sel.value = prev;
+                            setSelectValue(sel, prev);
                             if (message)
                                 message.textContent = 'Aktualizace role se nezdařila';
                         }

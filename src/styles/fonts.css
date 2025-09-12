@@ -9,9 +9,17 @@
 h1,
 h2,
 h3,
+h4,
+h5,
+h6,
 button,
 nav a {
   font-family: "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Noto Sans", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  text-transform:uppercase;
   font-weight: 500;
+}
+
+h1,
+button,
+nav a {
+  text-transform:uppercase;
 }

@@ -30,12 +30,12 @@ $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_r
 
   <div id="upload-errors" class="upload-errors hidden" role="status" aria-live="polite"></div>
 
-  <div id="image-grid"
+  <div id="image-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($currentPath) ?>"
        hx-select="#image-grid"
        hx-trigger="load"
        hx-swap="outerHTML">
-    Načítám…
+    Načítám
   </div>
 
   <!-- Context menu (custom) -->
@@ -54,9 +54,13 @@ $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_r
   .tile:hover{outline:2px solid var(--primary);outline-offset:0}
   .tile .thumb{display:flex;align-items:center;justify-content:center;aspect-ratio:1/1;background:rgba(0,0,0,.04);overflow:hidden}
   .tile .thumb img{max-width:100%;max-height:100%;display:block}
+  .tile .thumb svg{display:block;width:48px;height:48px;max-width:100%;max-height:100%}
   .tile .label{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .tile.folder .thumb svg{color:var(--primary)}
   .droptarget{outline:2px dashed var(--primary) !important}
   .hidden{display:none}
   .upload-errors{margin:.25rem 0;padding:.5rem;border:1px solid #dc2626;color:#dc2626;border-radius:.25rem;background:rgba(220,38,38,.08)}
 </style>
+
+
+
