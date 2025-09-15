@@ -35,8 +35,8 @@ function vite_asset(string $entry) {
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
-      /* Navbar link styling */
-      header nav a{ 
+      /* Navbar link styling, Editor subnav links (match header nav style) */
+      header nav a,.subnav a{ 
         font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
         font-size:13px;
         letter-spacing:.02em;
@@ -44,21 +44,9 @@ function vite_asset(string $entry) {
         color:#6b7280; /* gray-500 on light */
         text-decoration:none;
       }
-      /* Editor subnav links (match header nav style) */
-      .subnav a{
-        font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
-        font-size:13px;
-        letter-spacing:.02em;
-        font-weight:700;
-        color:#6b7280;
-        text-decoration:none;
-      }
-      .subnav a:hover{ text-decoration:none; color:#111; }
-      [data-theme='dark'] .subnav a:not(.active){ color:#cbd5e1; }
-      [data-theme='dark'] .subnav a:not(.active):hover{ color:#fff; }
-      header nav a:hover{ text-decoration:none; color:#111; }
-      [data-theme='dark'] header nav a:not(.active){ color:#cbd5e1; /* slate-300 on dark */ }
-      [data-theme='dark'] header nav a:not(.active):hover{ color:#fff; }
+      header nav a:hover,.subnav a:hover{ text-decoration:none; color:#111; }
+      [data-theme='dark'] header nav a:not(.active),[data-theme='dark'] .subnav a:not(.active){ color:#cbd5e1; /* slate-300 on dark */ }
+      [data-theme='dark'] header nav a:not(.active):hover,[data-theme='dark'] .subnav a:not(.active):hover{ color:#fff; }
       nav a.active{font-weight:900;color:var(--primary)}
       nav a.active:hover{color:var(--primary)}
       header{display:flex;align-items:center;gap:.75rem;justify-content:flex-start;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
@@ -152,7 +140,7 @@ function vite_asset(string $entry) {
           <a id="demo-link" href="<?= htmlspecialchars($BASE) ?>/demo" hx-get="<?= htmlspecialchars($BASE) ?>/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
           </div>
           <div class="nav-actions">
-            <span id="username-right"><?= htmlspecialchars($username ?? 'N�v�t�vn�k') ?></span>
+            <span id="username-right"><?= htmlspecialchars($username ?? 'Návštěvník') ?></span>
           <a id="login-link" href="<?= htmlspecialchars($BASE) ?>/login" hx-get="<?= htmlspecialchars($BASE) ?>/login" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Přihlásit se</a>
           <a id="register-link" href="<?= htmlspecialchars($BASE) ?>/register" hx-get="<?= htmlspecialchars($BASE) ?>/register" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Registrovat se</a>
           <button id="logout-btn" class="hidden">Odhlásit se</button>
