@@ -170,20 +170,84 @@ function vite_asset(string $entry) {
       <?php endif; ?>
 
     <?php
-      // Compute versioned SW path in prod; fall back to /sw.js in dev
-      $swPath = htmlspecialchars($BASE) . '/sw.js';
+      // Resolve service worker asset and scope based on build hash
+      $swBase = $BASE;
+      $swBasePath = ($swBase === '') ? '' : $swBase;
+      $swScopePath = ($swBasePath === '') ? '/' : $swBasePath . '/';
+      $swPublicPath = $swBasePath . '/sw.js';
+      $swHash = null;
       if (APP_ENV !== 'dev') {
         $main = $main ?? vite_asset('src/main.ts');
         if ($main && !empty($main['file'])) {
           if (preg_match('/main-([^.]+)\\.js$/', $main['file'], $m)) {
-            $swPath = htmlspecialchars($BASE) . '/sw-' . $m[1] . '.js';
+            $swHash = $m[1];
+            $swPublicPath = $swBasePath . '/sw-' . $swHash . '.js';
           }
         }
       }
+      $swScopeJson = json_encode($swScopePath, JSON_UNESCAPED_SLASHES);
+      $swPathJson = json_encode($swPublicPath, JSON_UNESCAPED_SLASHES);
+      $swKillPaths = [$swBasePath . '/sw.js'];
+      if ($swHash) {
+        $swKillPaths[] = $swPublicPath;
+      }
+      $swKillJson = json_encode($swKillPaths, JSON_UNESCAPED_SLASHES);
     ?>
+    <?php if (!defined('SW_ENABLED') || SW_ENABLED): ?>
     <script>
-      requestIdleCallback?.(()=>navigator.serviceWorker?.register('<?= $swPath ?>', { scope: '<?= htmlspecialchars($BASE) ?>/' }));
+      if ('serviceWorker' in navigator) {
+        const registerSw = () => {
+          navigator.serviceWorker.register(<?= $swPathJson ?>, { scope: <?= $swScopeJson ?> }).catch(() => {});
+        };
+        (window.requestIdleCallback || ((cb) => setTimeout(cb, 0)))(registerSw);
+      }
     </script>
+    <?php else: ?>
+    <script>
+      if ('serviceWorker' in navigator) {
+        const baseScope = <?= $swScopeJson ?>;
+        const killUrls = <?= $swKillJson ?>;
+        const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 0));
+        onIdle(async () => {
+          const scopeHref = new URL(baseScope, location.origin).href;
+          try {
+            const unregisterTargets = [];
+            if (navigator.serviceWorker.getRegistrations) {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              for (const registration of registrations) {
+                if (registration.scope && registration.scope.startsWith(scopeHref)) {
+                  unregisterTargets.push(registration);
+                }
+              }
+            } else if (navigator.serviceWorker.getRegistration) {
+              const registration = await navigator.serviceWorker.getRegistration(baseScope);
+              if (registration) {
+                unregisterTargets.push(registration);
+              }
+            }
+            await Promise.all(unregisterTargets.map((registration) => registration.unregister()));
+          } catch (err) {
+            console.warn('Service worker disable: unregister failed', err);
+          }
+          if ('caches' in window) {
+            try {
+              const cacheNames = await caches.keys();
+              await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+            } catch (err) {
+              console.warn('Service worker disable: cache cleanup failed', err);
+            }
+          }
+          for (const url of killUrls) {
+            try {
+              await fetch(url, { cache: 'reload' });
+            } catch (_) {
+              // no-op
+            }
+          }
+        });
+      }
+    </script>
+    <?php endif; ?>
     <?php if (defined('PRETTY_URLS') && !PRETTY_URLS): ?>
     <script>
       // Fallback: rewrite in-app links to query-string routing when pretty URLs are blocked by parent .htaccess

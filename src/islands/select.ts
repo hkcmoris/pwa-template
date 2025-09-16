@@ -57,7 +57,11 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
             const expanded = btn.getAttribute('aria-expanded') === 'true';
-            expanded ? close() : open();
+            if (expanded) {
+                close();
+            } else {
+                open();
+            }
         });
 
         list.addEventListener('keydown', (e) => {

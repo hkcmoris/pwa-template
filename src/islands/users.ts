@@ -77,10 +77,21 @@ export default async function init(el: HTMLElement) {
                             });
                             if (!res.ok) {
                                 setSelectValue(sel, prev);
-                                const data = await res.json().catch(() => ({} as any));
-                                if (message)
-                                    message.textContent =
-                                        data.error || 'Aktualizace role se nezdaÅ™ila';
+                                let errorText = 'Aktualizace role se nezdaøila';
+                                try {
+                                    const payload: unknown = await res.json();
+                                    if (payload && typeof payload === 'object' && 'error' in payload) {
+                                        const maybe = (payload as { error?: unknown }).error;
+                                        if (typeof maybe === 'string' && maybe.trim()) {
+                                            errorText = maybe;
+                                        }
+                                    }
+                                } catch {
+                                    // ignore JSON parse issues
+                                }
+                                if (message) {
+                                    message.textContent = errorText;
+                                }
                                 return;
                             }
                             sel.setAttribute('data-prev', next);

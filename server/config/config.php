@@ -35,3 +35,17 @@ if (!defined('PRETTY_URLS')) {
     $prettyNorm = is_bool($pretty) ? $pretty : (is_int($pretty) ? ($pretty === 1) : (strtolower((string)$pretty) === '1' || strtolower((string)$pretty) === 'true'));
     define('PRETTY_URLS', $prettyNorm ? true : false);
 }
+
+// Toggle service worker registration (defaults to on)
+$swFlag = $env['SW'] ?? getenv('SW') ?? 'on';
+if (!defined('SW_ENABLED')) {
+    if (is_bool($swFlag)) {
+        $swEnabled = $swFlag;
+    } elseif (is_int($swFlag)) {
+        $swEnabled = ($swFlag === 1);
+    } else {
+        $swValue = strtolower((string) $swFlag);
+        $swEnabled = !in_array($swValue, ['0','false','off','no'], true);
+    }
+    define('SW_ENABLED', $swEnabled ? true : false);
+}

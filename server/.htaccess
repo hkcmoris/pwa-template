@@ -27,6 +27,8 @@
     
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    RewriteRule ^sw(?:-[A-Za-z0-9]+)?\.js$ sw.php [QSA,L]
+
     # Directly serve existing files or directories
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d

@@ -177,7 +177,7 @@ async function fetchMeAndUpdate() {
         } else {
             setRoleUI(null);
         }
-    } catch (_) {
+    } catch {
         setRoleUI(null);
     }
 }
