@@ -122,7 +122,7 @@
 
 ## 8) Code Quality & Conventions
 
-- **Languages:** PHP 8.x, TypeScript for any client code.
+- **Languages:** PHP 7.4, TypeScript for any client code.
 - **Linters/Formatters:** PHPCS (PHP), ESLint + Prettier (TS/JS), Stylelint if needed.
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `perf:`, `build:`…).
 - **Tests:** At minimum, unit tests for islands and a Lighthouse CI check with budgets.

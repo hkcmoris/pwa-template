@@ -1,8 +1,19 @@
 <?php
 // Access control: only admin or superadmin may access the editor
-// Status code handled in index.php to avoid header warnings
-if (!isset($role) || !in_array($role, ['admin','superadmin'], true)) {
-  echo '<h1>Přístup odepřen</h1><p>Nemáte oprávnění pro zobrazení editoru.</p>';
+$__editorUser = isset($currentUser) && is_array($currentUser) ? $currentUser : app_get_current_user();
+$__editorRole = isset($__editorUser['role']) ? $__editorUser['role'] : (isset($role) ? $role : 'guest');
+if (!in_array($__editorRole, ['admin','superadmin'], true)) {
+  if (!headers_sent()) {
+    http_response_code(403);
+  }
+  // Keep #editor-root present so htmx subnav swaps don't remove the container
+  echo '<h1>Editor</h1>';
+  echo '<div id="editor-root">';
+  echo '<div role="alert">';
+  echo '  <h2>Přístup odepřen</h2>';
+  echo '  <p>Nemáte oprávnění pro zobrazení editoru.</p>';
+  echo '</div>';
+  echo '</div>';
   return;
 }
 ?>

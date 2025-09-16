@@ -29,9 +29,9 @@ function vite_asset(string $entry) {
     <title><?= htmlspecialchars($title) ?></title>
     <meta name="description" content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor – rychlá PWA s PHP SSR.') ?>" />
     <style>
-      :root{--bg:#fff;--fg:#111;--primary:#3b82f6}
+      :root{--bg:#fff;--fg:#111;--primary:#3b82f6;--primary-hover: color-mix(in srgb, var(--primary) 85%, black)}
       *,*::before,*::after{box-sizing:border-box}
-      [data-theme='dark']{--bg:#212529;--fg:#f5f5f5}
+      [data-theme='dark']{--bg:#212529;--fg:#f5f5f5;--primary-hover: color-mix(in srgb, var(--primary) 85%, white)}
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
@@ -64,7 +64,7 @@ function vite_asset(string $entry) {
         #menu-toggle{display:block}
       }
       button{cursor:pointer;background:var(--primary);color:#fff;border:none;border-radius:.25rem;padding:.5rem .75rem;transition:background .2s}
-      button:hover{background:#2563eb}
+      button:hover{background:var(--primary);background:var(--primary-hover)}
       table{width:100%;border-collapse:collapse}
       th{text-align:left}
       main{padding:1rem;padding-top:3.5rem;min-height:100dvb;max-width:800px;margin:0 auto}
@@ -133,9 +133,8 @@ function vite_asset(string $entry) {
           <a id="home-link" href="<?= htmlspecialchars($BASE) ?>/" hx-get="<?= htmlspecialchars($BASE) ?>/" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Domů</a>
           <a id="configurator-link" href="<?= htmlspecialchars($BASE) ?>/konfigurator" hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Konfigurátor</a>
           <a id="users-link" href="<?= htmlspecialchars($BASE) ?>/users" hx-get="<?= htmlspecialchars($BASE) ?>/users" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Uživatelé</a>
-          <?php if (in_array($role, ['admin','superadmin'], true)): ?>
-          <a id="editor-link" href="<?= htmlspecialchars($BASE) ?>/editor" hx-get="<?= htmlspecialchars($BASE) ?>/editor" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Editor</a>
-          <?php endif; ?>
+          <?php $__editor_allowed = in_array($role, ['admin','superadmin'], true); ?>
+          <a id="editor-link" href="<?= htmlspecialchars($BASE) ?>/editor/definitions" hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML"<?= $__editor_allowed ? '' : ' class="hidden"' ?>>Editor</a>
           <a id="about-link" href="<?= htmlspecialchars($BASE) ?>/about" hx-get="<?= htmlspecialchars($BASE) ?>/about" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">O aplikaci</a>
           <a id="demo-link" href="<?= htmlspecialchars($BASE) ?>/demo" hx-get="<?= htmlspecialchars($BASE) ?>/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
           </div>
@@ -170,8 +169,20 @@ function vite_asset(string $entry) {
         <?php endif; ?>
       <?php endif; ?>
 
+    <?php
+      // Compute versioned SW path in prod; fall back to /sw.js in dev
+      $swPath = htmlspecialchars($BASE) . '/sw.js';
+      if (APP_ENV !== 'dev') {
+        $main = $main ?? vite_asset('src/main.ts');
+        if ($main && !empty($main['file'])) {
+          if (preg_match('/main-([^.]+)\\.js$/', $main['file'], $m)) {
+            $swPath = htmlspecialchars($BASE) . '/sw-' . $m[1] . '.js';
+          }
+        }
+      }
+    ?>
     <script>
-      requestIdleCallback?.(()=>navigator.serviceWorker?.register('<?= htmlspecialchars($BASE) ?>/sw.js', { scope: '<?= htmlspecialchars($BASE) ?>/' }));
+      requestIdleCallback?.(()=>navigator.serviceWorker?.register('<?= $swPath ?>', { scope: '<?= htmlspecialchars($BASE) ?>/' }));
     </script>
     <?php if (defined('PRETTY_URLS') && !PRETTY_URLS): ?>
     <script>

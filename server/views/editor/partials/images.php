@@ -34,7 +34,8 @@ $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_r
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($currentPath) ?>"
        hx-select="#image-grid"
        hx-trigger="load"
-       hx-swap="outerHTML">
+       hx-swap="outerHTML"
+       hx-on="htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }">
     Načítám
   </div>
 

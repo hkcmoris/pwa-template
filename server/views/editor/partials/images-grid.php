@@ -9,11 +9,12 @@ $list = img_list($path, img_root_url($BASE));
 // Compute parent path
 $parentRel = '';
 if ($path !== '') {
-  $parentRel = str_contains($path, '/') ? dirname($path) : '';
+  $parentRel = (strpos($path, '/') !== false) ? dirname($path) : '';
 }
 ?>
 
-<div id="image-grid" class="grid" data-current-path="<?= htmlspecialchars($path) ?>">
+<div id="image-grid" class="grid" data-current-path="<?= htmlspecialchars($path) ?>"
+     hx-on="htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }">
   <?php if ($path !== ''): ?>
   <div class="tile folder" tabindex="0" data-up="1"
        data-folder-rel="<?= htmlspecialchars($parentRel) ?>"

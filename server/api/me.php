@@ -7,9 +7,16 @@ require_once __DIR__.'/../lib/logger.php';
 header('Content-Type: application/json');
 
 $token = $_COOKIE['token'] ?? '';
+$refresh = $_COOKIE['refresh_token'] ?? '';
 $payload = $token ? verify_jwt($token, JWT_SECRET) : false;
 if (!$payload) {
-    // Guest: return null user with 200 to avoid noisy 401s for anonymous visits
+    // If there is a refresh token cookie, signal 401 so the client can refresh.
+    // If no refresh token exists, treat as an anonymous guest with 200 + null user.
+    if ($refresh) {
+        http_response_code(401);
+        echo json_encode(['error' => 'Access token expired']);
+        exit;
+    }
     echo json_encode(['user' => null]);
     exit;
 }

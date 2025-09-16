@@ -160,7 +160,8 @@ const setRoleUI = (role: string | null) => {
 
 async function fetchMeAndUpdate() {
     try {
-        const res = await apiFetch('/me.php', undefined, { skipRefresh: true });
+        // Allow refresh on 401 so links don’t disappear when access expires.
+        const res = await apiFetch('/me.php');
         if (!res.ok) {
             setRoleUI(null);
             return;

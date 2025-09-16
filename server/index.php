@@ -24,6 +24,19 @@ if ($route === '' || $route === 'index.php') {
   $route = 'home';
 }
 
+// Canonicalize editor root to definitions subroute
+if ($route === 'editor') {
+  $target = (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '') . '/editor/definitions';
+  // If this is an htmx request, instruct client to redirect via HX-Redirect
+  if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+    header('HX-Redirect: ' . $target);
+    http_response_code(204);
+    exit;
+  }
+  header('Location: ' . $target, true, 302);
+  exit;
+}
+
 $viewPath = __DIR__ . "/views/{$route}.php";
 
 if (is_file($viewPath)) {
@@ -37,7 +50,8 @@ if (is_file($viewPath)) {
 $current = app_get_current_user();
 $role = $current['role'] ?? 'guest';
 // Gate protected routes before output to avoid header warnings
-if ($view === 'editor' && !in_array($role, ['admin','superadmin'], true)) {
+// Protect any editor subroute (editor/*)
+if ((strpos($view, 'editor') === 0) && !in_array($role, ['admin','superadmin'], true)) {
   http_response_code(403);
 }
 if ($view === 'konfigurator' && $role === 'guest') {
@@ -53,6 +67,9 @@ $titleMap = [
   'register' => 'Registrace',
   'users' => 'Uživatelé',
   'editor' => 'Editor',
+  'editor/definitions' => 'Editor – Definice',
+  'editor/components' => 'Editor – Komponenty',
+  'editor/images' => 'Editor – Obrázky',
   'about' => 'O aplikaci',
   'demo' => 'Demo',
   'konfigurator' => 'Konfigurátor',
@@ -62,11 +79,14 @@ $title = $titleMap[$view] ?? ucfirst($view);
 
 // Basic per-route meta descriptions (fallbacks)
 $descMap = [
-  'home' => 'HAGEMANN konfigurátor – rychlá PWA s renderováním na serveru v PHP.',
+  'home' => 'HAGEMANN konfigurátor - rychlá PWA s renderováním na serveru v PHP.',
   'login' => 'Přihlášení do aplikace.',
   'register' => 'Registrace nového uživatele.',
   'users' => 'Správa uživatelů (pouze pro administrátory).',
   'editor' => 'Editor konfigurátoru (pouze pro administrátory).',
+  'editor/definitions' => 'Editor – definice konfigurátoru (pouze pro administrátory).',
+  'editor/components' => 'Editor – komponenty konfigurátoru (pouze pro administrátory).',
+  'editor/images' => 'Editor – správa obrázků (pouze pro administrátory).',
   'about' => 'Informace o aplikaci a jejích možnostech.',
   'demo' => 'Ukázková stránka aplikace.',
   'konfigurator' => 'Konfigurátor produktu s postupným výběrem.',
