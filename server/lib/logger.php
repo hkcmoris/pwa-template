@@ -1,7 +1,9 @@
 <?php
 function log_message(string $message, string $level = 'INFO'): void {
     $timestamp = date('c');
-    $line = "[$timestamp] [$level] $message\n";
+    $normalizedLevel = strtoupper($level);
+    $spacing = in_array($normalizedLevel, ['INFO', 'WARN'], true) ? '  ' : ' ';
+    $line = "[$timestamp] [$normalizedLevel]{$spacing}$message\n";
 
     // Use a dedicated logs directory with daily-rotated files
     $logDir = __DIR__ . '/../logs';

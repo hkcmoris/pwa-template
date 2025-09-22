@@ -1,5 +1,14 @@
 import { API_BASE } from '../utils/api';
 
+type RegisterResponse = {
+    token?: string;
+    error?: string;
+    user?: {
+        email?: string;
+        role?: string;
+    };
+};
+
 export default function init(el: HTMLElement) {
     const form = el.querySelector('#register-form') as HTMLFormElement | null;
     const message = el.querySelector('#register-message');
@@ -18,7 +27,7 @@ export default function init(el: HTMLElement) {
                 }),
             });
 
-            let data: { token?: string; error?: string } = {};
+            let data: RegisterResponse = {};
             let errorText = '';
             try {
                 data = await response.json();
@@ -29,9 +38,16 @@ export default function init(el: HTMLElement) {
             if (message) {
                 if (response.ok && data.token) {
                     message.textContent = 'Registrace úspěšná';
-                    const email = formData.get('email') as string;
+                    const emailValue =
+                        (typeof data.user?.email === 'string' && data.user.email) ||
+                        formData.get('email');
+                    const email =
+                        typeof emailValue === 'string' ? emailValue : '';
+                    const role =
+                        (typeof data.user?.role === 'string' && data.user.role) ||
+                        'user';
                     document.dispatchEvent(
-                        new CustomEvent('auth-changed', { detail: email })
+                        new CustomEvent('auth-changed', { detail: { email, role } })
                     );
                 } else {
                     message.textContent =

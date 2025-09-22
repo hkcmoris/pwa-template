@@ -57,8 +57,9 @@ const highlightNav = () => {
         if (base && lp.startsWith(base)) lp = lp.slice(base.length);
         lp = lp.replace(/^\/+|\/+$/g, '');
         const lr = (u.searchParams.get('r') || lp).replace(/^\/+|\/+$/g, '');
-        const isHome = lr === '';
-        const isActive = isHome ? current === '' : (current === lr || current.startsWith(lr + '/'));
+        const match = (link.dataset.activeRoot || lr).replace(/^\/+|\/+$/g, '');
+        const isHome = match === '';
+        const isActive = isHome ? current === '' : (current === match || current.startsWith(match + '/'));
         link.classList.toggle('active', isActive);
     });
 };
@@ -129,6 +130,79 @@ const configuratorLink = document.getElementById(
 const USER_KEY = 'userEmail';
 const ROLE_KEY = 'userRole';
 
+type AuthChangedDetail = {
+    email: string;
+    role?: string;
+} | null;
+
+const REFRESH_INTERVAL_MS = 8 * 60 * 1000;
+const REFRESH_RETRY_MS = 60 * 1000;
+let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+let authEpoch = 0;
+
+const stopTokenRefresh = () => {
+    if (refreshTimer !== undefined) {
+        clearTimeout(refreshTimer);
+        refreshTimer = undefined;
+    }
+};
+
+const scheduleTokenRefresh = (delay = REFRESH_INTERVAL_MS) => {
+    stopTokenRefresh();
+    if (!localStorage.getItem(USER_KEY)) {
+        return;
+    }
+    const scheduledEpoch = authEpoch;
+    refreshTimer = setTimeout(async () => {
+        if (scheduledEpoch !== authEpoch) {
+            return;
+        }
+        if (!localStorage.getItem(USER_KEY)) {
+            stopTokenRefresh();
+            return;
+        }
+        try {
+            const res = await apiFetch('/me.php');
+            if (scheduledEpoch !== authEpoch) {
+                return;
+            }
+            if (res.ok) {
+                const payload = (await res.json().catch(() => null)) as
+                    | { user?: { email: string; role: string } | null }
+                    | null;
+                const user = payload?.user ?? null;
+                if (scheduledEpoch !== authEpoch) {
+                    return;
+                }
+                if (user) {
+                    updateAuthUI(user.email);
+                    localStorage.setItem(USER_KEY, user.email);
+                    localStorage.setItem(ROLE_KEY, user.role);
+                    setRoleUI(user.role);
+                    scheduleTokenRefresh(REFRESH_INTERVAL_MS);
+                    return;
+                }
+            } else if (res.status === 401) {
+                localStorage.removeItem(USER_KEY);
+                localStorage.removeItem(ROLE_KEY);
+                updateAuthUI(null);
+                setRoleUI(null);
+                stopTokenRefresh();
+                return;
+            }
+        } catch {
+            // swallow network errors and retry soon
+        }
+        if (scheduledEpoch !== authEpoch) {
+            return;
+        }
+        if (localStorage.getItem(USER_KEY)) {
+            scheduleTokenRefresh(REFRESH_RETRY_MS);
+        } else {
+            stopTokenRefresh();
+        }
+    }, delay);
+};
 const updateAuthUI = (email: string | null) => {
     if (usernameEl) {
         usernameEl.textContent = email || 'Návštěvník';
@@ -158,27 +232,53 @@ const setRoleUI = (role: string | null) => {
     }
 };
 
-async function fetchMeAndUpdate() {
+const FETCH_RETRY_MS = 500;
+
+async function fetchMeAndUpdate(expectedEpoch: number = authEpoch, options: { preventDowngrade?: boolean } = {}) {
+    const { preventDowngrade = false } = options;
     try {
-        // Allow refresh on 401 so links don’t disappear when access expires.
+        // Allow refresh on 401 so links don't disappear when access expires.
         const res = await apiFetch('/me.php');
+        if (expectedEpoch !== authEpoch) {
+            return;
+        }
         if (!res.ok) {
-            setRoleUI(null);
+            if (preventDowngrade) {
+                setTimeout(() => fetchMeAndUpdate(authEpoch), FETCH_RETRY_MS);
+            } else {
+                setRoleUI(null);
+                stopTokenRefresh();
+            }
             return;
         }
         const data = (await res.json()) as {
             user: { email: string; role: string } | null;
         };
+        if (expectedEpoch !== authEpoch) {
+            return;
+        }
         if (data.user) {
             updateAuthUI(data.user.email);
             localStorage.setItem(USER_KEY, data.user.email);
             localStorage.setItem(ROLE_KEY, data.user.role);
             setRoleUI(data.user.role);
+            scheduleTokenRefresh();
+        } else if (preventDowngrade) {
+            setTimeout(() => fetchMeAndUpdate(authEpoch), FETCH_RETRY_MS);
         } else {
             setRoleUI(null);
+            stopTokenRefresh();
         }
     } catch {
+        if (expectedEpoch !== authEpoch) {
+            return;
+        }
+        if (preventDowngrade) {
+            setTimeout(() => fetchMeAndUpdate(authEpoch), FETCH_RETRY_MS);
+            return;
+        }
         setRoleUI(null);
+        stopTokenRefresh();
     }
 }
 
@@ -186,21 +286,34 @@ const storedUser = localStorage.getItem(USER_KEY);
 updateAuthUI(storedUser);
 // Also restore role-based UI from storage (best effort) and then refresh via API
 setRoleUI(localStorage.getItem(ROLE_KEY));
-onIdle(() => fetchMeAndUpdate());
+const initialEpoch = authEpoch;
+onIdle(() => fetchMeAndUpdate(initialEpoch, { preventDowngrade: Boolean(storedUser) }));
 
-document.addEventListener('auth-changed', (e) => {
-    const email = (e as CustomEvent<string | null>).detail;
-    if (email) {
-        localStorage.setItem(USER_KEY, email);
+document.addEventListener('auth-changed', (event) => {
+    authEpoch += 1;
+    const currentEpoch = authEpoch;
+    const detail = (event as CustomEvent<AuthChangedDetail>).detail;
+    if (detail && detail.email) {
+        localStorage.setItem(USER_KEY, detail.email);
+        if (detail.role) {
+            localStorage.setItem(ROLE_KEY, detail.role);
+        }
+        scheduleTokenRefresh();
     } else {
         localStorage.removeItem(USER_KEY);
         localStorage.removeItem(ROLE_KEY);
+        stopTokenRefresh();
     }
-    updateAuthUI(email);
-    onIdle(() => fetchMeAndUpdate());
+    updateAuthUI(detail?.email ?? null);
+    const roleHint = detail
+        ? detail.role ?? localStorage.getItem(ROLE_KEY)
+        : null;
+    setRoleUI(roleHint);
+    onIdle(() => fetchMeAndUpdate(currentEpoch, { preventDowngrade: Boolean(detail?.email) }));
 });
 
 logoutBtn?.addEventListener('click', async () => {
+    stopTokenRefresh();
     await fetch(`${API_BASE}/logout.php`, {
         method: 'POST',
         credentials: 'include',

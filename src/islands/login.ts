@@ -5,6 +5,15 @@ const BASE =
         document.documentElement?.dataset?.base) ||
     '';
 
+type LoginResponse = {
+    token?: string;
+    error?: string;
+    user?: {
+        email?: string;
+        role?: string;
+    };
+};
+
 export default function init(el: HTMLElement) {
     const form = el.querySelector('#login-form') as HTMLFormElement | null;
     const message = el.querySelector('#login-message');
@@ -21,13 +30,20 @@ export default function init(el: HTMLElement) {
                     password: formData.get('password'),
                 }),
             });
-            const data = await response.json().catch(() => ({}));
+            const data = (await response.json().catch(() => ({}))) as LoginResponse;
             if (message) {
                 if (response.ok && data.token) {
                     message.textContent = 'Přihlášení úspěšné';
-                    const email = formData.get('email') as string;
+                    const emailValue =
+                        (typeof data.user?.email === 'string' && data.user.email) ||
+                        formData.get('email');
+                    const email =
+                        typeof emailValue === 'string' ? emailValue : '';
+                    const role =
+                        (typeof data.user?.role === 'string' && data.user.role) ||
+                        'user';
                     document.dispatchEvent(
-                        new CustomEvent('auth-changed', { detail: email })
+                        new CustomEvent('auth-changed', { detail: { email, role } })
                     );
                     window.location.href = `${BASE}/`;
                 } else {

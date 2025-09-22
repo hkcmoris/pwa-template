@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
+header('Cache-Control: no-store, no-cache, must-revalidate, private');
+header('Pragma: no-cache');
+header('Vary: Origin, Cookie, Authorization, X-Requested-With');
+
 // Basic CORS headers (dev-only). In production same-origin is used.
 if ((defined('APP_ENV') ? APP_ENV : 'dev') === 'dev') {
     $allowedOrigin = 'http://localhost:5173';

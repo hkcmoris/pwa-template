@@ -69,5 +69,8 @@ setcookie('refresh_token', $refresh, [
 ]);
 
 http_response_code(201);
-echo json_encode(['token' => $token]);
+echo json_encode(['token' => $token, 'user' => [
+    'email' => $email,
+    'role' => 'user',
+]]);
 exit;

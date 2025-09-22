@@ -53,4 +53,8 @@ setcookie('refresh_token', $refresh, [
 
 log_message("User logged in: {$email}");
 
-echo json_encode(['token' => $token]);
+$role = $user['role'] ?? 'user';
+echo json_encode(['token' => $token, 'user' => [
+    'email' => $email,
+    'role' => $role,
+]]);

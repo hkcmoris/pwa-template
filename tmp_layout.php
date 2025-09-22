@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__.'/../config/config.php';
 $title  = $title  ?? 'HAGEMANN konfigurátor';
 $route  = $route  ?? 'home';
@@ -23,7 +23,7 @@ function vite_asset(string $entry) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><?= htmlspecialchars($title) ?></title>
     <style>
-      :root{--bg:#fff;--fg:#111;--primary:#3b82f6}
+      :root{--bg:#fff;--fg:#111;--primary:#2563eb}
       *,*::before,*::after{box-sizing:border-box}
       [data-theme='dark']{--bg:#212529;--fg:#f5f5f5}
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}

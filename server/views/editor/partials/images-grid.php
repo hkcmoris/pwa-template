@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/../../../lib/images.php';
 
+if (!headers_sent()) {
+  header('Cache-Control: no-store, no-cache, must-revalidate, private');
+  header('Pragma: no-cache');
+  header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
+}
+
 $BASE = $BASE ?? (defined('BASE_PATH') ? rtrim(BASE_PATH, '/') : '');
 $path = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GET['path']) : '';
 [$dir, $path] = img_resolve($path);

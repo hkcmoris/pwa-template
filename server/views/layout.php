@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__.'/../config/config.php';
 require_once __DIR__.'/../lib/auth.php';
 // Resolve current user for SSR gating and header state
@@ -28,10 +28,11 @@ function vite_asset(string $entry) {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title><?= htmlspecialchars($title) ?></title>
     <meta name="description" content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor – rychlá PWA s PHP SSR.') ?>" />
+    <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
     <style>
-      :root{--bg:#fff;--fg:#111;--primary:#3b82f6;--primary-hover: color-mix(in srgb, var(--primary) 85%, black)}
+      :root{--bg:#fff;--fg:#111;--primary:#2563eb;--primary-contrast:#fff;--primary-hover: color-mix(in srgb, var(--primary) 85%, black)}
       *,*::before,*::after{box-sizing:border-box}
-      [data-theme='dark']{--bg:#212529;--fg:#f5f5f5;--primary-hover: color-mix(in srgb, var(--primary) 85%, white)}
+      [data-theme='dark']{--bg:#212529;--fg:#f5f5f5;--primary:#60a5fa;--primary-contrast:#0f172a;--primary-hover: color-mix(in srgb, var(--primary) 70%, white)}
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
@@ -63,7 +64,7 @@ function vite_asset(string $entry) {
         nav.open{display:flex}
         #menu-toggle{display:block}
       }
-      button{cursor:pointer;background:var(--primary);color:#fff;border:none;border-radius:.25rem;padding:.5rem .75rem;transition:background .2s}
+      button{cursor:pointer;background:var(--primary);color:var(--primary-contrast);border:none;border-radius:.25rem;padding:.5rem .75rem;transition:background .2s}
       button:hover{background:var(--primary);background:var(--primary-hover)}
       table{width:100%;border-collapse:collapse}
       th{text-align:left}
@@ -134,7 +135,7 @@ function vite_asset(string $entry) {
           <a id="configurator-link" href="<?= htmlspecialchars($BASE) ?>/konfigurator" hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Konfigurátor</a>
           <a id="users-link" href="<?= htmlspecialchars($BASE) ?>/users" hx-get="<?= htmlspecialchars($BASE) ?>/users" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML" class="hidden">Uživatelé</a>
           <?php $__editor_allowed = in_array($role, ['admin','superadmin'], true); ?>
-          <a id="editor-link" href="<?= htmlspecialchars($BASE) ?>/editor/definitions" hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML"<?= $__editor_allowed ? '' : ' class="hidden"' ?>>Editor</a>
+          <a id="editor-link" data-active-root="editor" href="<?= htmlspecialchars($BASE) ?>/editor/definitions" hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML"<?= $__editor_allowed ? '' : ' class="hidden"' ?>>Editor</a>
           <a id="about-link" href="<?= htmlspecialchars($BASE) ?>/about" hx-get="<?= htmlspecialchars($BASE) ?>/about" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">O aplikaci</a>
           <a id="demo-link" href="<?= htmlspecialchars($BASE) ?>/demo" hx-get="<?= htmlspecialchars($BASE) ?>/demo" hx-push-url="true" hx-target="#content" hx-select="#content" hx-swap="outerHTML">Demo</a>
           </div>

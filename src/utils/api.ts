@@ -23,7 +23,7 @@ export async function apiFetch(
     init?: FetchInit,
     options?: FetchOptions
 ) {
-    const opts: FetchInit = { credentials: 'include', ...(init || {}) };
+    const opts: FetchInit = { cache: 'no-store', credentials: 'include', ...(init || {}) };
     let res = await fetch(`${API_BASE}${path}`, opts);
     if (res.status === 401 && !options?.skipRefresh) {
         // Attempt to refresh access token

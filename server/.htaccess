@@ -4,6 +4,8 @@
 </FilesMatch>
 
 # Apache configuration for PWA Template
+AddType application/manifest+json .webmanifest
+
 <IfModule mod_deflate.c>
     AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml
     AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
@@ -38,14 +40,25 @@
     RewriteRule ^ index.php [QSA,L]
 </IfModule>
 
+<IfModule mod_setenvif.c>
+    # Disable micro-cache for editor/admin routes so updates reflect immediately
+    SetEnvIf Request_URI "(^|/)editor(/|$)" MICROCACHE_BYPASS=1
+    SetEnvIf Request_URI "(^|/)api(/|$)" MICROCACHE_BYPASS=1
+    SetEnvIf Cookie "(^|;\s*)token=" MICROCACHE_BYPASS=1
+    SetEnvIf Cookie "(^|;\s*)refresh_token=" MICROCACHE_BYPASS=1
+</IfModule>
+
+
 <IfModule mod_headers.c>
     # Long-term caching for hashed static assets
-    <FilesMatch "\.(css|js|mjs|png|jpg|jpeg|gif|svg|webp|avif|ico)$">
+    <FilesMatch "\.(css|js|mjs|png|jpg|jpeg|gif|svg|webp|avif|ico|webmanifest)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 
-    # Micro-cache HTML/PHP responses for 5s with stale-while-revalidate
+    # Micro-cache HTML/PHP responses for 5s with stale-while-revalidate on public pages
     <FilesMatch "\.(html|php)$">
-        Header set Cache-Control "s-maxage=5, stale-while-revalidate=60"
+        Header set Cache-Control "no-store, no-cache, must-revalidate" env=MICROCACHE_BYPASS
+        Header set Pragma "no-cache" env=MICROCACHE_BYPASS
+        Header setifempty Cache-Control "s-maxage=5, stale-while-revalidate=60" env=!MICROCACHE_BYPASS
     </FilesMatch>
 </IfModule>
