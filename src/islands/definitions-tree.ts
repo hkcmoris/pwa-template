@@ -537,9 +537,10 @@ export default function init(el: HTMLElement) {
         'definition-create-template'
     ) as HTMLTemplateElement | null;
 
-    const parentSelectCache = document.getElementById(
-        'definition-parent-select'
-    ) as HTMLElement | null;
+    const getParentSelectCache = () =>
+        document.getElementById('definition-parent-select') as
+            | HTMLElement
+            | null;
 
     const openCreateButton = document.getElementById(
         'definition-open-create'
@@ -616,6 +617,8 @@ export default function init(el: HTMLElement) {
     };
 
     const openCreateModal = (options: OpenCreateOptions = {}) => {
+        const parentSelectCache = getParentSelectCache();
+
         if (!modalRoot || !createTemplate || !parentSelectCache) return;
 
         const fragment = createTemplate.content.cloneNode(
