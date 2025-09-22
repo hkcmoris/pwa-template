@@ -8,4 +8,5 @@
 .select__option{padding:.25rem .5rem;cursor:pointer}
 .select__option[aria-selected="true"]{font-weight:600}
 .select__option:hover,.select__option[data-active]{background:var(--primary);background:var(--primary-hover);color:#fff}
+html[data-theme="dark"] .select__button:hover,.select__option:hover{color:var(--primary-contrast)}
 @media (max-width:600px){.select{min-width:unset;width:100%}}

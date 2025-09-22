@@ -50,7 +50,7 @@ function vite_asset(string $entry) {
       [data-theme='dark'] header nav a:not(.active):hover,[data-theme='dark'] .subnav a:not(.active):hover{ color:#fff; }
       nav a.active{font-weight:900;color:var(--primary)}
       nav a.active:hover{color:var(--primary)}
-      header{display:flex;align-items:center;gap:.75rem;justify-content:flex-start;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05)}
+      header{display:flex;align-items:center;gap:.75rem;justify-content:flex-start;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05);z-index:999;}
       .logo{font-weight:bold;line-height:0}
       .logo img,.logo svg{display:block}
       nav{display:flex;gap:.5rem;align-items:center;flex:1;min-width:0}

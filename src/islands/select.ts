@@ -7,11 +7,18 @@ export function setSelectValue(sel: HTMLElement, value: string) {
     const options = Array.from(
         list.querySelectorAll<HTMLLIElement>('.select__option')
     );
-    options.forEach((o) =>
-        o.setAttribute('aria-selected', String(o.dataset.value === value))
-    );
-    btn.textContent = value;
+    let label = value;
+    options.forEach((o) => {
+        const optValue = o.dataset.value ?? '';
+        const isSelected = optValue === value;
+        o.setAttribute('aria-selected', String(isSelected));
+        if (isSelected) {
+            label = o.dataset.label ?? o.textContent?.trim() ?? optValue;
+        }
+    });
     sel.setAttribute('data-value', value);
+    sel.setAttribute('data-label', label);
+    btn.textContent = label;
 }
 
 export function enhanceSelects(root: Document | HTMLElement = document) {
@@ -41,6 +48,17 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
         const options = Array.from(
             list.querySelectorAll<HTMLLIElement>('.select__option')
         );
+
+        const initialAttr = sel.getAttribute('data-value');
+        const initialOption = initialAttr !== null
+            ? options.find((o) => (o.dataset.value ?? '') === initialAttr)
+            : undefined;
+        const fallbackOption =
+            initialOption ||
+            options.find((o) => o.getAttribute('aria-selected') === 'true') ||
+            options[0];
+        const initialValue = fallbackOption ? fallbackOption.dataset.value ?? '' : '';
+        setSelectValue(sel, initialValue);
 
         const open = () => {
             closeAll();
@@ -86,9 +104,10 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
 
         options.forEach((opt) => {
             opt.addEventListener('click', () => {
-                const val = opt.dataset.value || '';
+                const val = opt.dataset.value ?? '';
+                const label = opt.dataset.label ?? opt.textContent?.trim() ?? val;
                 const prev = sel.getAttribute('data-value') || '';
-                if (!val || val === prev) {
+                if (val === prev) {
                     close();
                     return;
                 }
@@ -96,7 +115,7 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
                 sel.dispatchEvent(
                     new CustomEvent('select:change', {
                         bubbles: true,
-                        detail: { value: val, previous: prev },
+                        detail: { value: val, label, previous: prev },
                     })
                 );
                 close();
@@ -108,4 +127,3 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
 export default function mount(el: HTMLElement) {
     enhanceSelects(el);
 }
-

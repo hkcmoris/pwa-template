@@ -336,3 +336,14 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
     mountIslands();
     highlightNav();
 });
+
+document.body.addEventListener('htmx:oobAfterSwap', (event) => {
+    const detail = (event as CustomEvent).detail as { content?: Element } | undefined;
+    const swapped = detail?.content ?? (event.target as Element | null);
+    if (swapped instanceof HTMLElement) {
+        mountIslands(swapped as HTMLElement);
+    } else {
+        mountIslands();
+    }
+});
+
