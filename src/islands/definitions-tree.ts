@@ -105,7 +105,15 @@ const clearDropClasses = (root: HTMLElement) => {
         );
 };
 
-const setupRenameDelete = (
+type OpenCreateOptions = {
+    parentId?: string | null;
+
+    parentTitle?: string;
+
+    childCount?: number;
+};
+
+const setupNodeActions = (
     root: HTMLElement,
 
     base: string,
@@ -116,7 +124,9 @@ const setupRenameDelete = (
 
     openModal: (title: string, body: HTMLElement) => void,
 
-    closeModal: () => void
+    closeModal: () => void,
+
+    openCreateModal: (options?: OpenCreateOptions) => void
 ) => {
     root.addEventListener('click', (event) => {
         const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
@@ -127,9 +137,34 @@ const setupRenameDelete = (
 
         const action = button.dataset.action;
 
+        if (!action) return;
+
+        if (action === 'create-child') {
+            const parentId = button.dataset.parentId ?? '';
+
+            const parentTitle = button.dataset.parentTitle ?? '';
+
+            const childCountRaw = button.dataset.parentChildren;
+
+            const childCount =
+                childCountRaw !== undefined
+                    ? Number.parseInt(childCountRaw, 10)
+                    : undefined;
+
+            openCreateModal({
+                parentId,
+
+                parentTitle,
+
+                childCount: Number.isNaN(childCount) ? undefined : childCount,
+            });
+
+            return;
+        }
+
         const id = button.dataset.id;
 
-        if (!action || !id) return;
+        if (!id) return;
 
         if (action === 'rename') {
             const currentTitle = button.dataset.title || '';
@@ -580,99 +615,153 @@ export default function init(el: HTMLElement) {
         document.addEventListener('keydown', escHandler);
     };
 
-    setupRenameDelete(el, actualBase, htmx, target, openModal, closeModal);
+    const openCreateModal = (options: OpenCreateOptions = {}) => {
+        if (!modalRoot || !createTemplate || !parentSelectCache) return;
+
+        const fragment = createTemplate.content.cloneNode(
+            true
+        ) as DocumentFragment;
+
+        const form = fragment.querySelector('form');
+
+        if (!form) return;
+
+        const {
+            parentId: rawParentId,
+
+            parentTitle,
+
+            childCount,
+        } = options;
+
+        const desiredParentId =
+            rawParentId === undefined || rawParentId === null
+                ? ''
+                : rawParentId;
+
+        const normalizedParentTitle =
+            typeof parentTitle === 'string' ? parentTitle.trim() : '';
+
+        const slot = form.querySelector('[data-definition-select-slot]');
+
+        let hiddenInput: HTMLInputElement | null = null;
+
+        if (slot) {
+            const clone = parentSelectCache.cloneNode(true) as HTMLElement;
+
+            clone.id = 'definition-parent-select-modal';
+
+            clone.removeAttribute('hx-swap-oob');
+
+            clone.removeAttribute('aria-hidden');
+
+            clone.removeAttribute('style');
+
+            clone.removeAttribute('data-island');
+
+            clone.removeAttribute('hx-on');
+
+            hiddenInput = clone.querySelector<HTMLInputElement>(
+                'input[name="parent_id"]'
+            );
+
+            if (hiddenInput) {
+                hiddenInput.id = 'definition-parent-value-modal';
+
+                hiddenInput.value = desiredParentId;
+            }
+
+            const button = clone.querySelector<HTMLButtonElement>(
+                '#definition-parent-button'
+            );
+
+            if (button) {
+                button.id = 'definition-parent-button-modal';
+
+                button.setAttribute(
+                    'aria-labelledby',
+                    'definition-parent-label definition-parent-button-modal'
+                );
+            }
+
+            slot.replaceWith(clone);
+
+            enhanceSelects(clone);
+
+            const selectElement = clone.querySelector<HTMLElement>('.select');
+
+            if (selectElement) {
+                setSelectValue(selectElement, desiredParentId);
+            }
+
+            clone.addEventListener('select:change', (ev) => {
+                const detail = (ev as CustomEvent).detail as
+                    | { value?: string }
+                    | undefined;
+
+                if (hiddenInput) hiddenInput.value = detail?.value ?? '';
+            });
+        }
+
+        const legend = form.querySelector('legend');
+
+        if (legend) {
+            legend.textContent = normalizedParentTitle
+                ? `Přidat poduzel k ${normalizedParentTitle}`
+                : 'Přidat novou definici';
+        }
+
+        const positionInput = form.querySelector<HTMLInputElement>(
+            'input[name="position"]'
+        );
+
+        if (positionInput) {
+            if (typeof childCount === 'number' && Number.isFinite(childCount)) {
+                positionInput.value = String(childCount);
+            } else {
+                positionInput.value = '';
+            }
+        }
+
+        openModal(
+            normalizedParentTitle ? 'Přidat poduzel' : 'Přidat definici',
+            form
+        );
+
+        const titleInput = form.querySelector<HTMLInputElement>(
+            'input[name="title"]'
+        );
+
+        titleInput?.focus();
+
+        form.addEventListener('htmx:afterRequest', (event) => {
+            const detail = (event as CustomEvent).detail as
+                | { xhr?: XMLHttpRequest }
+                | undefined;
+
+            const status = detail?.xhr?.status ?? 0;
+
+            if (status && status < 400) {
+                closeModal();
+            }
+        });
+    };
+
+    setupNodeActions(
+        el,
+        actualBase,
+        htmx,
+        target,
+        openModal,
+        closeModal,
+        openCreateModal
+    );
 
     setupDragAndDrop(el, actualBase, htmx, target);
 
-    if (openCreateButton && modalRoot && createTemplate && parentSelectCache) {
+    if (openCreateButton) {
         openCreateButton.addEventListener('click', () => {
-            const fragment = createTemplate.content.cloneNode(
-                true
-            ) as DocumentFragment;
-
-            const form = fragment.querySelector('form');
-
-            if (!form) return;
-
-            const slot = form.querySelector('[data-definition-select-slot]');
-
-            if (slot) {
-                const clone = parentSelectCache.cloneNode(true) as HTMLElement;
-
-                clone.id = 'definition-parent-select-modal';
-
-                clone.removeAttribute('hx-swap-oob');
-
-                clone.removeAttribute('aria-hidden');
-
-                clone.removeAttribute('style');
-
-                clone.removeAttribute('data-island');
-
-                clone.removeAttribute('hx-on');
-
-                const hiddenInput = clone.querySelector<HTMLInputElement>(
-                    'input[name="parent_id"]'
-                );
-
-                if (hiddenInput) {
-                    hiddenInput.id = 'definition-parent-value-modal';
-
-                    hiddenInput.value = '';
-                }
-
-                const button = clone.querySelector<HTMLButtonElement>(
-                    '#definition-parent-button'
-                );
-
-                if (button) {
-                    button.id = 'definition-parent-button-modal';
-
-                    button.setAttribute(
-                        'aria-labelledby',
-                        'definition-parent-label definition-parent-button-modal'
-                    );
-                }
-
-                slot.replaceWith(clone);
-
-                enhanceSelects(clone);
-
-                const selectElement =
-                    clone.querySelector<HTMLElement>('.select');
-
-                if (selectElement) {
-                    setSelectValue(selectElement, '');
-                }
-
-                clone.addEventListener('select:change', (ev) => {
-                    const detail = (ev as CustomEvent).detail as
-                        | { value?: string }
-                        | undefined;
-
-                    if (hiddenInput) hiddenInput.value = detail?.value ?? '';
-                });
-            }
-
-            openModal('Přidat definici', form);
-
-            const titleInput = form.querySelector<HTMLInputElement>(
-                'input[name="title"]'
-            );
-
-            titleInput?.focus();
-
-            form.addEventListener('htmx:afterRequest', (event) => {
-                const detail = (event as CustomEvent).detail as
-                    | { xhr?: XMLHttpRequest }
-                    | undefined;
-
-                const status = detail?.xhr?.status ?? 0;
-
-                if (status && status < 400) {
-                    closeModal();
-                }
-            });
+            openCreateModal();
         });
     }
 }
