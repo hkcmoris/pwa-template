@@ -49,3 +49,22 @@ if (!defined('SW_ENABLED')) {
     }
     define('SW_ENABLED', $swEnabled ? true : false);
 }
+if (!defined('APP_VERSION')) {
+    $version = $env['APP_VERSION'] ?? getenv('APP_VERSION') ?? null;
+    if (!is_string($version) || $version === '') {
+        $packagePath = __DIR__ . '/../../package.json';
+        if (is_file($packagePath)) {
+            $packageJson = file_get_contents($packagePath);
+            if ($packageJson !== false) {
+                $packageData = json_decode($packageJson, true);
+                if (is_array($packageData) && isset($packageData['version'])) {
+                    $version = (string) $packageData['version'];
+                }
+            }
+        }
+    }
+    if (!is_string($version) || $version === '') {
+        $version = 'dev';
+    }
+    define('APP_VERSION', $version);
+}
