@@ -1,4 +1,4 @@
-const CACHE_NAME = 'runtime-BejjimuV';
+const CACHE_NAME = 'runtime-CKkY2p95';
 
 // Derive base path from SW registration scope ('' or '/subdir')
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
