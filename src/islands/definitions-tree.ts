@@ -538,9 +538,9 @@ export default function init(el: HTMLElement) {
     ) as HTMLTemplateElement | null;
 
     const getParentSelectCache = () =>
-        document.getElementById('definition-parent-select') as
-            | HTMLElement
-            | null;
+        document.getElementById(
+            'definition-parent-select'
+        ) as HTMLElement | null;
 
     const openCreateButton = document.getElementById(
         'definition-open-create'
