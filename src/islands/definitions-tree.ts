@@ -2,9 +2,7 @@ import { enhanceSelects, setSelectValue } from './select';
 
 const listSelectors = {
     node: '.definition-node',
-
     item: '.definition-item',
-
     actions: '.definition-actions',
 };
 
@@ -25,61 +23,44 @@ type HTMX = {
 
 type DragContext = {
     item: HTMLElement;
-
     id: string;
-
     path: string;
 };
 
 type DropContext = {
     item: HTMLElement | null;
-
     position: DropPosition | null;
 };
 
 const escapeHtml = (value: string): string =>
     value
-
         .replace(/&/g, '&amp;')
-
         .replace(/</g, '&lt;')
-
         .replace(/>/g, '&gt;')
-
         .replace(/"/g, '&quot;')
-
         .replace(/'/g, '&#39;');
 
 const getBasePath = (root: HTMLElement): string => {
     const raw = root.dataset.base || '';
-
     if (!raw) return '';
-
     return raw === '/' ? '' : raw;
 };
 
 const getHtmx = (): HTMX | null => {
     const win = window as unknown as { htmx?: HTMX };
-
     return win.htmx ?? null;
 };
 
 const sendRequest = (
     htmx: HTMX,
-
     url: string,
-
     values: Record<string, unknown>,
-
     target: HTMLElement
 ): XMLHttpRequest =>
     htmx.ajax('POST', url, {
         values,
-
         target,
-
         swap: 'outerHTML',
-
         select: '#definitions-list',
     });
 
@@ -107,25 +88,17 @@ const clearDropClasses = (root: HTMLElement) => {
 
 type OpenCreateOptions = {
     parentId?: string | null;
-
     parentTitle?: string;
-
     childCount?: number;
 };
 
 const setupNodeActions = (
     root: HTMLElement,
-
     base: string,
-
     htmx: HTMX,
-
     target: HTMLElement,
-
     openModal: (title: string, body: HTMLElement) => void,
-
     closeModal: () => void,
-
     openCreateModal: (options?: OpenCreateOptions) => void
 ) => {
     root.addEventListener('click', (event) => {
@@ -134,18 +107,14 @@ const setupNodeActions = (
         );
 
         if (!button) return;
-
         const action = button.dataset.action;
 
         if (!action) return;
 
         if (action === 'create-child') {
             const parentId = button.dataset.parentId ?? '';
-
             const parentTitle = button.dataset.parentTitle ?? '';
-
             const childCountRaw = button.dataset.parentChildren;
-
             const childCount =
                 childCountRaw !== undefined
                     ? Number.parseInt(childCountRaw, 10)
@@ -153,9 +122,7 @@ const setupNodeActions = (
 
             openCreateModal({
                 parentId,
-
                 parentTitle,
-
                 childCount: Number.isNaN(childCount) ? undefined : childCount,
             });
 
@@ -168,31 +135,18 @@ const setupNodeActions = (
 
         if (action === 'rename') {
             const currentTitle = button.dataset.title || '';
-
             const form = document.createElement('form');
-
             form.className = 'definition-form definition-form--modal';
-
             form.innerHTML = `
-
                 <div class="definition-field">
-
                   <label>Nový název
-
                     <input type="text" name="title" value="${escapeHtml(currentTitle)}" maxlength="191" required>
-
                   </label>
-
                 </div>
-
                 <div class="definition-modal-actions">
-
                   <button type="button" class="definition-action" data-modal-close>Storno</button>
-
                   <button type="submit" class="definition-primary">Uložit</button>
-
                 </div>
-
             `;
 
             openModal('Přejmenovat definici', form);
@@ -212,7 +166,6 @@ const setupNodeActions = (
 
                 if (!value || value === currentTitle) {
                     closeModal();
-
                     return;
                 }
 
@@ -230,7 +183,6 @@ const setupNodeActions = (
                 'click',
                 (ev) => {
                     ev.preventDefault();
-
                     closeModal();
                 }
             );
@@ -240,23 +192,14 @@ const setupNodeActions = (
 
         if (action === 'delete') {
             const title = button.dataset.title || '';
-
             const container = document.createElement('div');
-
             container.className = 'definition-modal-body';
-
             container.innerHTML = `
-
                 <p>Opravdu chcete smazat definici <strong>${escapeHtml(title)}</strong>? Tato akce odstraní také všechny její podřízené uzly.</p>
-
                 <div class="definition-modal-actions">
-
                   <button type="button" class="definition-action" data-modal-close>Storno</button>
-
                   <button type="button" class="definition-action definition-action--danger" data-modal-confirm>Smazat</button>
-
                 </div>
-
             `;
 
             openModal('Smazat definici', container);
@@ -294,7 +237,6 @@ const setupDragAndDrop = (
     target: HTMLElement
 ) => {
     let dragContext: DragContext | null = null;
-
     let dropContext: DropContext = { item: null, position: null };
 
     const updateDropHighlight = (
@@ -325,7 +267,6 @@ const setupDragAndDrop = (
 
         if ((event.target as HTMLElement).closest(listSelectors.actions)) {
             event.preventDefault();
-
             return;
         }
 
@@ -335,34 +276,26 @@ const setupDragAndDrop = (
 
         dragContext = {
             item,
-
             id: item.dataset.id || '',
-
             path: item.dataset.path || '',
         };
 
         targetNode.classList.add('definition-node--dragging');
-
         item.classList.add('definition-item--dragging');
-
         event.dataTransfer?.setData('text/plain', dragContext.id);
-
         event.dataTransfer?.setDragImage(targetNode, 10, 10);
     });
 
     root.addEventListener('dragend', () => {
         if (dragContext) {
             dragContext.item.classList.remove('definition-item--dragging');
-
             dragContext.item
                 .querySelector(listSelectors.node)
                 ?.classList.remove('definition-node--dragging');
         }
 
         dragContext = null;
-
         dropContext = { item: null, position: null };
-
         clearDropClasses(root);
     });
 
@@ -382,11 +315,8 @@ const setupDragAndDrop = (
         event.preventDefault();
 
         const rect = item.getBoundingClientRect();
-
         const offset = event.clientY - rect.top;
-
         const threshold = rect.height / 3;
-
         let position: DropPosition;
 
         if (offset < threshold) {
@@ -418,19 +348,14 @@ const setupDragAndDrop = (
         event.preventDefault();
 
         const targetItem = dropContext.item;
-
         const dropPosition = dropContext.position;
-
         const targetId = targetItem.dataset.id || '';
 
         if (!targetId) return;
 
         const parentAttr = targetItem.dataset.parent || '';
-
         const targetPosition = parseInt(targetItem.dataset.position || '0', 10);
-
         let parentId: string | null = null;
-
         let position = 0;
 
         if (dropPosition === 'inside') {
@@ -440,18 +365,15 @@ const setupDragAndDrop = (
                 targetItem.querySelector<HTMLElement>(':scope > ul');
 
             const childCount = childList ? childList.children.length : 0;
-
             position = childCount;
         } else {
             parentId = parentAttr === '' ? null : parentAttr;
-
             position =
                 dropPosition === 'before' ? targetPosition : targetPosition + 1;
         }
 
         if (parentId === dragContext.id) {
             updateDropHighlight(null, null);
-
             return;
         }
 
@@ -460,9 +382,7 @@ const setupDragAndDrop = (
             `${base}/editor/definitions-move`,
             {
                 id: dragContext.id,
-
                 parent_id: parentId ?? '',
-
                 position,
             },
             target
@@ -506,9 +426,7 @@ const setupDragAndDrop = (
             `${base}/editor/definitions-move`,
             {
                 id: dragContext.id,
-
                 parent_id: '',
-
                 position,
             },
             target
@@ -524,11 +442,8 @@ export default function init(el: HTMLElement) {
     if (!htmx) return;
 
     const base = getBasePath(el);
-
     const target = el;
-
     const actualBase = base || '';
-
     const modalRoot = document.getElementById(
         'definitions-modal'
     ) as HTMLElement | null;
@@ -552,14 +467,11 @@ export default function init(el: HTMLElement) {
         if (!modalRoot) return;
 
         modalRoot.classList.add('hidden');
-
         modalRoot.setAttribute('aria-hidden', 'true');
-
         modalRoot.innerHTML = '';
 
         if (escHandler) {
             document.removeEventListener('keydown', escHandler);
-
             escHandler = null;
         }
     };
@@ -568,23 +480,14 @@ export default function init(el: HTMLElement) {
         if (!modalRoot) return;
 
         modalRoot.innerHTML = `
-
             <div class="definitions-modal__overlay" data-modal-close></div>
-
             <div class="definitions-modal__panel" role="dialog" aria-modal="true">
-
               <header>
-
                 <h3>${escapeHtml(title)}</h3>
-
                 <button type="button" class="definition-action" data-modal-close aria-label="Zavřít">×</button>
-
               </header>
-
               <div class="definitions-modal__body"></div>
-
             </div>
-
         `;
 
         const bodyContainer = modalRoot.querySelector(
@@ -592,15 +495,11 @@ export default function init(el: HTMLElement) {
         ) as HTMLElement;
 
         bodyContainer.appendChild(body);
-
         modalRoot.classList.remove('hidden');
-
         modalRoot.setAttribute('aria-hidden', 'false');
-
         modalRoot.querySelectorAll('[data-modal-close]').forEach((btn) =>
             btn.addEventListener('click', (ev) => {
                 ev.preventDefault();
-
                 closeModal();
             })
         );
@@ -608,7 +507,6 @@ export default function init(el: HTMLElement) {
         escHandler = (ev) => {
             if (ev.key === 'Escape') {
                 ev.preventDefault();
-
                 closeModal();
             }
         };
@@ -629,13 +527,7 @@ export default function init(el: HTMLElement) {
 
         if (!form) return;
 
-        const {
-            parentId: rawParentId,
-
-            parentTitle,
-
-            childCount,
-        } = options;
+        const { parentId: rawParentId, parentTitle, childCount } = options;
 
         const desiredParentId =
             rawParentId === undefined || rawParentId === null
@@ -651,17 +543,11 @@ export default function init(el: HTMLElement) {
 
         if (slot) {
             const clone = parentSelectCache.cloneNode(true) as HTMLElement;
-
             clone.id = 'definition-parent-select-modal';
-
             clone.removeAttribute('hx-swap-oob');
-
             clone.removeAttribute('aria-hidden');
-
             clone.removeAttribute('style');
-
             clone.removeAttribute('data-island');
-
             clone.removeAttribute('hx-on');
 
             hiddenInput = clone.querySelector<HTMLInputElement>(
@@ -670,7 +556,6 @@ export default function init(el: HTMLElement) {
 
             if (hiddenInput) {
                 hiddenInput.id = 'definition-parent-value-modal';
-
                 hiddenInput.value = desiredParentId;
             }
 
@@ -680,7 +565,6 @@ export default function init(el: HTMLElement) {
 
             if (button) {
                 button.id = 'definition-parent-button-modal';
-
                 button.setAttribute(
                     'aria-labelledby',
                     'definition-parent-label definition-parent-button-modal'
@@ -688,9 +572,7 @@ export default function init(el: HTMLElement) {
             }
 
             slot.replaceWith(clone);
-
             enhanceSelects(clone);
-
             const selectElement = clone.querySelector<HTMLElement>('.select');
 
             if (selectElement) {
