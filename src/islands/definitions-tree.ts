@@ -245,7 +245,11 @@ const setupDragAndDrop = (
     ) => {
         clearDropClasses(root);
 
-        if (!item || !position) return;
+        dropContext = { item, position };
+
+        if (!item || !position) {
+            return;
+        }
 
         item.classList.add(
             position === 'before'
@@ -254,8 +258,6 @@ const setupDragAndDrop = (
                   ? 'definition-item--drop-after'
                   : 'definition-item--drop-inside'
         );
-
-        dropContext = { item, position };
     };
 
     root.addEventListener('dragstart', (event) => {
@@ -349,30 +351,84 @@ const setupDragAndDrop = (
 
         const targetItem = dropContext.item;
         const dropPosition = dropContext.position;
-        const targetId = targetItem.dataset.id || '';
+        const targetIdRaw = (targetItem.dataset.id ?? '').trim();
 
-        if (!targetId) return;
+        if (!/^\d+$/.test(targetIdRaw)) {
+            updateDropHighlight(null, null);
+            return;
+        }
 
-        const parentAttr = targetItem.dataset.parent || '';
-        const targetPosition = parseInt(targetItem.dataset.position || '0', 10);
-        let parentId: string | null = null;
+        const parentAttr = targetItem.dataset.parent ?? '';
+        const rawPosition = Number.parseInt(
+            targetItem.dataset.position ?? '',
+            10
+        );
+        const siblingCollection =
+            targetItem.parentElement?.querySelectorAll(
+                ':scope > .definition-item'
+            );
+        const siblings = siblingCollection
+            ? Array.from(siblingCollection)
+            : [];
+        let targetPosition = Number.isNaN(rawPosition)
+            ? siblings.indexOf(targetItem)
+            : rawPosition;
+
+        if (targetPosition < 0) {
+            targetPosition = siblings.length ? siblings.length - 1 : 0;
+        }
+
+        const dragId = dragContext.id.trim();
+
+        if (!/^\d+$/.test(dragId)) {
+            updateDropHighlight(null, null);
+            return;
+        }
+
+        let parentId: string | null =
+            parentAttr === '' ? null : parentAttr.trim();
         let position = 0;
 
         if (dropPosition === 'inside') {
-            parentId = targetId;
-
-            const childList =
-                targetItem.querySelector<HTMLElement>(':scope > ul');
-
-            const childCount = childList ? childList.children.length : 0;
-            position = childCount;
+            parentId = targetIdRaw;
+            const childItems = targetItem.querySelectorAll(
+                ':scope > ul > .definition-item'
+            );
+            position = childItems.length;
         } else {
-            parentId = parentAttr === '' ? null : parentAttr;
             position =
-                dropPosition === 'before' ? targetPosition : targetPosition + 1;
+                dropPosition === 'before'
+                    ? targetPosition
+                    : targetPosition + 1;
         }
 
-        if (parentId === dragContext.id) {
+        if (parentId === dragId) {
+            updateDropHighlight(null, null);
+            return;
+        }
+
+        if (parentId && !/^\d+$/.test(parentId)) {
+            parentId = null;
+        }
+
+        if (!Number.isFinite(position) || position < 0) {
+            position = 0;
+        }
+
+        const currentParentRaw = dragContext.item.dataset.parent ?? '';
+        const currentParentId = currentParentRaw === '' ? null : currentParentRaw.trim();
+        const currentPosition = Number.parseInt(
+            dragContext.item.dataset.position ?? '',
+            10
+        );
+        const targetParentId = parentId ?? null;
+        const desiredPosition = Math.floor(position);
+
+        if (
+            targetParentId === currentParentId &&
+            !Number.isNaN(currentPosition) &&
+            desiredPosition === currentPosition
+        ) {
             updateDropHighlight(null, null);
             return;
         }
@@ -381,9 +437,9 @@ const setupDragAndDrop = (
             htmx,
             `${base}/editor/definitions-move`,
             {
-                id: dragContext.id,
-                parent_id: parentId ?? '',
-                position,
+                id: dragId,
+                parent_id: targetParentId ?? '',
+                position: String(desiredPosition),
             },
             target
         );
