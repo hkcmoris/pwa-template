@@ -237,7 +237,7 @@ const setupDragAndDrop = (
     target: HTMLElement
 ) => {
     let dragContext: DragContext | null = null;
-    let dropContext: DropContext = { item: null, position: null };
+    const dropContext: DropContext = { item: null, position: null };
 
     const updateDropHighlight = (
         item: HTMLElement | null,
@@ -245,7 +245,8 @@ const setupDragAndDrop = (
     ) => {
         clearDropClasses(root);
 
-        dropContext = { item, position };
+        dropContext.item = item;
+        dropContext.position = position;
 
         if (!item || !position) {
             return;
@@ -297,7 +298,8 @@ const setupDragAndDrop = (
         }
 
         dragContext = null;
-        dropContext = { item: null, position: null };
+        dropContext.item = null;
+        dropContext.position = null;
         clearDropClasses(root);
     });
 
@@ -457,7 +459,7 @@ const setupDragAndDrop = (
 
         event.preventDefault();
 
-        dropContext = { item: null, position: null };
+        updateDropHighlight(null, null);
     });
 
     root.addEventListener('drop', (event) => {
@@ -706,3 +708,4 @@ export default function init(el: HTMLElement) {
         });
     }
 }
+

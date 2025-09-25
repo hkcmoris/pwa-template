@@ -78,7 +78,7 @@ function definitions_next_position(PDO $pdo, ?int $parentId): int {
     return $max + 1;
 }
 
-function definitions_reorder_positions(PDO $pdo, ?int $parentId): void {
+function definitions_reorder_positions__DEPRECATED(PDO $pdo, ?int $parentId): void {
     $stmt = $pdo->prepare('SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position, id');
     if ($parentId === null) {
         $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -87,6 +87,34 @@ function definitions_reorder_positions(PDO $pdo, ?int $parentId): void {
     }
     $stmt->execute();
     $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $update = $pdo->prepare('UPDATE definitions SET position = :position WHERE id = :id');
+    foreach ($ids as $index => $id) {
+        $update->bindValue(':position', $index, PDO::PARAM_INT);
+        $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
+        $update->execute();
+    }
+}
+
+function definitions_reorder_positions(PDO $pdo, ?int $parentId): void {
+    // Phase 1: move all positions away to avoid unique collisions
+    $bump = $pdo->prepare('UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent');
+    if ($parentId === null) {
+        $bump->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $bump->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $bump->execute();
+
+    // Phase 2: reassign compact 0..n-1 deterministically
+    $stmt = $pdo->prepare('SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position, id');
+    if ($parentId === null) {
+        $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
     $update = $pdo->prepare('UPDATE definitions SET position = :position WHERE id = :id');
     foreach ($ids as $index => $id) {
         $update->bindValue(':position', $index, PDO::PARAM_INT);
@@ -209,16 +237,16 @@ function definitions_move(PDO $pdo, int $id, ?int $newParentId, int $newPosition
         $oldParentId = $node['parent_id'] !== null ? (int) $node['parent_id'] : null;
         $oldPosition = (int) $node['position'];
         if ($newParentId !== null && !definitions_parent_exists($pdo, $newParentId)) {
-            throw new RuntimeException('Vybran� rodi� neexistuje.');
+            throw new RuntimeException('Vybraný rodič neexistuje.');
         }
         if ($newParentId === $id) {
-            throw new RuntimeException('Nelze p�esunout uzel pod sebe samotn�ho.');
+            throw new RuntimeException('Nelze přesunout uzel pod sebe samotného.');
         }
         if ($newParentId !== null) {
             $ancestor = $newParentId;
             while ($ancestor !== null) {
                 if ($ancestor === $id) {
-                    throw new RuntimeException('Nelze p�esunout uzel pod vlastn� potomky.');
+                    throw new RuntimeException('Nelze přesunout uzel pod vlastní potomky.');
                 }
                 $ancestor = definitions_get_parent_id($pdo, $ancestor);
             }
@@ -298,7 +326,6 @@ function definitions_move(PDO $pdo, int $id, ?int $newParentId, int $newPosition
             'UPDATE definitions
                  SET position = position + 1
                WHERE parent_id <=> :parent
-                 AND id <> :id
                  AND position >= :position'
         );
         $shift->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);

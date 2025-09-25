@@ -60,6 +60,7 @@ $position = (int) $positionParam;
 
 try {
     definitions_move($pdo, $id, $parentId, $position);
+    print($id . ': [' . $parentId . ', ' . $position . ']');
     definitions_render_fragments($pdo, [
         'message' => 'Definice byla přesunuta.',
         'message_type' => 'success',
