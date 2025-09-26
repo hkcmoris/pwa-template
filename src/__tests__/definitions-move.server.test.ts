@@ -17,6 +17,8 @@ type MoveScenarioResult = {
 
 const SQLSTATE_MISMATCH_ERROR =
     'SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens';
+const SQLSTATE_DUPLICATE_ENTRY_ERROR =
+    "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '17-1' for key 'uq_definitions_parent_position'";
 
 const runScenario = (scenario: string): MoveScenarioResult => {
     const output = execFileSync('php', ['server/tests/definitions_move_runner.php'], {
@@ -36,6 +38,7 @@ describe('definitions_move integration SQL harness', () => {
         expect(result.status).toBe('ok');
         expect(result.error).toBeNull();
         expect(result.error).not.toBe(SQLSTATE_MISMATCH_ERROR);
+        expect(result.error).not.toBe(SQLSTATE_DUPLICATE_ENTRY_ERROR);
         expect(result.operations).toEqual([
             { type: 'transaction', action: 'begin' },
             { type: 'transaction', action: 'commit' },
@@ -98,6 +101,7 @@ describe('definitions_move integration SQL harness', () => {
         expect(result.status).toBe('ok');
         expect(result.error).toBeNull();
         expect(result.error).not.toBe(SQLSTATE_MISMATCH_ERROR);
+        expect(result.error).not.toBe(SQLSTATE_DUPLICATE_ENTRY_ERROR);
 
         const parentTen = result.rows.filter((row) => row.parent_id === 10);
         expect(parentTen.map((row) => [row.id, row.position])).toEqual([
@@ -124,6 +128,7 @@ describe('definitions_move integration SQL harness', () => {
         expect(result.status).toBe('ok');
         expect(result.error).toBeNull();
         expect(result.error).not.toBe(SQLSTATE_MISMATCH_ERROR);
+        expect(result.error).not.toBe(SQLSTATE_DUPLICATE_ENTRY_ERROR);
 
         const rootRows = result.rows.filter((row) => row.parent_id === null);
         expect(rootRows.map((row) => [row.id, row.position])).toEqual([
@@ -158,6 +163,7 @@ describe('definitions_move integration SQL harness', () => {
         expect(result.status).toBe('ok');
         expect(result.error).toBeNull();
         expect(result.error).not.toBe(SQLSTATE_MISMATCH_ERROR);
+        expect(result.error).not.toBe(SQLSTATE_DUPLICATE_ENTRY_ERROR);
         expect(result.operations).toEqual([
             { type: 'transaction', action: 'begin' },
             { type: 'transaction', action: 'commit' },
