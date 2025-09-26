@@ -223,6 +223,11 @@ class FakeStatement
 
     private string $query;
 
+    public string $queryString;
+
+    /** @var array<int,string> */
+    private array $placeholders;
+
     /** @var array<string,mixed> */
     private array $params = [];
 
@@ -235,6 +240,8 @@ class FakeStatement
     {
         $this->pdo = $pdo;
         $this->query = $query;
+        $this->queryString = $query;
+        $this->placeholders = $this->extractPlaceholders($query);
     }
 
     public function bindValue(string $param, $value, int $type = PDO::PARAM_STR): bool
@@ -254,6 +261,9 @@ class FakeStatement
                 $this->params[$key] = $value;
             }
         }
+
+        $this->assertPlaceholderMatch();
+
         $this->results = $this->pdo->executeQuery($this->query, $this->params);
         $this->cursor = 0;
         return true;
@@ -302,6 +312,39 @@ class FakeStatement
         $this->results = [];
         $this->cursor = 0;
         return true;
+    }
+
+    /**
+     * @return array<int,string>
+     */
+    private function extractPlaceholders(string $query): array
+    {
+        preg_match_all('/:([a-zA-Z_][a-zA-Z0-9_]*)/', $query, $matches);
+        $placeholders = [];
+        foreach ($matches[0] ?? [] as $placeholder) {
+            if (!in_array($placeholder, $placeholders, true)) {
+                $placeholders[] = $placeholder;
+            }
+        }
+
+        return $placeholders;
+    }
+
+    private function assertPlaceholderMatch(): void
+    {
+        $boundKeys = array_keys($this->params);
+        sort($boundKeys);
+
+        $expected = $this->placeholders;
+        sort($expected);
+
+        if ($boundKeys === $expected) {
+            return;
+        }
+
+        throw new PDOException(
+            'SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens'
+        );
     }
 }
 
