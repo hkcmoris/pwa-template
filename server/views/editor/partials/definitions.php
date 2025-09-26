@@ -89,7 +89,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .definition-meta{font-size:.75rem;color:#555}
   [data-theme="dark"] .definition-meta{color:#cbd5e1}
   .definition-actions{display:flex;align-items:center;gap:.35rem}
-  .definition-action{border:1px solid var(--fg);background:transparent;color:inherit;border-radius:.25rem;padding:.25rem .5rem;font-size:.75rem;cursor:pointer}
+  .definition-action{border:1px solid var(--primary);background:transparent;color:var(--primary);border-radius:.25rem;padding:.25rem .5rem;font-size:.75rem;cursor:pointer}
   .definition-action:hover,.definition-action:focus-visible{background:var(--primary);color:var(--primary-contrast)}
   .definition-action--danger{border-color:#dc2626;color:#dc2626}
   .definition-action--danger:hover,.definition-action--danger:focus-visible{background:#dc2626;color:#fff}
