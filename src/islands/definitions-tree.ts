@@ -19,6 +19,7 @@ type HTMX = {
             select?: string;
         }
     ) => XMLHttpRequest;
+    process?: (elt: Element) => void;
 };
 
 type DragContext = {
@@ -555,6 +556,9 @@ export default function init(el: HTMLElement) {
         ) as HTMLElement;
 
         bodyContainer.appendChild(body);
+        if (htmx && typeof htmx.process === 'function') {
+            htmx.process(body);
+        }
         modalRoot.classList.remove('hidden');
         modalRoot.setAttribute('aria-hidden', 'false');
         modalRoot.querySelectorAll('[data-modal-close]').forEach((btn) =>
