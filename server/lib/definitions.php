@@ -342,7 +342,6 @@ function definitions_move(PDO $pdo, int $id, ?int $newParentId, int $newPosition
                  AND position >= :position'
         );
         $shift->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-        $shift->bindValue(':id', $id, PDO::PARAM_INT);
         $shift->bindValue(':position', $newPosition, PDO::PARAM_INT);
         $shift->execute();
 
