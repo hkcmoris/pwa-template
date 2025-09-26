@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/logger.php';
+require_once __DIR__ . '/definitions.php';
 
 function components_fetch_rows(?PDO $pdo = null): array {
     $pdo = $pdo ?? get_db_connection();
@@ -18,6 +19,151 @@ function components_fetch_rows(?PDO $pdo = null): array {
     }
     log_message('Fetched ' . count($normalised) . ' components from database', 'DEBUG');
     return $normalised;
+}
+
+function components_find(PDO $pdo, int $id): ?array {
+    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
+            FROM components c
+            INNER JOIN definitions d ON d.id = c.definition_id
+            WHERE c.id = :id';
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+    $stmt->execute();
+    $row = $stmt->fetch();
+    if (!$row) {
+        return null;
+    }
+    $row['dependency_tree'] = components_normalise_dependency_tree($row['dependency_tree'] ?? null);
+    $row['effective_title'] = components_effective_title($row);
+    return $row;
+}
+
+function components_parent_exists(PDO $pdo, int $parentId): bool {
+    $stmt = $pdo->prepare('SELECT 1 FROM components WHERE id = :id LIMIT 1');
+    $stmt->bindValue(':id', $parentId, PDO::PARAM_INT);
+    $stmt->execute();
+    return (bool) $stmt->fetchColumn();
+}
+
+function components_children_count(PDO $pdo, ?int $parentId): int {
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM components WHERE parent_id <=> :parent');
+    if ($parentId === null) {
+        $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    return (int) $stmt->fetchColumn();
+}
+
+function components_next_position(PDO $pdo, ?int $parentId): int {
+    $stmt = $pdo->prepare('SELECT COALESCE(MAX(position), -1) FROM components WHERE parent_id <=> :parent');
+    if ($parentId === null) {
+        $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    $max = (int) $stmt->fetchColumn();
+    return $max + 1;
+}
+
+function components_reorder_positions(PDO $pdo, ?int $parentId): void {
+    $bump = $pdo->prepare('UPDATE components SET position = position + 1000000 WHERE parent_id <=> :parent');
+    if ($parentId === null) {
+        $bump->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $bump->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $bump->execute();
+
+    $stmt = $pdo->prepare('SELECT id FROM components WHERE parent_id <=> :parent ORDER BY position, id');
+    if ($parentId === null) {
+        $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    $update = $pdo->prepare('UPDATE components SET position = :position WHERE id = :id');
+    foreach ($ids as $index => $id) {
+        $update->bindValue(':position', $index, PDO::PARAM_INT);
+        $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
+        $update->execute();
+    }
+}
+
+function components_create(
+    PDO $pdo,
+    int $definitionId,
+    ?int $parentId,
+    ?string $alternateTitle,
+    ?string $description,
+    ?string $image,
+    int $position
+): array {
+    $pdo->beginTransaction();
+    try {
+        if (!definitions_find($pdo, $definitionId)) {
+            throw new RuntimeException('Vybraná definice neexistuje.');
+        }
+        if ($parentId !== null && !components_parent_exists($pdo, $parentId)) {
+            throw new RuntimeException('Vybraný rodič neexistuje.');
+        }
+        if ($position < 0) {
+            $position = 0;
+        }
+        components_reorder_positions($pdo, $parentId);
+        $count = components_children_count($pdo, $parentId);
+        if ($position > $count) {
+            $position = $count;
+        }
+        $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
+        if ($parentId === null) {
+            $shift->bindValue(':parent', null, PDO::PARAM_NULL);
+        } else {
+            $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+        $shift->bindValue(':position', $position, PDO::PARAM_INT);
+        $shift->execute();
+
+        $stmt = $pdo->prepare('INSERT INTO components (definition_id, parent_id, alternate_title, description, image, dependency_tree, position) VALUES (:definition, :parent, :alternate, :description, :image, :dependency, :position)');
+        $stmt->bindValue(':definition', $definitionId, PDO::PARAM_INT);
+        if ($parentId === null) {
+            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+        if ($alternateTitle === null || $alternateTitle === '') {
+            $stmt->bindValue(':alternate', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':alternate', $alternateTitle, PDO::PARAM_STR);
+        }
+        if ($description === null || $description === '') {
+            $stmt->bindValue(':description', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':description', $description, PDO::PARAM_STR);
+        }
+        if ($image === null || $image === '') {
+            $stmt->bindValue(':image', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':image', $image, PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':dependency', json_encode([]), PDO::PARAM_STR);
+        $stmt->bindValue(':position', $position, PDO::PARAM_INT);
+        $stmt->execute();
+        $id = (int) $pdo->lastInsertId();
+        $pdo->commit();
+        $row = components_find($pdo, $id);
+        if (!$row) {
+            throw new RuntimeException('Komponentu se nepodařilo načíst po vložení.');
+        }
+        return $row;
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
 }
 
 function components_normalise_dependency_tree($raw): array {
