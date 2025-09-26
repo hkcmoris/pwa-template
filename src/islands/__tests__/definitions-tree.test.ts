@@ -1,6 +1,11 @@
-import { isDescendantPath, setupDragAndDrop } from '../definitions-tree';
+import {
+    isDescendantPath,
+    setupDragAndDrop,
+} from '../definitions-tree';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 type AjaxFn = Parameters<typeof setupDragAndDrop>[2]['ajax'];
+type HtmxMock = { ajax: AjaxFn };
 
 describe('isDescendantPath', () => {
     it('detects descendants correctly', () => {
@@ -48,12 +53,14 @@ const createItem = (
 
 describe('setupDragAndDrop', () => {
     let ajaxMock: jest.Mock<ReturnType<AjaxFn>, Parameters<AjaxFn>>;
+    let htmxMock: HtmxMock;
 
     beforeEach(() => {
         document.body.innerHTML = '';
         ajaxMock = jest.fn<ReturnType<AjaxFn>, Parameters<AjaxFn>>(
             () => ({} as XMLHttpRequest)
         );
+        htmxMock = { ajax: ajaxMock };
     });
 
     const dispatchDragStart = (node: HTMLElement) => {
@@ -104,7 +111,7 @@ describe('setupDragAndDrop', () => {
 
         document.body.appendChild(root);
 
-        setupDragAndDrop(root, '', { ajax: ajaxMock } as any, root);
+        setupDragAndDrop(root, '', htmxMock, root);
 
         dispatchDragStart(child.node);
 
@@ -151,7 +158,7 @@ describe('setupDragAndDrop', () => {
 
         document.body.appendChild(root);
 
-        setupDragAndDrop(root, '', { ajax: ajaxMock } as any, root);
+        setupDragAndDrop(root, '', htmxMock, root);
 
         dispatchDragStart(second.node);
 
