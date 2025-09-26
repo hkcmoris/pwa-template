@@ -110,7 +110,7 @@ describe('setupDragAndDrop', () => {
 
         document.body.appendChild(root);
 
-        setupDragAndDrop(root, '', htmxMock, root);
+        setupDragAndDrop(root, '', htmxMock);
 
         dispatchDragStart(child.node);
 
@@ -136,8 +136,9 @@ describe('setupDragAndDrop', () => {
         expect(ajaxMock.mock.calls[0][0]).toBe('POST');
         expect(ajaxMock.mock.calls[0][1]).toBe('/editor/definitions-move');
         expect(ajaxMock.mock.calls[0][2]).toEqual({
+            source: '#definitions-list',
             values: { id: '2', parent_id: '3', position: '0' },
-            target: root,
+            target: '#definitions-list',
             swap: 'outerHTML',
             select: '#definitions-list',
         });
@@ -157,7 +158,7 @@ describe('setupDragAndDrop', () => {
 
         document.body.appendChild(root);
 
-        setupDragAndDrop(root, '', htmxMock, root);
+        setupDragAndDrop(root, '', htmxMock);
 
         dispatchDragStart(second.node);
 

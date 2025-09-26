@@ -13,8 +13,9 @@ type HTMX = {
         method: string,
         url: string,
         options: {
+            source?: Element | string;
             values?: Record<string, unknown>;
-            target?: Element;
+            target?: Element | string;
             swap?: string;
             select?: string;
         }
@@ -52,17 +53,19 @@ const getHtmx = (): HTMX | null => {
     return win.htmx ?? null;
 };
 
+const definitionsTargetSelector = '#definitions-list';
+
 const sendRequest = (
     htmx: HTMX,
     url: string,
-    values: Record<string, unknown>,
-    target: HTMLElement
+    values: Record<string, unknown>
 ): XMLHttpRequest =>
     htmx.ajax('POST', url, {
+        source: definitionsTargetSelector,
+        target: definitionsTargetSelector,
         values,
-        target,
         swap: 'outerHTML',
-        select: '#definitions-list',
+        select: definitionsTargetSelector,
     });
 
 const isDescendantPath = (ancestorPath: string, childPath: string): boolean => {
@@ -97,7 +100,6 @@ const setupNodeActions = (
     root: HTMLElement,
     base: string,
     htmx: HTMX,
-    target: HTMLElement,
     openModal: (title: string, body: HTMLElement) => void,
     closeModal: () => void,
     openCreateModal: (options?: OpenCreateOptions) => void
@@ -173,8 +175,7 @@ const setupNodeActions = (
                 sendRequest(
                     htmx,
                     `${base}/editor/definitions-rename`,
-                    { id, title: value },
-                    target
+                    { id, title: value }
                 );
 
                 closeModal();
@@ -219,8 +220,7 @@ const setupNodeActions = (
                     sendRequest(
                         htmx,
                         `${base}/editor/definitions-delete`,
-                        { id },
-                        target
+                        { id }
                     );
 
                     closeModal();
@@ -234,8 +234,7 @@ const setupNodeActions = (
 const setupDragAndDrop = (
     root: HTMLElement,
     base: string,
-    htmx: HTMX,
-    target: HTMLElement
+    htmx: HTMX
 ) => {
     let dragContext: DragContext | null = null;
     const dropContext: DropContext = { item: null, position: null };
@@ -443,8 +442,7 @@ const setupDragAndDrop = (
                 id: dragId,
                 parent_id: targetParentId ?? '',
                 position: String(desiredPosition),
-            },
-            target
+            }
         );
 
         updateDropHighlight(null, null);
@@ -487,8 +485,7 @@ const setupDragAndDrop = (
                 id: dragContext.id,
                 parent_id: '',
                 position,
-            },
-            target
+            }
         );
 
         updateDropHighlight(null, null);
@@ -503,7 +500,6 @@ export default function init(el: HTMLElement) {
     if (!htmx) return;
 
     const base = getBasePath(el);
-    const target = el;
     const actualBase = base || '';
     const modalRoot = document.getElementById(
         'definitions-modal'
@@ -696,17 +692,9 @@ export default function init(el: HTMLElement) {
         });
     };
 
-    setupNodeActions(
-        el,
-        actualBase,
-        htmx,
-        target,
-        openModal,
-        closeModal,
-        openCreateModal
-    );
+    setupNodeActions(el, actualBase, htmx, openModal, closeModal, openCreateModal);
 
-    setupDragAndDrop(el, actualBase, htmx, target);
+    setupDragAndDrop(el, actualBase, htmx);
 
     if (openCreateButton) {
         openCreateButton.addEventListener('click', () => {
