@@ -494,6 +494,8 @@ const setupDragAndDrop = (
     });
 };
 
+export { isDescendantPath, setupDragAndDrop };
+
 export default function init(el: HTMLElement) {
     const htmx = getHtmx();
 
