@@ -12,7 +12,7 @@ $componentsFlat = components_flatten_tree($componentsTree);
 <p style="max-width:640px">Komponenty rozšiřují definice konfigurátoru o konkrétní stavební bloky. Každá komponenta vychází z vybrané definice, může mít vlastní hierarchii a ukládá popis, obrázek i závislosti na dalších volbách.</p>
 
 <div class="component-toolbar">
-  <a class="component-primary" href="#" aria-disabled="true">Přidat komponentu (připravujeme)</a>
+  <button type="button" id="component-open-create" class="component-primary">Přidat komponentu</button>
 </div>
 
 <div class="component-summary">
@@ -23,7 +23,7 @@ $componentsFlat = components_flatten_tree($componentsTree);
 
 <style>
   .component-toolbar{margin:1rem 0;display:flex;justify-content:flex-start}
-  .component-primary{border:1px solid var(--primary);background:var(--primary);color:var(--primary-contrast);border-radius:.35rem;padding:.4rem .75rem;font-weight:600;cursor:not-allowed;opacity:.6;text-decoration:none}
+  .component-primary{border:1px solid var(--primary);background:var(--primary);color:var(--primary-contrast);border-radius:.35rem;padding:.4rem .75rem;font-weight:600;cursor:pointer}
   .component-summary{font-size:.9rem;color:var(--fg-muted,#4b5563)}
   .components-empty{font-style:italic;color:#6b7280}
   .component-tree{list-style:none;padding-left:1rem;margin:1.5rem 0;display:flex;flex-direction:column;gap:.5rem}
