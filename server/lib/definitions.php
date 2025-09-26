@@ -1,11 +1,13 @@
 <?php
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/logger.php';
 
 function definitions_fetch_rows(?PDO $pdo = null): array {
     $pdo = $pdo ?? get_db_connection();
     $stmt = $pdo->query('SELECT id, parent_id, title, position, meta, created_at, updated_at
                           FROM definitions
                           ORDER BY (parent_id IS NULL) DESC, parent_id, position, id');
+    log_message('Fetched ' . $stmt->rowCount() . ' definitions from database', 'DEBUG');
     return $stmt->fetchAll();
 }
 
@@ -15,6 +17,7 @@ function definitions_build_tree(array $rows): array {
         $key = $row['parent_id'] === null ? 'root' : (string) $row['parent_id'];
         $grouped[$key][] = $row;
     }
+    log_message('Grouped definitions into ' . count($grouped) . ' parent categories', 'DEBUG');
     return definitions_build_branch($grouped, 'root');
 }
 
@@ -98,11 +101,13 @@ function definitions_reorder_positions__DEPRECATED(PDO $pdo, ?int $parentId): vo
 function definitions_reorder_positions(PDO $pdo, ?int $parentId): void {
     // Phase 1: move all positions away to avoid unique collisions
     $bump = $pdo->prepare('UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent');
+    log_message('Phase 1: Reordering positions for parent_id ' . var_export($parentId, true), 'DEBUG');
     if ($parentId === null) {
         $bump->bindValue(':parent', null, PDO::PARAM_NULL);
     } else {
         $bump->bindValue(':parent', $parentId, PDO::PARAM_INT);
     }
+    log_message('Bump query: ' . $bump->queryString, 'DEBUG');
     $bump->execute();
 
     // Phase 2: reassign compact 0..n-1 deterministically
@@ -112,6 +117,7 @@ function definitions_reorder_positions(PDO $pdo, ?int $parentId): void {
     } else {
         $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
     }
+    log_message('Phase 2: Select query: ' . $stmt->queryString, 'DEBUG');
     $stmt->execute();
     $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
@@ -119,6 +125,7 @@ function definitions_reorder_positions(PDO $pdo, ?int $parentId): void {
     foreach ($ids as $index => $id) {
         $update->bindValue(':position', $index, PDO::PARAM_INT);
         $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
+        log_message('Phase 2: Update query: ' . $update->queryString . ' with position=' . $index . ' and id=' . (int)$id, 'DEBUG');
         $update->execute();
     }
 }
@@ -136,9 +143,11 @@ function definitions_update_title(PDO $pdo, int $id, string $title): array {
 }
 
 function definitions_create(PDO $pdo, string $title, ?int $parentId, int $position): array {
+    log_message('Creating definition with title=' . $title . ', parentId=' . var_export($parentId, true) . ', position=' . $position, 'DEBUG');
     $pdo->beginTransaction();
     try {
         if ($parentId !== null && !definitions_parent_exists($pdo, $parentId)) {
+            log_message('Parent ID ' . $parentId . ' does not exist.', 'ERROR');
             throw new RuntimeException('Vybraný rodič neexistuje.');
         }
         if ($position < 0) {
@@ -156,6 +165,7 @@ function definitions_create(PDO $pdo, string $title, ?int $parentId, int $positi
             $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
         }
         $shift->bindValue(':position', $position, PDO::PARAM_INT);
+        log_message('Shift query: ' . $shift->queryString, 'DEBUG');
         $shift->execute();
         $stmt = $pdo->prepare('INSERT INTO definitions (parent_id, title, position, meta) VALUES (:parent, :title, :position, NULL)');
         if ($parentId === null) {
@@ -165,15 +175,18 @@ function definitions_create(PDO $pdo, string $title, ?int $parentId, int $positi
         }
         $stmt->bindValue(':title', $title, PDO::PARAM_STR);
         $stmt->bindValue(':position', $position, PDO::PARAM_INT);
+        log_message('Insert query: ' . $stmt->queryString, 'DEBUG');
         $stmt->execute();
         $id = (int) $pdo->lastInsertId();
         $pdo->commit();
         $row = definitions_find($pdo, $id);
         if (!$row) {
+            log_message('Failed to find definition after insert with ID ' . $id, 'ERROR');
             throw new RuntimeException('Definice nebyla nalezena po vložení.');
         }
         return $row;
     } catch (Throwable $e) {
+        log_message('Error during definition creation: ' . $e->getMessage(), 'ERROR');
         $pdo->rollBack();
         throw $e;
     }
