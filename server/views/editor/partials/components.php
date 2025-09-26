@@ -68,8 +68,8 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .component-form--modal fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:.75rem}
   .component-field{display:flex;flex-direction:column;gap:.35rem}
   .component-field label{font-weight:600;font-size:.9rem}
-  .component-form--modal input,.component-form--modal select,.component-form--modal textarea{border:1px solid var(--fg);border-radius:.35rem;padding:.4rem .5rem;font:inherit;background:transparent;color:inherit}
-  .component-form--modal input:focus,.component-form--modal select:focus,.component-form--modal textarea:focus{outline:2px solid var(--primary);outline-offset:1px}
+  .component-form--modal input:not([type="hidden"]),.component-form--modal textarea,.component-form--modal .select__button{border:1px solid var(--fg);border-radius:.35rem;padding:.4rem .5rem;font:inherit;background:transparent;color:inherit}
+  .component-form--modal input:not([type="hidden"]):focus,.component-form--modal textarea:focus,.component-form--modal .select__button:focus{outline:2px solid var(--primary);outline-offset:1px}
   .components-modal-actions{display:flex;justify-content:flex-end;gap:.5rem}
   .component-help{font-size:.75rem;color:#6b7280;margin:0}
   [data-theme="dark"] .component-help{color:#cbd5e1}
@@ -77,4 +77,5 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .form-feedback.hidden{display:none}
   .form-feedback.form-feedback--error{background:rgba(220,38,38,.12);border:1px solid #dc2626;color:#dc2626}
   .form-feedback.form-feedback--success{background:rgba(22,163,74,.12);border:1px solid #16a34a;color:#166534}
+  .component-select[data-select-invalid] .select__button{border-color:#dc2626}
 </style>

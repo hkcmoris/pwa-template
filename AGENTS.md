@@ -36,7 +36,8 @@
    - Titles, meta, canonical, and language attributes must be correct at render time.
 
 6. **Security**
-   - No inline event handlers. No `eval`/`new Function`.
+   - No inline event handlers. No `eval`/
+ew Function`.
    - Use prepared statements on PHP DB access. Escape output by default.
    - Respect CSP if present; don’t weaken it without justification.
 
@@ -126,7 +127,8 @@
 - **Linters/Formatters:** PHPCS (PHP), ESLint + Prettier (TS/JS), Stylelint if needed.
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `perf:`, `build:`…).
 - **Tests:** At minimum, unit tests for islands and a Lighthouse CI check with budgets.
-- **Linting must pass:** Always run `npm run lint` and fix all reported issues. If ESLint reports any errors, the task/PR does not count as solved.
+- **Linting must pass:** Always run 
+pm run lint` and fix all reported issues. If ESLint reports any errors, the task/PR does not count as solved.
 
 ---
 
@@ -166,7 +168,8 @@
 ## 11) PR Checklist (agents must copy/paste and tick)
 
 - [ ] First-flight bundle still ≤ **14 KB** (attach Lighthouse/Bundle report).
-- [ ] ESLint passes (`npm run lint`) with 0 errors.
+- [ ] ESLint passes (
+pm run lint`) with 0 errors.
 - [ ] No new runtime dep, or size/security justification provided.
 - [ ] PHP renders complete content without JS; htmx only enhances UX.
 - [ ] New routes are code-split and lazy-loaded.
@@ -184,7 +187,13 @@
 - When uncertain, choose **HTML-first** with progressive enhancement.
 - Do not remove performance guardrails, budgets, or this file.
 - Do not introduce tracking/telemetry without explicit approval and a toggle.
+- Native <select> elements are forbidden; reuse the custom select component (src/islands/select.ts) for form controls.
+
 
 ---
 
 *Owner’s intent:* keep the app **instant** for users. Respect the 14 KB first flight, render HTML on the server, sprinkle JS only where it pays for itself, and keep the stack boring and fast.
+
+
+
+

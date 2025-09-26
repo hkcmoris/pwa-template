@@ -1,6 +1,8 @@
 <?php
 $definitionOptions = $definitionsFlat ?? [];
 $componentOptions = $componentsFlat ?? [];
+$definitionPlaceholder = 'Vyberte definici';
+$parentPlaceholder = 'Kořenová komponenta';
 ?>
 <form
   class="component-form component-form--modal"
@@ -14,19 +16,52 @@ $componentOptions = $componentsFlat ?? [];
   <fieldset>
     <legend>Přidat novou komponentu</legend>
     <div class="component-field">
-      <label for="component-modal-definition">Definice</label>
-      <select id="component-modal-definition" name="definition_id" required>
-        <option value="" disabled selected>Vyberte definici</option>
-        <?php foreach ($definitionOptions as $definition): ?>
-          <?php
-            $depth = isset($definition['depth']) ? (int) $definition['depth'] : 0;
-            $indent = $depth > 0 ? str_repeat('— ', $depth) : '';
-            $title = htmlspecialchars($definition['title'] ?? '', ENT_QUOTES, 'UTF-8');
-            $id = (int) ($definition['id'] ?? 0);
-          ?>
-          <option value="<?= $id ?>"><?= $indent . $title ?> (ID <?= $id ?>)</option>
-        <?php endforeach; ?>
-      </select>
+      <label id="component-modal-definition-label" for="component-modal-definition">Definice</label>
+      <div class="component-select" data-select-wrapper>
+        <input type="hidden" id="component-modal-definition" name="definition_id" value="">
+        <div
+          class="select"
+          data-select
+          data-required="true"
+          data-value=""
+          data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+        >
+          <button
+            type="button"
+            class="select__button"
+            id="component-modal-definition-button"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-labelledby="component-modal-definition-label component-modal-definition-button"
+          ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
+          <ul class="select__list" role="listbox" tabindex="-1" hidden>
+            <li
+              role="option"
+              class="select__option"
+              data-value=""
+              data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+              aria-selected="true"
+            ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+            <?php foreach ($definitionOptions as $definition): ?>
+              <?php
+                $depth = isset($definition['depth']) ? (int) $definition['depth'] : 0;
+                $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                $rawTitle = (string) ($definition['title'] ?? '');
+                $id = (int) ($definition['id'] ?? 0);
+                $labelText = $rawTitle . ' (ID ' . $id . ')';
+                $displayText = $indent . $labelText;
+              ?>
+              <li
+                role="option"
+                class="select__option"
+                data-value="<?= $id ?>"
+                data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
+                aria-selected="false"
+              ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </div>
       <p class="component-help">Povinné pole. Každá komponenta vychází z konkrétní definice.</p>
     </div>
     <div class="component-field">
@@ -41,19 +76,51 @@ $componentOptions = $componentsFlat ?? [];
       <p class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</p>
     </div>
     <div class="component-field">
-      <label for="component-modal-parent">Rodič</label>
-      <select id="component-modal-parent" name="parent_id">
-        <option value="">Kořenová komponenta</option>
-        <?php foreach ($componentOptions as $component): ?>
-          <?php
-            $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
-            $indent = $depth > 0 ? str_repeat('— ', $depth) : '';
-            $title = htmlspecialchars($component['effective_title'] ?? ($component['alternate_title'] ?? ''), ENT_QUOTES, 'UTF-8');
-            $id = (int) ($component['id'] ?? 0);
-          ?>
-          <option value="<?= $id ?>"><?= $indent . $title ?> (ID <?= $id ?>)</option>
-        <?php endforeach; ?>
-      </select>
+      <label id="component-modal-parent-label" for="component-modal-parent">Rodič</label>
+      <div class="component-select" data-select-wrapper>
+        <input type="hidden" id="component-modal-parent" name="parent_id" value="">
+        <div
+          class="select"
+          data-select
+          data-value=""
+          data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+        >
+          <button
+            type="button"
+            class="select__button"
+            id="component-modal-parent-button"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-labelledby="component-modal-parent-label component-modal-parent-button"
+          ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
+          <ul class="select__list" role="listbox" tabindex="-1" hidden>
+            <li
+              role="option"
+              class="select__option"
+              data-value=""
+              data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+              aria-selected="true"
+            ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+            <?php foreach ($componentOptions as $component): ?>
+              <?php
+                $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
+                $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
+                $id = (int) ($component['id'] ?? 0);
+                $labelText = $rawTitle . ' (ID ' . $id . ')';
+                $displayText = $indent . $labelText;
+              ?>
+              <li
+                role="option"
+                class="select__option"
+                data-value="<?= $id ?>"
+                data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
+                aria-selected="false"
+              ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      </div>
       <p class="component-help">Volitelné. Zvolte rodičovskou komponentu pro vytvoření hierarchie.</p>
     </div>
     <div class="component-field">
