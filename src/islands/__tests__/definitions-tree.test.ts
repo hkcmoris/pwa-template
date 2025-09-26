@@ -52,14 +52,13 @@ const createItem = (
 };
 
 describe('setupDragAndDrop', () => {
-    let ajaxMock: jest.Mock<ReturnType<AjaxFn>, Parameters<AjaxFn>>;
+    let ajaxMock: jest.MockedFunction<AjaxFn>;
     let htmxMock: HtmxMock;
 
     beforeEach(() => {
         document.body.innerHTML = '';
-        ajaxMock = jest.fn<ReturnType<AjaxFn>, Parameters<AjaxFn>>(
-            () => ({} as XMLHttpRequest)
-        );
+        ajaxMock = jest.fn<AjaxFn>();
+        ajaxMock.mockImplementation(() => ({} as XMLHttpRequest));
         htmxMock = { ajax: ajaxMock };
     });
 
