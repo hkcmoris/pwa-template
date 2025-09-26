@@ -13,6 +13,14 @@ type MoveScenarioResult = {
         sql: string;
         params: Record<string, unknown>;
     }>;
+    snapshots?: Record<
+        string,
+        Array<{
+            id: number;
+            parent_id: number | null;
+            position: number;
+        }>
+    >;
 };
 
 const SQLSTATE_MISMATCH_ERROR =
@@ -178,6 +186,46 @@ describe('definitions_move integration SQL harness', () => {
         expect(parentThirty.map((row) => [row.id, row.position])).toEqual([
             [31, 0],
             [32, 1],
+        ]);
+    });
+
+    it('preserves nested children across chained reparenting moves', () => {
+        const result = runScenario('chained_reparenting_preserves_children');
+
+        expect(result.status).toBe('ok');
+        expect(result.error).toBeNull();
+
+        const afterSecond = result.snapshots?.after_second ?? [];
+        const byId = Object.fromEntries(afterSecond.map((row) => [row.id, row]));
+        expect(byId[10]).toBeDefined();
+        expect(byId[10].parent_id).toBe(9);
+
+        expect(afterSecond.map((row) => [row.id, row.parent_id, row.position])).toEqual([
+            [0, null, 0],
+            [3, null, 1],
+            [7, null, 2],
+            [1, 0, 0],
+            [2, 0, 1],
+            [4, 3, 0],
+            [5, 3, 1],
+            [6, 3, 2],
+            [9, 7, 0],
+            [8, 7, 1],
+            [10, 9, 0],
+        ]);
+
+        expect(result.rows.map((row) => [row.id, row.parent_id, row.position])).toEqual([
+            [0, null, 0],
+            [3, null, 1],
+            [7, null, 2],
+            [1, 0, 0],
+            [2, 0, 1],
+            [4, 3, 0],
+            [5, 3, 1],
+            [10, 3, 2],
+            [6, 3, 3],
+            [9, 7, 0],
+            [8, 7, 1],
         ]);
     });
 });
