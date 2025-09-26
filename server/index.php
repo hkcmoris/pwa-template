@@ -48,6 +48,15 @@ if (isset($_SERVER['HTTP_HX_REQUEST']) && strpos($route, 'editor/definitions-') 
   exit;
 }
 
+if (isset($_SERVER['HTTP_HX_REQUEST']) && strpos($route, 'editor/components-') === 0) {
+  if (is_file($viewPath)) {
+    require $viewPath;
+  } else {
+    http_response_code(404);
+  }
+  exit;
+}
+
 if (is_file($viewPath)) {
   http_response_code(200);
   $view = $route;
