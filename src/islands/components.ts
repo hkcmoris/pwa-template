@@ -152,9 +152,55 @@ export default function init(root: HTMLElement) {
         return;
     }
 
+    const errorBox = document.getElementById(
+        COMPONENT_FORM_ERROR_ID
+    ) as HTMLElement | null;
+    let errorAnchor: Comment | null = null;
+
+    if (errorBox && errorBox.parentNode) {
+        const previousSibling = errorBox.previousSibling;
+        if (
+            previousSibling &&
+            previousSibling.nodeType === Node.COMMENT_NODE &&
+            (previousSibling as Comment).data ===
+                'component-form-errors-anchor'
+        ) {
+            errorAnchor = previousSibling as Comment;
+        } else {
+            errorAnchor = document.createComment(
+                'component-form-errors-anchor'
+            );
+            errorBox.parentNode.insertBefore(errorAnchor, errorBox);
+        }
+    }
+
+    const restoreErrors = () => {
+        if (!errorBox || !errorAnchor || !errorAnchor.parentNode) {
+            return;
+        }
+        errorAnchor.parentNode.insertBefore(
+            errorBox,
+            errorAnchor.nextSibling
+        );
+    };
+
+    const moveErrorsIntoModal = (bodyContainer: HTMLElement | null) => {
+        if (!errorBox || !bodyContainer || !modalRoot) {
+            return;
+        }
+        const panel = bodyContainer.closest(
+            '.components-modal__panel'
+        ) as HTMLElement | null;
+        if (!panel || panel.contains(errorBox)) {
+            return;
+        }
+        panel.insertBefore(errorBox, bodyContainer);
+    };
+
     let escHandler: ((event: KeyboardEvent) => void) | null = null;
 
     const closeModal = () => {
+        restoreErrors();
         modalRoot.classList.add('hidden');
         modalRoot.setAttribute('aria-hidden', 'true');
         modalRoot.innerHTML = '';
@@ -183,6 +229,7 @@ export default function init(root: HTMLElement) {
             return;
         }
         bodyContainer.appendChild(body);
+        moveErrorsIntoModal(bodyContainer);
         if (htmx && typeof htmx.process === 'function') {
             htmx.process(body);
         }
