@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS components (
   definition_id BIGINT UNSIGNED NOT NULL,
   parent_id BIGINT UNSIGNED DEFAULT NULL,
   alternate_title VARCHAR(191) DEFAULT NULL,
-  description TEXT NOT NULL,
+  description TEXT NULL,
   image VARCHAR(191) DEFAULT NULL,
   dependency_tree JSON NOT NULL,
   position INT UNSIGNED NOT NULL DEFAULT 0,

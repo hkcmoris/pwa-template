@@ -71,7 +71,7 @@ $parentPlaceholder = 'Kořenová komponenta';
         id="component-modal-title"
         name="alternate_title"
         maxlength="191"
-        placeholder="např. Vchodový modul"
+        placeholder="např. Střešní spojler"
       >
       <p class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</p>
     </div>
