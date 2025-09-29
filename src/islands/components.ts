@@ -22,6 +22,13 @@ type SelectChangeDetail = {
 
 const COMPONENT_FORM_ERROR_ID = 'component-form-errors';
 
+type OpenCreateOptions = {
+    parentId?: string;
+    parentTitle?: string;
+    childCount?: number;
+};
+
+
 const setFormError = (message: string | null) => {
     const box = document.getElementById(COMPONENT_FORM_ERROR_ID);
     if (!(box instanceof HTMLElement)) {
@@ -254,7 +261,7 @@ export default function init(root: HTMLElement) {
         document.addEventListener('keydown', escHandler);
     };
 
-    const openCreateModal = () => {
+    const openCreateModal = (options?: OpenCreateOptions) => {
         const fragment = createTemplate.content.cloneNode(
             true
         ) as DocumentFragment;
@@ -262,7 +269,36 @@ export default function init(root: HTMLElement) {
         if (!form) {
             return;
         }
-        openModal('Přidat komponentu', form as HTMLElement);
+        const parentInput = form.querySelector<HTMLInputElement>(
+            '#component-modal-parent'
+        );
+        if (parentInput) {
+            parentInput.value = options?.parentId ?? '';
+        }
+        const positionInput = form.querySelector<HTMLInputElement>(
+            '#component-modal-position'
+        );
+        if (positionInput) {
+            if (
+                typeof options?.childCount === 'number' &&
+                Number.isFinite(options.childCount)
+            ) {
+                positionInput.value = String(options.childCount);
+            } else {
+                positionInput.value = '';
+            }
+        }
+        const legend = form.querySelector('legend');
+        const parentTitle = options?.parentTitle?.trim() ?? '';
+        if (legend) {
+            legend.textContent = parentTitle
+                ? `Přidat podkomponentu k ${parentTitle}`
+                : 'Přidat novou komponentu';
+        }
+        const modalTitle = parentTitle
+            ? 'Přidat podkomponentu'
+            : 'Přidat komponentu';
+        openModal(modalTitle, form as HTMLElement);
         focusFirstField(form as HTMLElement);
         form.addEventListener('htmx:afterRequest', (event) => {
             const detail = (event as CustomEvent<AfterRequestDetail>).detail;
@@ -276,6 +312,30 @@ export default function init(root: HTMLElement) {
     openButton?.addEventListener('click', (event) => {
         event.preventDefault();
         openCreateModal();
+    });
+
+    root.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        const button = target.closest<HTMLButtonElement>(
+            '.component-actions .component-action[data-action]'
+        );
+        if (!button) {
+            return;
+        }
+        event.preventDefault();
+        const action = button.dataset.action;
+        if (action === 'create-child') {
+            const parentId = button.dataset.parentId ?? '';
+            const parentTitle = button.dataset.parentTitle ?? '';
+            const raw = button.dataset.parentChildren;
+            const parsed = raw !== undefined ? Number.parseInt(raw, 10) : NaN;
+            const childCount = Number.isNaN(parsed) ? undefined : parsed;
+            openCreateModal({
+                parentId,
+                parentTitle,
+                childCount,
+            });
+        }
     });
 }
 
