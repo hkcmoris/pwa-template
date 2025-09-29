@@ -31,12 +31,17 @@ if (!function_exists('render_component_nodes')) {
             $image = $rawImage !== ''
                 ? htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8')
                 : '';
+            $rawColor = isset($node['color']) ? (string) $node['color'] : '';
+            $color = $rawColor !== ''
+                ? htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8')
+                : '';
             $dependencyCount = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
                 ? count($node['dependency_tree'])
                 : 0;
             $children = $node['children'] ?? [];
             $childCount = is_array($children) ? count($children) : 0;
             $nodePath = ltrim(($path === '' ? '' : $path . '/') . $id, '/');
+            $mediaType = $rawColor !== '' ? 'color' : 'image';
             $metaParts = [
                 'ID ' . $id,
                 'pozice ' . $position,
@@ -56,11 +61,11 @@ if (!function_exists('render_component_nodes')) {
             echo '</div>';
             echo '<div class="component-actions">';
             echo '<button type="button" class="component-action" data-action="create-child" data-parent-id="' . $id . '" data-parent-title="' . $effectiveTitle . '" data-parent-children="' . $childCount . '">Přidat podkomponentu</button>';
-            echo '<button type="button" class="component-action" data-action="edit" data-component-id="' . $id . '" data-title="' . $effectiveTitle . '" data-definition-id="' . $definitionId . '" data-alternate-title="' . htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') . '" data-description="' . htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') . '" data-image="' . htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') . '" data-position="' . $position . '">Upravit</button>';
+            echo '<button type="button" class="component-action" data-action="edit" data-component-id="' . $id . '" data-title="' . $effectiveTitle . '" data-definition-id="' . $definitionId . '" data-alternate-title="' . htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') . '" data-description="' . htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') . '" data-image="' . htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') . '" data-color="' . htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') . '" data-media-type="' . $mediaType . '" data-position="' . $position . '">Upravit</button>';
             echo '<button type="button" class="component-action component-action--danger" data-action="delete" data-id="' . $id . '" data-title="' . $effectiveTitle . '">Smazat</button>';
             echo '</div>';
             echo '</div>';
-            $hasDetails = $description !== '' || $image !== '' || $dependencyCount > 0;
+            $hasDetails = $description !== '' || $image !== '' || $color !== '' || $dependencyCount > 0;
             if ($hasDetails) {
                 echo '<dl class="component-node__details">';
                 if ($description !== '') {
@@ -68,6 +73,9 @@ if (!function_exists('render_component_nodes')) {
                 }
                 if ($image !== '') {
                     echo '<div><dt>Obrázek</dt><dd>' . $image . '</dd></div>';
+                }
+                if ($color !== '') {
+                    echo '<div><dt>Barva</dt><dd><span class="component-color-chip" style="--chip-color:' . $color . ';"></span>' . $color . '</dd></div>';
                 }
                 echo '<div><dt>Závislosti</dt><dd>' . $dependencyCount . '</dd></div>';
                 echo '</dl>';

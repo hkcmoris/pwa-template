@@ -145,15 +145,45 @@ $parentPlaceholder = 'Kořenová komponenta';
         placeholder="Krátký popis komponenty"
       ></textarea>
     </div>
-    <div class="component-field">
-      <label for="component-modal-image">Obrázek</label>
-      <input
-        type="text"
-        id="component-modal-image"
-        name="image"
-        maxlength="255"
-        placeholder="např. /assets/components/modul.jpg"
-      >
+    <div class="component-field component-field--media">
+      <span class="component-media-label">Reprezentace</span>
+      <div class="component-media-toggle" data-media-toggle>
+        <label><input type="radio" name="media_type" value="image" checked data-media-choice="image"> Obrazek</label>
+        <label><input type="radio" name="media_type" value="color" data-media-choice="color"> Barva</label>
+      </div>
+      <div class="component-media-panel" data-media-panel="image">
+        <label for="component-modal-image">Obrazek</label>
+        <input
+          type="text"
+          id="component-modal-image"
+          name="image"
+          maxlength="255"
+          placeholder="napr. /assets/components/modul.jpg"
+          data-media-input="image"
+        >
+        <p class="component-help">URL obrazku nebo cesta v assetech (volitelne).</p>
+      </div>
+      <div class="component-media-panel hidden" data-media-panel="color">
+        <label for="component-modal-color">Barva</label>
+        <div class="component-color-picker">
+          <input
+            type="text"
+            id="component-modal-color"
+            name="color"
+            maxlength="21"
+            placeholder="napr. #FF8800"
+            data-color-text
+          >
+          <input
+            type="color"
+            id="component-modal-color-swatch"
+            value="#ffffff"
+            data-color-picker
+            aria-label="Vybrat barvu komponenty"
+          >
+        </div>
+        <p class="component-help">Hex format (#RGB nebo #RRGGBB). Swatch pomuze s vyberem.</p>
+      </div>
     </div>
   </fieldset>
   <div class="components-modal-actions">

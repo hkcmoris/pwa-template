@@ -31,7 +31,11 @@ $parentParam = $_POST['parent_id'] ?? '';
 $alternateTitle = isset($_POST['alternate_title']) ? trim((string) $_POST['alternate_title']) : '';
 $description = isset($_POST['description']) ? trim((string) $_POST['description']) : '';
 $image = isset($_POST['image']) ? trim((string) $_POST['image']) : '';
+$color = isset($_POST['color']) ? trim((string) $_POST['color']) : '';
+$mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'image';
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
+
+$mediaType = $mediaType === 'color' ? 'color' : 'image';
 
 $errors = [];
 $componentId = null;
@@ -71,8 +75,21 @@ if ($description !== '' && mb_strlen($description, 'UTF-8') > 1000) {
     $errors[] = 'Popis může mít maximálně 1000 znaků.';
 }
 
-if ($image !== '' && mb_strlen($image, 'UTF-8') > 255) {
-    $errors[] = 'Cesta k obrázku je příliš dlouhá (max 255 znaků).';
+if ($mediaType === 'image') {
+    if ($image !== '' && mb_strlen($image, 'UTF-8') > 255) {
+        $errors[] = 'Cesta k obrázku je příliš dlouhá (max 255 znaků).';
+    }
+    $color = '';
+} else {
+    $image = '';
+    if ($color === '') {
+        $errors[] = 'Zadejte barvu komponenty.';
+    } elseif (!preg_match('/^#(?:[0-9A-Fa-f]{3}){1,2}$/', $color)) {
+        $errors[] = 'Barva musí být ve formátu HEX (#RGB nebo #RRGGBB).';
+    }
+    if ($color !== '' && mb_strlen($color, 'UTF-8') > 21) {
+        $errors[] = 'Hodnota barvy je příliš dlouhá.';
+    }
 }
 
 if ($parentParam !== '') {
@@ -128,6 +145,7 @@ try {
         $alternateTitle !== '' ? $alternateTitle : null,
         $description !== '' ? $description : null,
         $image !== '' ? $image : null,
+        $color !== '' ? strtoupper($color) : null,
         $position
     );
     components_render_fragments($pdo, [

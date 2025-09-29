@@ -5,7 +5,7 @@ require_once __DIR__ . '/definitions.php';
 
 function components_fetch_rows(?PDO $pdo = null): array {
     $pdo = $pdo ?? get_db_connection();
-    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
+    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.color, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
             FROM components c
             INNER JOIN definitions d ON d.id = c.definition_id
             ORDER BY (c.parent_id IS NULL) DESC, c.parent_id, c.position, c.id';
@@ -22,7 +22,7 @@ function components_fetch_rows(?PDO $pdo = null): array {
 }
 
 function components_find(PDO $pdo, int $id): ?array {
-    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
+    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.color, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
             FROM components c
             INNER JOIN definitions d ON d.id = c.definition_id
             WHERE c.id = :id';
@@ -101,6 +101,7 @@ function components_create(
     ?string $alternateTitle,
     ?string $description,
     ?string $image,
+    ?string $color,
     int $position
 ): array {
     $pdo->beginTransaction();
@@ -115,10 +116,58 @@ function components_create(
             $position = 0;
         }
         components_reorder_positions($pdo, $parentId);
+        if ($image !== null) {
+            $image = trim((string) $image);
+            if ($image === '') {
+                $image = null;
+            }
+        }
+        if ($color !== null) {
+            $color = trim((string) $color);
+            if ($color === '') {
+                $color = null;
+            }
+        }
+        if ($image !== null && $color !== null) {
+            $color = null;
+        }
+
         $count = components_children_count($pdo, $parentId);
         if ($position > $count) {
             $position = $count;
         }
+        if ($image !== null) {
+            $image = trim((string) $image);
+            if ($image === '') {
+                $image = null;
+            }
+        }
+        if ($color !== null) {
+            $color = trim((string) $color);
+            if ($color === '') {
+                $color = null;
+            }
+        }
+        if ($image !== null && $color !== null) {
+            $color = null;
+        }
+
+        if ($image !== null) {
+            $image = trim((string) $image);
+            if ($image === '') {
+                $image = null;
+            }
+        }
+        if ($color !== null) {
+            $color = trim((string) $color);
+            if ($color === '') {
+                $color = null;
+            }
+        }
+        if ($image !== null && $color !== null) {
+            $color = null;
+        }
+
         $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
         if ($parentId === null) {
             $shift->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -128,7 +177,7 @@ function components_create(
         $shift->bindValue(':position', $position, PDO::PARAM_INT);
         $shift->execute();
 
-        $stmt = $pdo->prepare('INSERT INTO components (definition_id, parent_id, alternate_title, description, image, dependency_tree, position) VALUES (:definition, :parent, :alternate, :description, :image, :dependency, :position)');
+        $stmt = $pdo->prepare('INSERT INTO components (definition_id, parent_id, alternate_title, description, image, color, dependency_tree, position) VALUES (:definition, :parent, :alternate, :description, :image, :color, :dependency, :position)');
         $stmt->bindValue(':definition', $definitionId, PDO::PARAM_INT);
         if ($parentId === null) {
             $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -149,6 +198,11 @@ function components_create(
             $stmt->bindValue(':image', null, PDO::PARAM_NULL);
         } else {
             $stmt->bindValue(':image', $image, PDO::PARAM_STR);
+        }
+        if ($color === null || $color === '') {
+            $stmt->bindValue(':color', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':color', $color, PDO::PARAM_STR);
         }
         $stmt->bindValue(':dependency', json_encode([]), PDO::PARAM_STR);
         $stmt->bindValue(':position', $position, PDO::PARAM_INT);
@@ -279,6 +333,7 @@ function components_update(
     ?string $alternateTitle,
     ?string $description,
     ?string $image,
+    ?string $color,
     ?int $position
 ): array {
     $pdo->beginTransaction();
@@ -329,6 +384,22 @@ function components_update(
             $position = $childCount;
         }
 
+        if ($image !== null) {
+            $image = trim((string) $image);
+            if ($image === '') {
+                $image = null;
+            }
+        }
+        if ($color !== null) {
+            $color = trim((string) $color);
+            if ($color === '') {
+                $color = null;
+            }
+        }
+        if ($image !== null && $color !== null) {
+            $color = null;
+        }
+
         $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
         if ($parentId === null) {
             $shift->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -338,7 +409,7 @@ function components_update(
         $shift->bindValue(':position', $position, PDO::PARAM_INT);
         $shift->execute();
 
-        $update = $pdo->prepare('UPDATE components SET definition_id = :definition, parent_id = :parent, alternate_title = :alternate, description = :description, image = :image, position = :position WHERE id = :id');
+        $update = $pdo->prepare('UPDATE components SET definition_id = :definition, parent_id = :parent, alternate_title = :alternate, description = :description, image = :image, color = :color, position = :position WHERE id = :id');
         $update->bindValue(':definition', $definitionId, PDO::PARAM_INT);
         if ($parentId === null) {
             $update->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -359,6 +430,11 @@ function components_update(
             $update->bindValue(':image', null, PDO::PARAM_NULL);
         } else {
             $update->bindValue(':image', $image, PDO::PARAM_STR);
+        }
+        if ($color === null || $color === '') {
+            $update->bindValue(':color', null, PDO::PARAM_NULL);
+        } else {
+            $update->bindValue(':color', $color, PDO::PARAM_STR);
         }
         $update->bindValue(':position', $position, PDO::PARAM_INT);
         $update->bindValue(':id', $componentId, PDO::PARAM_INT);

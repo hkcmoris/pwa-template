@@ -45,6 +45,8 @@ type ComponentModalOptions = {
     alternateTitle?: string;
     description?: string;
     image?: string;
+    color?: string;
+    mediaType?: 'image' | 'color';
     position?: number;
     displayName?: string;
 };
@@ -117,6 +119,106 @@ const setupComponentForm = (form: HTMLFormElement) => {
             updateValidity(value);
         });
     });
+
+
+    const mediaRadios = Array.from(
+        form.querySelectorAll<HTMLInputElement>('input[name="media_type"][data-media-choice]')
+    );
+    const mediaPanels = Array.from(
+        form.querySelectorAll<HTMLElement>('[data-media-panel]')
+    );
+    const colorText = form.querySelector<HTMLInputElement>('[data-color-text]');
+    const colorPicker = form.querySelector<HTMLInputElement>('[data-color-picker]');
+
+    type MediaMode = 'image' | 'color';
+
+    const togglePanel = (panel: HTMLElement, active: boolean) => {
+        panel.classList.toggle('hidden', !active);
+        panel
+            .querySelectorAll<HTMLInputElement>('input, select, textarea')
+            .forEach((input) => {
+                if (active) {
+                    input.removeAttribute('disabled');
+                } else {
+                    input.setAttribute('disabled', 'true');
+                }
+            });
+    };
+
+    const normaliseHex = (value: string): string => {
+        const raw = value.trim();
+        if (!raw) {
+            return '';
+        }
+        const prefixed = raw.startsWith('#') ? raw : `#${raw}`;
+        return prefixed.toUpperCase();
+    };
+
+    const applyColorToPicker = (hex: string) => {
+        if (!colorPicker) {
+            return;
+        }
+        if (/^#[0-9A-F]{6}$/u.test(hex)) {
+            colorPicker.value = hex;
+            return;
+        }
+        if (/^#[0-9A-F]{3}$/u.test(hex)) {
+            const expanded = `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+            colorPicker.value = expanded.toUpperCase();
+        }
+    };
+
+    let mediaMode: MediaMode =
+        (form.dataset.mediaMode as MediaMode | undefined) ??
+        (colorText && colorText.value.trim() ? 'color' : 'image');
+    delete form.dataset.mediaMode;
+
+    const updateMediaMode = (mode: MediaMode) => {
+        mediaMode = mode;
+        mediaPanels.forEach((panel) => {
+            const panelMode = panel.dataset.mediaPanel as MediaMode | undefined;
+            togglePanel(panel, panelMode === mode);
+        });
+        mediaRadios.forEach((radio) => {
+            radio.checked = radio.dataset.mediaChoice === mode;
+        });
+        if (mode === 'color') {
+            if (colorText && colorText.value.trim()) {
+                const hex = normaliseHex(colorText.value);
+                colorText.value = hex;
+                applyColorToPicker(hex);
+            } else if (colorPicker) {
+                if (colorText) {
+                    colorText.value = colorPicker.value.toUpperCase();
+                }
+            }
+        }
+    };
+
+    mediaRadios.forEach((radio) => {
+        radio.addEventListener('change', () => {
+            if (!radio.checked) {
+                return;
+            }
+            const choice = (radio.dataset.mediaChoice as MediaMode) ?? 'image';
+            updateMediaMode(choice);
+        });
+    });
+
+    colorPicker?.addEventListener('input', () => {
+        const value = colorPicker.value.toUpperCase();
+        if (colorText) {
+            colorText.value = value;
+        }
+    });
+
+    colorText?.addEventListener('blur', () => {
+        const value = normaliseHex(colorText.value);
+        colorText.value = value;
+        applyColorToPicker(value);
+    });
+
+    updateMediaMode(mediaMode);
 
     form.addEventListener('submit', (event) => {
         let firstInvalidButton: HTMLButtonElement | null = null;
@@ -349,6 +451,12 @@ export default function init(root: HTMLElement) {
         const imageField = form.querySelector<HTMLInputElement>(
             '#component-modal-image'
         );
+        const colorField = form.querySelector<HTMLInputElement>(
+            '#component-modal-color'
+        );
+        const colorPicker = form.querySelector<HTMLInputElement>(
+            '#component-modal-color-swatch'
+        );
         const positionInput = form.querySelector<HTMLInputElement>(
             '#component-modal-position'
         );
@@ -368,6 +476,17 @@ export default function init(root: HTMLElement) {
         if (componentIdInput) {
             componentIdInput.value = isEdit ? options?.componentId ?? '' : '';
         }
+        const imageValue = options?.image ?? '';
+        const rawColorValue = options?.color ?? '';
+        const normalizedColor = (() => {
+            const trimmed = rawColorValue.trim();
+            if (!trimmed) {
+                return '';
+            }
+            const prefixed = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
+            return prefixed.toUpperCase();
+        })();
+        const mediaMode = options?.mediaType ?? (normalizedColor ? 'color' : 'image');
         if (alternateInput) {
             alternateInput.value = options?.alternateTitle ?? '';
         }
@@ -375,8 +494,20 @@ export default function init(root: HTMLElement) {
             descriptionField.value = options?.description ?? '';
         }
         if (imageField) {
-            imageField.value = options?.image ?? '';
+            imageField.value = mediaMode === 'image' ? imageValue : '';
         }
+        if (colorField) {
+            colorField.value = normalizedColor;
+        }
+        if (colorPicker) {
+            const pickerColor = /^#[0-9A-F]{6}$/u.test(normalizedColor)
+                ? normalizedColor
+                : /^#[0-9A-F]{3}$/u.test(normalizedColor)
+                ? `#${normalizedColor[1]}${normalizedColor[1]}${normalizedColor[2]}${normalizedColor[2]}${normalizedColor[3]}${normalizedColor[3]}`.toUpperCase()
+                : '#ffffff';
+            colorPicker.value = pickerColor;
+        }
+        form.dataset.mediaMode = mediaMode;
         if (positionInput) {
             if (isEdit && options?.position !== undefined && options.position !== null) {
                 positionInput.value = String(options.position);
@@ -489,6 +620,8 @@ export default function init(root: HTMLElement) {
                 alternateTitle: button.dataset.alternateTitle ?? '',
                 description: button.dataset.description ?? '',
                 image: button.dataset.image ?? '',
+                color: button.dataset.color ?? '',
+                mediaType: (button.dataset.mediaType as 'image' | 'color' | undefined) ?? undefined,
                 parentId,
                 position: Number.isNaN(parsedPosition) ? undefined : parsedPosition,
                 displayName: button.dataset.title ?? '',
