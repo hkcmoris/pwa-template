@@ -76,6 +76,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .component-field label{font-weight:600;font-size:.9rem}
   .component-form--modal input:not([type="hidden"]),.component-form--modal textarea/*,.component-form--modal .select__button*/{border:1px solid var(--fg);border-radius:.35rem;padding:.4rem .5rem;font:inherit;background:transparent;color:inherit}
   .component-form--modal input:not([type="hidden"]):focus,.component-form--modal textarea:focus,.component-form--modal .select__button:focus{outline:2px solid var(--primary);outline-offset:1px}
+  .component-modal-body{display:flex;flex-direction:column;gap:.75rem}
   .components-modal-actions{display:flex;justify-content:flex-end;gap:.5rem}
   .component-help{font-size:.75rem;color:#6b7280;margin:0}
   [data-theme="dark"] .component-help{color:#cbd5e1}

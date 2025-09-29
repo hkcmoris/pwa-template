@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS components (
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT fk_components_definition FOREIGN KEY (definition_id) REFERENCES definitions(id) ON DELETE CASCADE,
-  CONSTRAINT fk_components_parent FOREIGN KEY (parent_id) REFERENCES components(id) ON DELETE SET NULL,
+  CONSTRAINT fk_components_parent FOREIGN KEY (parent_id) REFERENCES components(id) ON DELETE CASCADE,
   UNIQUE KEY uq_components_parent_position (parent_id, position),
   KEY idx_components_definition (definition_id),
   KEY idx_components_updated (updated_at)

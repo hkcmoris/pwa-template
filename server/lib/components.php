@@ -378,3 +378,25 @@ function components_update(
     }
 }
 
+function components_delete(PDO $pdo, int $componentId): void {
+    $pdo->beginTransaction();
+
+    try {
+        $current = components_find($pdo, $componentId);
+        if (!$current) {
+            throw new RuntimeException('Komponenta nebyla nalezena.');
+        }
+
+        $stmt = $pdo->prepare('DELETE FROM components WHERE id = :id');
+        $stmt->bindValue(':id', $componentId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $parentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
+        components_reorder_positions($pdo, $parentId);
+
+        $pdo->commit();
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}

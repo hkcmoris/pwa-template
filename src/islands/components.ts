@@ -10,6 +10,17 @@ const escapeHtml = (value: string): string =>
 
 type HTMX = {
     process?: (elt: Element) => void;
+    ajax?: (
+        method: string,
+        url: string,
+        options: {
+            source?: Element | string;
+            values?: Record<string, unknown>;
+            target?: Element | string;
+            swap?: string;
+            select?: string;
+        }
+    ) => XMLHttpRequest;
 };
 
 type AfterRequestDetail = {
@@ -167,6 +178,8 @@ export default function init(root: HTMLElement) {
     const basePath = root.dataset.base || '';
     const createUrl = `${basePath}/editor/components-create`;
     const updateUrl = `${basePath}/editor/components-update`;
+    const deleteUrl = `${basePath}/editor/components-delete`;
+    const listTarget = '#components-list';
 
     if (!modalRoot || !createTemplate) {
         return;
@@ -272,6 +285,41 @@ export default function init(root: HTMLElement) {
             }
         };
         document.addEventListener('keydown', escHandler);
+    };
+
+    const sendDeleteRequest = (componentId: string) => {
+        if (!componentId) {
+            return;
+        }
+
+        if (htmx && typeof htmx.ajax === 'function') {
+            htmx.ajax('POST', deleteUrl, {
+                source: listTarget,
+                target: listTarget,
+                select: listTarget,
+                swap: 'outerHTML',
+                values: { component_id: componentId },
+            });
+            return;
+        }
+
+        const bodyEl = document.body;
+        if (!bodyEl) {
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = deleteUrl;
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'component_id';
+        input.value = componentId;
+        form.appendChild(input);
+
+        bodyEl.appendChild(form);
+        form.submit();
     };
 
     const openComponentModal = (options?: ComponentModalOptions) => {
@@ -416,6 +464,8 @@ export default function init(root: HTMLElement) {
         }
         event.preventDefault();
         const action = button.dataset.action;
+        const item = button.closest<HTMLElement>('.component-item');
+
         if (action === 'create-child') {
             const parentId = button.dataset.parentId ?? '';
             const parentTitle = button.dataset.parentTitle ?? '';
@@ -428,10 +478,10 @@ export default function init(root: HTMLElement) {
                 childCount,
             });
         } else if (action === 'edit') {
-            const item = button.closest<HTMLElement>('.component-item');
             const parentId = item?.dataset.parent ?? '';
             const positionRaw = button.dataset.position;
-            const parsedPosition = positionRaw !== undefined ? Number.parseInt(positionRaw, 10) : NaN;
+            const parsedPosition =
+                positionRaw !== undefined ? Number.parseInt(positionRaw, 10) : NaN;
             openComponentModal({
                 mode: 'edit',
                 componentId: button.dataset.componentId ?? item?.dataset.id ?? '',
@@ -443,6 +493,45 @@ export default function init(root: HTMLElement) {
                 position: Number.isNaN(parsedPosition) ? undefined : parsedPosition,
                 displayName: button.dataset.title ?? '',
             });
+        } else if (action === 'delete') {
+            const componentId = button.dataset.id ?? item?.dataset.id ?? '';
+            if (!componentId) {
+                return;
+            }
+
+            const rawTitle = button.dataset.title ?? '';
+            const displayName = rawTitle.trim() || `ID ${componentId}`;
+            let childCount = 0;
+            if (item?.dataset.childrenCount) {
+                const parsedChildren = Number.parseInt(item.dataset.childrenCount, 10);
+                if (!Number.isNaN(parsedChildren) && parsedChildren > 0) {
+                    childCount = parsedChildren;
+                }
+            }
+
+            const container = document.createElement('div');
+            container.className = 'component-modal-body';
+            const detailText =
+                childCount > 0
+                    ? `Tato akce odstrani take vsechny jeji podkomponenty (vcetne ${childCount === 1 ? '1 primo podrizene' : `${childCount} primo podrizenych`} komponent).`
+                    : 'Tato akce nelze vratit.';
+            container.innerHTML = `
+                <p>Opravdu chcete smazat komponentu <strong>${escapeHtml(displayName)}</strong>?</p>
+                <p>${escapeHtml(detailText)}</p>
+                <div class="components-modal-actions">
+                  <button type="button" class="component-action" data-modal-close>Storno</button>
+                  <button type="button" class="component-action component-action--danger" data-modal-confirm>Smazat</button>
+                </div>
+            `;
+
+            openModal('Smazat komponentu', container);
+
+            container
+                .querySelector<HTMLButtonElement>('[data-modal-confirm]')
+                ?.addEventListener('click', () => {
+                    sendDeleteRequest(componentId);
+                    closeModal();
+                });
         }
     });
 }
