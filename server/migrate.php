@@ -15,8 +15,9 @@ if (!$isCli && !in_array($remoteAddr, $allowedHosts, true)) {
     echo "Forbidden: migration runner is only accessible from localhost.";
     exit;
 }
-
-header('Content-Type: text/plain; charset=utf-8');
+if (!$isCli) {
+    header('Content-Type: text/plain; charset=utf-8');
+}
 
 try {
     $pdo = get_db_root_connection();
@@ -71,18 +72,15 @@ foreach ($files as $file) {
     }
 
     try {
-        $pdo->beginTransaction();
         foreach ($statements as $statement) {
             $pdo->exec($statement);
         }
         $insert = $pdo->prepare('INSERT INTO schema_migrations (filename) VALUES (:filename)');
         $insert->bindValue(':filename', $name, PDO::PARAM_STR);
         $insert->execute();
-        $pdo->commit();
         $applied[] = $name;
         log_message('Migration applied: ' . $name, 'INFO');
     } catch (Throwable $e) {
-        $pdo->rollBack();
         $failed[$name] = $e->getMessage();
         log_message('Migration failed: ' . $name . ' - ' . $e->getMessage(), 'ERROR');
     }
@@ -112,9 +110,9 @@ exit;
 
 function extractStatements(string $sql): array
 {
-    $normalized = preg_replace("/\r\n?", "\n", $sql) ?? '';
+    $normalized = str_replace(["\r\n", "\r"], "\n", $sql);
     $withoutBlockComments = preg_replace('#/\*.*?\*/#s', '', $normalized) ?? '';
-    $withoutLineComments = preg_replace('/^\s*--.*$/m', '', $withoutBlockComments) ?? '';
+    $withoutLineComments = preg_replace('~^\s*--.*$~m', '', $withoutBlockComments) ?? '';
     $parts = array_map('trim', explode(';', $withoutLineComments));
     $statements = [];
     foreach ($parts as $part) {
@@ -125,4 +123,3 @@ function extractStatements(string $sql): array
     }
     return $statements;
 }
-
