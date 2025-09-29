@@ -13,6 +13,7 @@ $parentPlaceholder = 'Kořenová komponenta';
   hx-select="#components-list"
   hx-swap="outerHTML"
 >
+  <input type="hidden" id="component-modal-id" name="component_id" value="">
   <fieldset>
     <legend>Přidat novou komponentu</legend>
     <div class="component-field">

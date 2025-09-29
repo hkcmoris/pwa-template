@@ -22,10 +22,20 @@ type SelectChangeDetail = {
 
 const COMPONENT_FORM_ERROR_ID = 'component-form-errors';
 
-type OpenCreateOptions = {
+type ComponentModalMode = 'create' | 'edit';
+
+type ComponentModalOptions = {
+    mode?: ComponentModalMode;
+    componentId?: string;
+    definitionId?: string;
     parentId?: string;
     parentTitle?: string;
     childCount?: number;
+    alternateTitle?: string;
+    description?: string;
+    image?: string;
+    position?: number;
+    displayName?: string;
 };
 
 
@@ -154,6 +164,9 @@ export default function init(root: HTMLElement) {
         '#component-open-create'
     );
     const htmx = getHtmx();
+    const basePath = root.dataset.base || '';
+    const createUrl = `${basePath}/editor/components-create`;
+    const updateUrl = `${basePath}/editor/components-update`;
 
     if (!modalRoot || !createTemplate) {
         return;
@@ -261,45 +274,124 @@ export default function init(root: HTMLElement) {
         document.addEventListener('keydown', escHandler);
     };
 
-    const openCreateModal = (options?: OpenCreateOptions) => {
-        const fragment = createTemplate.content.cloneNode(
-            true
-        ) as DocumentFragment;
+    const openComponentModal = (options?: ComponentModalOptions) => {
+        const mode = options?.mode ?? 'create';
+        const isEdit = mode === 'edit';
+        const fragment = createTemplate.content.cloneNode(true) as DocumentFragment;
         const form = fragment.querySelector('form');
         if (!form) {
             return;
         }
-        const parentInput = form.querySelector<HTMLInputElement>(
+
+        const definitionHidden = form.querySelector<HTMLInputElement>(
+            '#component-modal-definition'
+        );
+        const parentHidden = form.querySelector<HTMLInputElement>(
             '#component-modal-parent'
         );
-        if (parentInput) {
-            parentInput.value = options?.parentId ?? '';
-        }
+        const componentIdInput = form.querySelector<HTMLInputElement>(
+            '#component-modal-id'
+        );
+        const alternateInput = form.querySelector<HTMLInputElement>(
+            '#component-modal-title'
+        );
+        const descriptionField = form.querySelector<HTMLTextAreaElement>(
+            '#component-modal-description'
+        );
+        const imageField = form.querySelector<HTMLInputElement>(
+            '#component-modal-image'
+        );
         const positionInput = form.querySelector<HTMLInputElement>(
             '#component-modal-position'
         );
+        const legend = form.querySelector('legend');
+        const submitButton = form.querySelector<HTMLButtonElement>(
+            'button[type="submit"]'
+        );
+
+        const definitionValue = options?.definitionId ?? '';
+        if (definitionHidden) {
+            definitionHidden.value = definitionValue;
+        }
+        const parentValue = options?.parentId ?? '';
+        if (parentHidden) {
+            parentHidden.value = parentValue;
+        }
+        if (componentIdInput) {
+            componentIdInput.value = isEdit ? options?.componentId ?? '' : '';
+        }
+        if (alternateInput) {
+            alternateInput.value = options?.alternateTitle ?? '';
+        }
+        if (descriptionField) {
+            descriptionField.value = options?.description ?? '';
+        }
+        if (imageField) {
+            imageField.value = options?.image ?? '';
+        }
         if (positionInput) {
-            if (
-                typeof options?.childCount === 'number' &&
-                Number.isFinite(options.childCount)
-            ) {
+            if (isEdit && options?.position !== undefined && options.position !== null) {
+                positionInput.value = String(options.position);
+            } else if (!isEdit && typeof options?.childCount === 'number' && Number.isFinite(options.childCount)) {
                 positionInput.value = String(options.childCount);
             } else {
                 positionInput.value = '';
             }
         }
-        const legend = form.querySelector('legend');
-        const parentTitle = options?.parentTitle?.trim() ?? '';
-        if (legend) {
-            legend.textContent = parentTitle
-                ? `Přidat podkomponentu k ${parentTitle}`
-                : 'Přidat novou komponentu';
+
+        const definitionSelect = definitionHidden
+            ?.closest('[data-select-wrapper]')
+            ?.querySelector<HTMLElement>('.select[data-select]');
+        const parentSelect = parentHidden
+            ?.closest('[data-select-wrapper]')
+            ?.querySelector<HTMLElement>('.select[data-select]');
+        if (definitionSelect) {
+            definitionSelect.setAttribute('data-value', definitionValue);
         }
-        const modalTitle = parentTitle
-            ? 'Přidat podkomponentu'
-            : 'Přidat komponentu';
+        if (parentSelect) {
+            parentSelect.setAttribute('data-value', parentValue);
+        }
+
+        if (legend) {
+            if (isEdit) {
+                legend.textContent = 'Upravit komponentu';
+            } else {
+                const parentTitle = options?.parentTitle?.trim() ?? '';
+                legend.textContent = parentTitle
+                    ? `Přidat podkomponentu k ${parentTitle}`
+                    : 'Přidat novou komponentu';
+            }
+        }
+        if (submitButton) {
+            submitButton.textContent = isEdit ? 'Uložit změny' : 'Uložit';
+        }
+
+        const modalTitle = isEdit
+            ? options?.displayName?.trim()
+                ? `Upravit ${options.displayName.trim()}`
+                : 'Upravit komponentu'
+            : options?.parentTitle?.trim()
+                  ? 'Přidat podkomponentu'
+                  : 'Přidat komponentu';
+
+        if (isEdit) {
+            form.setAttribute('action', updateUrl);
+            form.setAttribute('hx-post', updateUrl);
+        } else {
+            form.setAttribute('action', createUrl);
+            form.setAttribute('hx-post', createUrl);
+        }
+
         openModal(modalTitle, form as HTMLElement);
         focusFirstField(form as HTMLElement);
+
+        if (definitionSelect) {
+            setSelectValue(definitionSelect, definitionHidden?.value ?? '');
+        }
+        if (parentSelect) {
+            setSelectValue(parentSelect, parentHidden?.value ?? '');
+        }
+
         form.addEventListener('htmx:afterRequest', (event) => {
             const detail = (event as CustomEvent<AfterRequestDetail>).detail;
             const status = detail?.xhr?.status ?? 0;
@@ -311,7 +403,7 @@ export default function init(root: HTMLElement) {
 
     openButton?.addEventListener('click', (event) => {
         event.preventDefault();
-        openCreateModal();
+        openComponentModal();
     });
 
     root.addEventListener('click', (event) => {
@@ -330,15 +422,27 @@ export default function init(root: HTMLElement) {
             const raw = button.dataset.parentChildren;
             const parsed = raw !== undefined ? Number.parseInt(raw, 10) : NaN;
             const childCount = Number.isNaN(parsed) ? undefined : parsed;
-            openCreateModal({
+            openComponentModal({
                 parentId,
                 parentTitle,
                 childCount,
             });
+        } else if (action === 'edit') {
+            const item = button.closest<HTMLElement>('.component-item');
+            const parentId = item?.dataset.parent ?? '';
+            const positionRaw = button.dataset.position;
+            const parsedPosition = positionRaw !== undefined ? Number.parseInt(positionRaw, 10) : NaN;
+            openComponentModal({
+                mode: 'edit',
+                componentId: button.dataset.componentId ?? item?.dataset.id ?? '',
+                definitionId: button.dataset.definitionId ?? '',
+                alternateTitle: button.dataset.alternateTitle ?? '',
+                description: button.dataset.description ?? '',
+                image: button.dataset.image ?? '',
+                parentId,
+                position: Number.isNaN(parsedPosition) ? undefined : parsedPosition,
+                displayName: button.dataset.title ?? '',
+            });
         }
     });
 }
-
-
-
-

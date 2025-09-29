@@ -236,3 +236,145 @@ function components_fetch_tree(?PDO $pdo = null): array {
     return components_build_tree($rows);
 }
 
+function components_is_descendant(PDO $pdo, int $ancestorId, int $candidateId): bool {
+    if ($ancestorId === $candidateId) {
+        return true;
+    }
+
+    $stmt = $pdo->prepare('SELECT parent_id FROM components WHERE id = :id LIMIT 1');
+    $current = $candidateId;
+    $visited = [];
+
+    while ($current !== null) {
+        if (isset($visited[$current])) {
+            return false;
+        }
+
+        $visited[$current] = true;
+        $stmt->bindValue(':id', $current, PDO::PARAM_INT);
+        $stmt->execute();
+        $parent = $stmt->fetchColumn();
+        $stmt->closeCursor();
+
+        if ($parent === false || $parent === null) {
+            return false;
+        }
+
+        $parentId = (int) $parent;
+        if ($parentId === $ancestorId) {
+            return true;
+        }
+
+        $current = $parentId;
+    }
+
+    return false;
+}
+
+function components_update(
+    PDO $pdo,
+    int $componentId,
+    int $definitionId,
+    ?int $parentId,
+    ?string $alternateTitle,
+    ?string $description,
+    ?string $image,
+    ?int $position
+): array {
+    $pdo->beginTransaction();
+
+    try {
+        $current = components_find($pdo, $componentId);
+        if (!$current) {
+            throw new RuntimeException('Komponentu se nepodařilo najít.');
+        }
+
+        if (!definitions_find($pdo, $definitionId)) {
+            throw new RuntimeException('Vybraná definice neexistuje.');
+        }
+
+        if ($parentId !== null) {
+            if ($parentId === $componentId) {
+                throw new RuntimeException('Komponenta nemůže být sama sobě rodičem.');
+            }
+
+            if (!components_parent_exists($pdo, $parentId)) {
+                throw new RuntimeException('Vybraný rodičovský prvek neexistuje.');
+            }
+
+            if (components_is_descendant($pdo, $componentId, $parentId)) {
+                throw new RuntimeException('Nelze přesunout komponentu pod jejího potomka.');
+            }
+        }
+
+        $oldParentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
+
+        // position is UNSIGNED in the schema, so avoid temporary negative sentinels when detaching
+        $detach = $pdo->prepare('UPDATE components SET parent_id = NULL WHERE id = :id');
+        $detach->bindValue(':id', $componentId, PDO::PARAM_INT);
+        $detach->execute();
+
+        components_reorder_positions($pdo, $oldParentId);
+
+        if ($parentId !== null && $parentId !== $oldParentId) {
+            components_reorder_positions($pdo, $parentId);
+        } elseif ($parentId === null && $oldParentId !== null) {
+            components_reorder_positions($pdo, null);
+        }
+
+        $childCount = components_children_count($pdo, $parentId);
+        if ($position === null || $position < 0) {
+            $position = $childCount;
+        } elseif ($position > $childCount) {
+            $position = $childCount;
+        }
+
+        $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
+        if ($parentId === null) {
+            $shift->bindValue(':parent', null, PDO::PARAM_NULL);
+        } else {
+            $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+        $shift->bindValue(':position', $position, PDO::PARAM_INT);
+        $shift->execute();
+
+        $update = $pdo->prepare('UPDATE components SET definition_id = :definition, parent_id = :parent, alternate_title = :alternate, description = :description, image = :image, position = :position WHERE id = :id');
+        $update->bindValue(':definition', $definitionId, PDO::PARAM_INT);
+        if ($parentId === null) {
+            $update->bindValue(':parent', null, PDO::PARAM_NULL);
+        } else {
+            $update->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+        if ($alternateTitle === null || $alternateTitle === '') {
+            $update->bindValue(':alternate', null, PDO::PARAM_NULL);
+        } else {
+            $update->bindValue(':alternate', $alternateTitle, PDO::PARAM_STR);
+        }
+        if ($description === null || $description === '') {
+            $update->bindValue(':description', null, PDO::PARAM_NULL);
+        } else {
+            $update->bindValue(':description', $description, PDO::PARAM_STR);
+        }
+        if ($image === null || $image === '') {
+            $update->bindValue(':image', null, PDO::PARAM_NULL);
+        } else {
+            $update->bindValue(':image', $image, PDO::PARAM_STR);
+        }
+        $update->bindValue(':position', $position, PDO::PARAM_INT);
+        $update->bindValue(':id', $componentId, PDO::PARAM_INT);
+        $update->execute();
+
+        $pdo->commit();
+
+        $row = components_find($pdo, $componentId);
+        if (!$row) {
+            throw new RuntimeException('Komponentu se nepodařilo načíst po aktualizaci.');
+        }
+
+        return $row;
+    } catch (Throwable $e) {
+        $pdo->rollBack();
+        throw $e;
+    }
+}
+

@@ -13,13 +13,24 @@ if (!function_exists('render_component_nodes')) {
             $definitionId = (int) $node['definition_id'];
             $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
             $position = isset($node['position']) ? (int) $node['position'] : 0;
-            $effectiveTitle = htmlspecialchars($node['effective_title'] ?? '', ENT_QUOTES, 'UTF-8');
-            $definitionTitle = htmlspecialchars($node['definition_title'] ?? '', ENT_QUOTES, 'UTF-8');
-            $alternateTitle = isset($node['alternate_title']) && $node['alternate_title'] !== null
-                ? htmlspecialchars($node['alternate_title'], ENT_QUOTES, 'UTF-8')
+            $rawEffectiveTitle = (string) ($node['effective_title'] ?? '');
+            $effectiveTitle = htmlspecialchars($rawEffectiveTitle, ENT_QUOTES, 'UTF-8');
+            $definitionTitleRaw = (string) ($node['definition_title'] ?? '');
+            $definitionTitle = htmlspecialchars($definitionTitleRaw, ENT_QUOTES, 'UTF-8');
+            $rawAlternateTitle = isset($node['alternate_title']) && $node['alternate_title'] !== null
+                ? (string) $node['alternate_title']
                 : '';
-            $description = htmlspecialchars($node['description'] ?? '', ENT_QUOTES, 'UTF-8');
-            $image = isset($node['image']) ? htmlspecialchars((string) $node['image'], ENT_QUOTES, 'UTF-8') : '';
+            $alternateTitle = $rawAlternateTitle !== ''
+                ? htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8')
+                : '';
+            $rawDescription = (string) ($node['description'] ?? '');
+            $description = $rawDescription !== ''
+                ? htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8')
+                : '';
+            $rawImage = isset($node['image']) ? (string) $node['image'] : '';
+            $image = $rawImage !== ''
+                ? htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8')
+                : '';
             $dependencyCount = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
                 ? count($node['dependency_tree'])
                 : 0;
@@ -45,7 +56,7 @@ if (!function_exists('render_component_nodes')) {
             echo '</div>';
             echo '<div class="component-actions">';
             echo '<button type="button" class="component-action" data-action="create-child" data-parent-id="' . $id . '" data-parent-title="' . $effectiveTitle . '" data-parent-children="' . $childCount . '">Přidat podkomponentu</button>';
-            echo '<button type="button" class="component-action" data-action="edit" data-id="' . $id . '" data-title="' . $effectiveTitle . '" data-definition-id="' . $definitionId . '" data-alternate-title="' . $alternateTitle . '" data-description="' . $description . '" data-image="' . $image . '" data-position="' . $position . '">Upravit</button>';
+            echo '<button type="button" class="component-action" data-action="edit" data-component-id="' . $id . '" data-title="' . $effectiveTitle . '" data-definition-id="' . $definitionId . '" data-alternate-title="' . htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') . '" data-description="' . htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') . '" data-image="' . htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') . '" data-position="' . $position . '">Upravit</button>';
             echo '<button type="button" class="component-action component-action--danger" data-action="delete" data-id="' . $id . '" data-title="' . $effectiveTitle . '">Smazat</button>';
             echo '</div>';
             echo '</div>';
