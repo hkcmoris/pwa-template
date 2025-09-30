@@ -1,15 +1,21 @@
-const CACHE_NAME = 'runtime-CaOC6TBs';
+const CACHE_NAME = 'runtime-Zyr788qQ';
 
 // Derive base path from SW registration scope ('' or '/subdir')
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
-    event.waitUntil((async () => {
-        const names = await caches.keys();
-        await Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)));
-        await self.clients.claim();
-    })());
+    event.waitUntil(
+        (async () => {
+            const names = await caches.keys();
+            await Promise.all(
+                names
+                    .filter((n) => n !== CACHE_NAME)
+                    .map((n) => caches.delete(n))
+            );
+            await self.clients.claim();
+        })()
+    );
 });
 
 self.addEventListener('fetch', (event) => {

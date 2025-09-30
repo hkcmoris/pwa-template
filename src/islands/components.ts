@@ -252,7 +252,7 @@ const setupComponentForm = (form: HTMLFormElement) => {
 
         if (firstInvalidButton) {
             event.preventDefault();
-            firstInvalidButton.focus();
+            (firstInvalidButton as HTMLButtonElement).focus();
             setFormError('Vyberte definici komponenty.');
         }
     });
