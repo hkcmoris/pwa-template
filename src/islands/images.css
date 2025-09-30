@@ -50,9 +50,6 @@
 
 #img-modal .close {
     z-index: 2;
-}
-
-#img-modal .close {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
