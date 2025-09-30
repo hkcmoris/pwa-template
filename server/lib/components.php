@@ -94,6 +94,143 @@ function components_reorder_positions(PDO $pdo, ?int $parentId): void {
     }
 }
 
+function components_normalise_media_inputs(?string $image, ?string $color): array {
+    if ($image !== null) {
+        $image = trim((string) $image);
+        if ($image === '') {
+            $image = null;
+        }
+    }
+
+    if ($color !== null) {
+        $color = trim((string) $color);
+        if ($color === '') {
+            $color = null;
+        }
+    }
+
+    if ($image !== null && $color !== null) {
+        $color = null;
+    }
+
+    return [$image, $color];
+}
+
+function components_insert_component_row(
+    PDO $pdo,
+    int $definitionId,
+    ?int $parentId,
+    ?string $alternateTitle,
+    ?string $description,
+    ?string $image,
+    ?string $color,
+    int $position
+): int {
+    if ($position < 0) {
+        $position = 0;
+    }
+
+    components_reorder_positions($pdo, $parentId);
+
+    $count = components_children_count($pdo, $parentId);
+    if ($position > $count) {
+        $position = $count;
+    }
+
+    [$imageValue, $colorValue] = components_normalise_media_inputs($image, $color);
+
+    $alternate = $alternateTitle !== null ? trim((string) $alternateTitle) : null;
+    if ($alternate === '') {
+        $alternate = null;
+    }
+
+    $descriptionValue = $description !== null ? trim((string) $description) : null;
+    if ($descriptionValue === '') {
+        $descriptionValue = null;
+    }
+
+    $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
+    if ($parentId === null) {
+        $shift->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+    $shift->bindValue(':position', $position, PDO::PARAM_INT);
+    $shift->execute();
+
+    $stmt = $pdo->prepare('INSERT INTO components (definition_id, parent_id, alternate_title, description, image, color, dependency_tree, position) VALUES (:definition, :parent, :alternate, :description, :image, :color, :dependency, :position)');
+    $stmt->bindValue(':definition', $definitionId, PDO::PARAM_INT);
+    if ($parentId === null) {
+        $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    }
+
+    if ($alternate === null) {
+        $stmt->bindValue(':alternate', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':alternate', $alternate, PDO::PARAM_STR);
+    }
+
+    if ($descriptionValue === null) {
+        $stmt->bindValue(':description', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':description', $descriptionValue, PDO::PARAM_STR);
+    }
+
+    if ($imageValue === null) {
+        $stmt->bindValue(':image', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':image', $imageValue, PDO::PARAM_STR);
+    }
+
+    if ($colorValue === null) {
+        $stmt->bindValue(':color', null, PDO::PARAM_NULL);
+    } else {
+        $stmt->bindValue(':color', $colorValue, PDO::PARAM_STR);
+    }
+
+    $stmt->bindValue(':dependency', json_encode([]), PDO::PARAM_STR);
+    $stmt->bindValue(':position', $position, PDO::PARAM_INT);
+    $stmt->execute();
+
+    return (int) $pdo->lastInsertId();
+}
+
+function components_seed_definition_children(PDO $pdo, int $componentId, int $definitionId): void {
+    $children = definitions_fetch_children($pdo, $definitionId);
+    if (empty($children)) {
+        return;
+    }
+
+    $position = components_children_count($pdo, $componentId);
+
+    foreach ($children as $child) {
+        if (!isset($child['id'])) {
+            continue;
+        }
+        $childDefinitionId = (int) $child['id'];
+        if ($childDefinitionId <= 0) {
+            continue;
+        }
+
+        $childId = components_insert_component_row(
+            $pdo,
+            $childDefinitionId,
+            $componentId,
+            null,
+            null,
+            null,
+            null,
+            $position
+        );
+
+        $position += 1;
+
+        components_seed_definition_children($pdo, $childId, $childDefinitionId);
+    }
+}
+
 function components_create(
     PDO $pdo,
     int $definitionId,
@@ -112,104 +249,21 @@ function components_create(
         if ($parentId !== null && !components_parent_exists($pdo, $parentId)) {
             throw new RuntimeException('Vybraný rodič neexistuje.');
         }
-        if ($position < 0) {
-            $position = 0;
-        }
-        components_reorder_positions($pdo, $parentId);
-        if ($image !== null) {
-            $image = trim((string) $image);
-            if ($image === '') {
-                $image = null;
-            }
-        }
-        if ($color !== null) {
-            $color = trim((string) $color);
-            if ($color === '') {
-                $color = null;
-            }
-        }
-        if ($image !== null && $color !== null) {
-            $color = null;
-        }
+        $componentId = components_insert_component_row(
+            $pdo,
+            $definitionId,
+            $parentId,
+            $alternateTitle,
+            $description,
+            $image,
+            $color,
+            $position
+        );
 
-        $count = components_children_count($pdo, $parentId);
-        if ($position > $count) {
-            $position = $count;
-        }
-        if ($image !== null) {
-            $image = trim((string) $image);
-            if ($image === '') {
-                $image = null;
-            }
-        }
-        if ($color !== null) {
-            $color = trim((string) $color);
-            if ($color === '') {
-                $color = null;
-            }
-        }
-        if ($image !== null && $color !== null) {
-            $color = null;
-        }
+        components_seed_definition_children($pdo, $componentId, $definitionId);
 
-        if ($image !== null) {
-            $image = trim((string) $image);
-            if ($image === '') {
-                $image = null;
-            }
-        }
-        if ($color !== null) {
-            $color = trim((string) $color);
-            if ($color === '') {
-                $color = null;
-            }
-        }
-        if ($image !== null && $color !== null) {
-            $color = null;
-        }
-
-        $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
-        if ($parentId === null) {
-            $shift->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-        $shift->bindValue(':position', $position, PDO::PARAM_INT);
-        $shift->execute();
-
-        $stmt = $pdo->prepare('INSERT INTO components (definition_id, parent_id, alternate_title, description, image, color, dependency_tree, position) VALUES (:definition, :parent, :alternate, :description, :image, :color, :dependency, :position)');
-        $stmt->bindValue(':definition', $definitionId, PDO::PARAM_INT);
-        if ($parentId === null) {
-            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-        if ($alternateTitle === null || $alternateTitle === '') {
-            $stmt->bindValue(':alternate', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':alternate', $alternateTitle, PDO::PARAM_STR);
-        }
-        if ($description === null || $description === '') {
-            $stmt->bindValue(':description', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':description', $description, PDO::PARAM_STR);
-        }
-        if ($image === null || $image === '') {
-            $stmt->bindValue(':image', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':image', $image, PDO::PARAM_STR);
-        }
-        if ($color === null || $color === '') {
-            $stmt->bindValue(':color', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':color', $color, PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':dependency', json_encode([]), PDO::PARAM_STR);
-        $stmt->bindValue(':position', $position, PDO::PARAM_INT);
-        $stmt->execute();
-        $id = (int) $pdo->lastInsertId();
         $pdo->commit();
-        $row = components_find($pdo, $id);
+        $row = components_find($pdo, $componentId);
         if (!$row) {
             throw new RuntimeException('Komponentu se nepodařilo načíst po vložení.');
         }

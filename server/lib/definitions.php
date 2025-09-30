@@ -240,6 +240,18 @@ function definitions_children_count(PDO $pdo, ?int $parentId): int {
     return (int) $stmt->fetchColumn();
 }
 
+function definitions_fetch_children(PDO $pdo, int $parentId): array {
+    $stmt = $pdo->prepare(
+        'SELECT id, parent_id, title, position, meta, created_at, updated_at
+           FROM definitions
+          WHERE parent_id = :parent
+          ORDER BY position, id'
+    );
+    $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
 function definitions_move(PDO $pdo, int $id, ?int $newParentId, int $newPosition): void {
     $pdo->beginTransaction();
     try {
