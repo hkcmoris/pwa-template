@@ -15,46 +15,49 @@
 ## 1) Non-Negotiables (hard requirements)
 
 1. **14 KB First Flight**
-   - `index.html` + **inline critical CSS** + boot module must be **≤ 14 KB compressed**.
-   - No webfonts, icon fonts, or heavy CSS frameworks in first flight.
-   - Boot script only `import()`s the current route chunk after first paint.
+    - `index.html` + **inline critical CSS** + boot module must be **≤ 14 KB compressed**.
+    - No webfonts, icon fonts, or heavy CSS frameworks in first flight.
+    - Boot script only `import()`s the current route chunk after first paint.
 
 2. **PHP = SSR**
-   - All routes render valid HTML from PHP. No JS required to read primary content.
-   - SPA feel via **htmx** (or equivalent HTML fragment swaps) and History API.
+    - All routes render valid HTML from PHP. No JS required to read primary content.
+    - SPA feel via **htmx** (or equivalent HTML fragment swaps) and History API.
 
 3. **Micro-Caching**
-   - Anonymous GET routes are micro-cached **3–5 s** at PHP/APCu, reverse proxy, or CDN.
-   - Bypass cache on auth/session cookies. Use `stale-while-revalidate` grace (30–60 s) where possible.
+    - Anonymous GET routes are micro-cached **3–5 s** at PHP/APCu, reverse proxy, or CDN.
+    - Bypass cache on auth/session cookies. Use `stale-while-revalidate` grace (30–60 s) where possible.
 
 4. **Service Worker**
-   - Register **after first paint** (e.g., `requestIdleCallback`).
-   - Cache strategy: App-shell + route HTML (short), static assets with hashes (long). No precaching of large, optional features.
+    - Register **after first paint** (e.g., `requestIdleCallback`).
+    - Cache strategy: App-shell + route HTML (short), static assets with hashes (long). No precaching of large, optional features.
 
 5. **Accessibility & SEO**
-   - Pages pass basic a11y (labels, roles, contrast) **server-rendered**.
-   - Titles, meta, canonical, and language attributes must be correct at render time.
+    - Pages pass basic a11y (labels, roles, contrast) **server-rendered**.
+    - Titles, meta, canonical, and language attributes must be correct at render time.
 
 6. **Security**
-   - No inline event handlers. No `eval`/`new Function`.
-   - Use prepared statements on PHP DB access. Escape output by default.
-   - Respect CSP if present; don’t weaken it without justification.
+    - No inline event handlers. No `eval`/`new Function`.
+    - Use prepared statements on PHP DB access. Escape output by default.
+    - Respect CSP if present; don’t weaken it without justification.
 
 ---
 
 ## 2) Allowed / Discouraged / Forbidden
 
 ### Allowed (prefer)
+
 - **htmx** for partial page updates.
 - **Alpine.js** or **Preact (islands only)** for small interactive components.
 - Native Web APIs (Fetch, URL, Intl, IntersectionObserver).
 - Minimal CSS (hand-rolled) or **Tailwind** with strict purge, **not** in first flight.
 
 ### Discouraged (needs explicit approval in PR)
+
 - React + React-DOM (islands only, code-split, and not in first flight).
 - UI kits that ship large CSS/JS (e.g., Bootstrap full bundle). If used, **tree-shaken** and lazy-loaded.
 
 ### Forbidden (do not add)
+
 - Server-side Node frameworks (Next/Nuxt/Express runtime).
 - Heavy client deps in first paint: React-DOM up front, jQuery, Moment.js, Lottie, large icon fonts.
 - Webfonts on first flight; icon fonts at any time (use SVG).
@@ -86,15 +89,15 @@
 ## 5) Caching & Headers
 
 - **Server (PHP)**
-  - Micro-cache anonymous GETs: **3–5 s TTL**, grace 30–60 s.
-  - Don’t cache responses with auth/session cookies.
-  - Add `X-Micro-Cache: hit|miss|stale` for observability.
+    - Micro-cache anonymous GETs: **3–5 s TTL**, grace 30–60 s.
+    - Don’t cache responses with auth/session cookies.
+    - Add `X-Micro-Cache: hit|miss|stale` for observability.
 
 - **Static assets**
-  - Filenames with content hash; `Cache-Control: public, max-age=31536000, immutable`.
+    - Filenames with content hash; `Cache-Control: public, max-age=31536000, immutable`.
 
 - **HTML**
-  - `Cache-Control: s-maxage=5, stale-while-revalidate=60` for CDN/proxy where applicable.
+    - `Cache-Control: s-maxage=5, stale-while-revalidate=60` for CDN/proxy where applicable.
 
 ---
 
@@ -102,9 +105,9 @@
 
 - `manifest.webmanifest` minimal and accurate (name, icons, start_url, display).
 - Service Worker:
-  - Register after first paint.
-  - Use **runtime caching** with small caps on HTML (respect micro-cache freshness).
-  - Provide an offline fallback route (`/offline`).
+    - Register after first paint.
+    - Use **runtime caching** with small caps on HTML (respect micro-cache freshness).
+    - Provide an offline fallback route (`/offline`).
 
 ---
 
@@ -112,10 +115,10 @@
 
 - Default stance: **zero new deps**.
 - If adding a dep:
-  1. Justify: why native API or existing code isn’t enough.
-  2. Size impact (min+br) on *first flight* and route chunk.
-  3. Tree-shaking status and code-split plan.
-  4. Security posture (last update, maintenance).
+    1. Justify: why native API or existing code isn’t enough.
+    2. Size impact (min+br) on _first flight_ and route chunk.
+    3. Tree-shaking status and code-split plan.
+    4. Security posture (last update, maintenance).
 - PRs adding deps without this info should be auto-rejected.
 
 ---
@@ -132,24 +135,29 @@
 
 ## 9) Styling Policy
 
-1) First flight
+1. First flight
+
 - Keep a **single inline `<style>`** with only above-the-fold, critical rules (target: 3–6 KB gz).
 - No webfonts/icon fonts in first flight; use system font stack.
 
-2) Non-essential CSS
+2. Non-essential CSS
+
 - **Prefer CSS Modules or per-feature CSS files** with content hashes.
 - Load non-critical CSS via `<link rel="preload" as="style" …>` and switch to `rel="stylesheet"` on load.
 - Do **not** emit widespread per-element `style=""` attributes. Use classes + CSS variables instead.
 
-3) Islands
+3. Islands
+
 - Each island must **scope its styles** (CSS Modules or a small island CSS file) and **lazy-load** them at mount.
 - No global CSS bloat from islands. If an island is not on the page, its CSS must not be loaded.
 
-4) CSP & a11y
+4. CSP & a11y
+
 - Prefer external CSS to maintain a strict CSP (no `'unsafe-inline'`).
 - Avoid style attributes that interfere with focus/hover states—use classes and :focus/:hover rules.
 
-5) Budgets
+5. Budgets
+
 - Inline critical CSS counts toward the **14 KB first-flight** budget.
 - A route’s non-critical CSS file(s) should be ≤ **10–20 KB gz** and load after first paint.
 
@@ -186,11 +194,6 @@
 - Do not introduce tracking/telemetry without explicit approval and a toggle.
 - Native <select> elements are forbidden; reuse the custom select component (src/islands/select.ts) for form controls.
 
-
 ---
 
-*Owner’s intent:* keep the app **instant** for users. Respect the 14 KB first flight, render HTML on the server, sprinkle JS only where it pays for itself, and keep the stack boring and fast.
-
-
-
-
+_Owner’s intent:_ keep the app **instant** for users. Respect the 14 KB first flight, render HTML on the server, sprinkle JS only where it pays for itself, and keep the stack boring and fast.

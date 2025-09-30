@@ -19,4 +19,3 @@ This directory collects SQL migrations and helper snippets that can be executed 
 3. Query trees or wire the SPA editor against the `definition_tree` view.
 
 The schema keeps siblings ordered via the `position` column and cascades deletes so removing a definition prunes its subtree.
-

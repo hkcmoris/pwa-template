@@ -1,9 +1,7 @@
 {
     "ci": {
         "collect": {
-            "url": [
-                "http://localhost:8000/"
-            ],
+            "url": ["http://localhost:8000/"],
             "startServerCommand": "powershell -NoProfile -Command \"$p = Start-Process php -PassThru -NoNewWindow -ArgumentList '-d','post_max_size=32M','-d','upload_max_filesize=32M','-S','127.0.0.1:8000','-t','server','server/router.php'; Write-Output 'ready'; Wait-Process -Id $p.Id\"",
             "startServerReadyPattern": "ready",
             "numberOfRuns": 3,
@@ -15,9 +13,18 @@
         "assert": {
             "preset": "lighthouse:recommended",
             "assertions": {
-                "first-contentful-paint": ["error", { "maxNumericValue": 2000 }],
-                "largest-contentful-paint": ["error", { "maxNumericValue": 2000 }],
-                "cumulative-layout-shift": ["error", { "maxNumericValue": 0.05 }],
+                "first-contentful-paint": [
+                    "error",
+                    { "maxNumericValue": 2000 }
+                ],
+                "largest-contentful-paint": [
+                    "error",
+                    { "maxNumericValue": 2000 }
+                ],
+                "cumulative-layout-shift": [
+                    "error",
+                    { "maxNumericValue": 0.05 }
+                ],
                 "interactive": ["error", { "maxNumericValue": 3000 }],
                 "total-byte-weight": ["error", { "maxNumericValue": 14336 }],
                 "script-treemap-data": "on",

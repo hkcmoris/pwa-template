@@ -29,10 +29,14 @@ const SQLSTATE_DUPLICATE_ENTRY_ERROR =
     "SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '17-1' for key 'uq_definitions_parent_position'";
 
 const runScenario = (scenario: string): MoveScenarioResult => {
-    const output = execFileSync('php', ['server/tests/definitions_move_runner.php'], {
-        input: JSON.stringify({ scenario }),
-        encoding: 'utf-8',
-    });
+    const output = execFileSync(
+        'php',
+        ['server/tests/definitions_move_runner.php'],
+        {
+            input: JSON.stringify({ scenario }),
+            encoding: 'utf-8',
+        }
+    );
 
     return JSON.parse(output) as MoveScenarioResult;
 };
@@ -62,8 +66,10 @@ describe('definitions_move integration SQL harness', () => {
             'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id = :id'
         );
 
-        const lockQueries = queries.filter((entry) =>
-            entry.sql === 'SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE'
+        const lockQueries = queries.filter(
+            (entry) =>
+                entry.sql ===
+                'SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE'
         );
         expect(lockQueries).toHaveLength(2);
         expect(lockQueries[0].params[':parent']).toBe(1);
@@ -71,19 +77,24 @@ describe('definitions_move integration SQL harness', () => {
 
         const parkingIndex = queries.findIndex(
             (entry) =>
-                entry.sql === 'UPDATE definitions SET position = :position WHERE id = :id' &&
+                entry.sql ===
+                    'UPDATE definitions SET position = :position WHERE id = :id' &&
                 typeof entry.params[':position'] === 'number' &&
                 (entry.params[':position'] as number) > 1000
         );
         const parentUpdateIndex = queries.findIndex(
-            (entry) => entry.sql === 'UPDATE definitions SET parent_id = :parent, position = :position WHERE id = :id'
+            (entry) =>
+                entry.sql ===
+                'UPDATE definitions SET parent_id = :parent, position = :position WHERE id = :id'
         );
         expect(parkingIndex).toBeGreaterThan(-1);
         expect(parentUpdateIndex).toBeGreaterThan(-1);
         expect(parkingIndex).toBeLessThan(parentUpdateIndex);
 
-        const bumpOrders = queries.filter((entry) =>
-            entry.sql === 'UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent'
+        const bumpOrders = queries.filter(
+            (entry) =>
+                entry.sql ===
+                'UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent'
         );
         expect(bumpOrders).toHaveLength(2);
         expect(bumpOrders[0].params[':parent']).toBe(4);
@@ -96,9 +107,13 @@ describe('definitions_move integration SQL harness', () => {
         ]);
 
         const parentOne = result.rows.filter((row) => row.parent_id === 1);
-        expect(parentOne.map((row) => [row.id, row.position])).toEqual([[2, 0]]);
+        expect(parentOne.map((row) => [row.id, row.position])).toEqual([
+            [2, 0],
+        ]);
 
-        const combos = result.rows.map((row) => `${row.parent_id ?? 'root'}-${row.position}`);
+        const combos = result.rows.map(
+            (row) => `${row.parent_id ?? 'root'}-${row.position}`
+        );
         const uniqueCombos = new Set(combos);
         expect(uniqueCombos.size).toBe(combos.length);
     });
@@ -126,7 +141,9 @@ describe('definitions_move integration SQL harness', () => {
         );
         expect(shiftQuery).toBeDefined();
 
-        const combos = result.rows.map((row) => `${row.parent_id ?? 'root'}-${row.position}`);
+        const combos = result.rows.map(
+            (row) => `${row.parent_id ?? 'root'}-${row.position}`
+        );
         expect(new Set(combos).size).toBe(combos.length);
     });
 
@@ -149,7 +166,8 @@ describe('definitions_move integration SQL harness', () => {
             (entry) =>
                 normalise(entry.sql) ===
                     'UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent' &&
-                (entry.params[':parent'] === null || entry.params[':parent'] === '')
+                (entry.params[':parent'] === null ||
+                    entry.params[':parent'] === '')
         );
         expect(bumpRoot).toHaveLength(1);
 
@@ -161,7 +179,9 @@ describe('definitions_move integration SQL harness', () => {
         );
         expect(bumpOldParent).toHaveLength(1);
 
-        const combos = result.rows.map((row) => `${row.parent_id ?? 'root'}-${row.position}`);
+        const combos = result.rows.map(
+            (row) => `${row.parent_id ?? 'root'}-${row.position}`
+        );
         expect(new Set(combos).size).toBe(combos.length);
     });
 
@@ -196,11 +216,15 @@ describe('definitions_move integration SQL harness', () => {
         expect(result.error).toBeNull();
 
         const afterSecond = result.snapshots?.after_second ?? [];
-        const byId = Object.fromEntries(afterSecond.map((row) => [row.id, row]));
+        const byId = Object.fromEntries(
+            afterSecond.map((row) => [row.id, row])
+        );
         expect(byId[10]).toBeDefined();
         expect(byId[10].parent_id).toBe(9);
 
-        expect(afterSecond.map((row) => [row.id, row.parent_id, row.position])).toEqual([
+        expect(
+            afterSecond.map((row) => [row.id, row.parent_id, row.position])
+        ).toEqual([
             [0, null, 0],
             [3, null, 1],
             [7, null, 2],
@@ -214,7 +238,9 @@ describe('definitions_move integration SQL harness', () => {
             [10, 9, 0],
         ]);
 
-        expect(result.rows.map((row) => [row.id, row.parent_id, row.position])).toEqual([
+        expect(
+            result.rows.map((row) => [row.id, row.parent_id, row.position])
+        ).toEqual([
             [0, null, 0],
             [3, null, 1],
             [7, null, 2],

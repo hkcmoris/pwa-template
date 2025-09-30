@@ -9,20 +9,23 @@ export default async function init(el: HTMLElement) {
 
     const myEmail = localStorage.getItem('userEmail');
 
-    const render = (users: Array<{
-        id: number;
-        username: string;
-        email: string;
-        role?: string;
-        created_at: string;
-    }>) => {
+    const render = (
+        users: Array<{
+            id: number;
+            username: string;
+            email: string;
+            role?: string;
+            created_at: string;
+        }>
+    ) => {
         if (!list) return;
         list.innerHTML = users
             .map((u) => {
                 const role = u.role ?? 'user';
                 const isSelf = canEdit && myEmail === u.email;
-                const roleCell = canEdit && !isSelf
-                    ? `<div class="select" data-select data-user-id="${u.id}" data-prev="${role}">
+                const roleCell =
+                    canEdit && !isSelf
+                        ? `<div class="select" data-select data-user-id="${u.id}" data-prev="${role}">
                           <button type="button" class="select__button" aria-haspopup="listbox" aria-expanded="false">${role}</button>
                           <ul class="select__list" role="listbox" tabindex="-1" hidden>
                             <li role="option" class="select__option" data-value="user" aria-selected="${role === 'user'}">user</li>
@@ -30,7 +33,10 @@ export default async function init(el: HTMLElement) {
                             <li role="option" class="select__option" data-value="superadmin" aria-selected="${role === 'superadmin'}">superadmin</li>
                           </ul>
                        </div>`
-                    : role + (isSelf ? ' <small title="Nelze měnit vlastní roli">(nelze změnit)</small>' : '');
+                        : role +
+                          (isSelf
+                              ? ' <small title="Nelze měnit vlastní roli">(nelze změnit)</small>'
+                              : '');
                 return `<tr>
                     <td>${u.id}</td>
                     <td>${u.username}</td>
@@ -67,22 +73,35 @@ export default async function init(el: HTMLElement) {
                         if (!sel) return;
                         const userId = parseInt(sel.dataset.userId || '0', 10);
                         const prev = sel.getAttribute('data-prev') || '';
-                        const next = (ev as CustomEvent).detail?.value as string;
+                        const next = (ev as CustomEvent).detail
+                            ?.value as string;
                         if (!userId || !next || prev === next) return;
                         try {
                             const res = await apiFetch('/user-role.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ id: userId, role: next }),
+                                body: JSON.stringify({
+                                    id: userId,
+                                    role: next,
+                                }),
                             });
                             if (!res.ok) {
                                 setSelectValue(sel, prev);
-                                let errorText = 'Aktualizace role se nezda�ila';
+                                let errorText = 'Aktualizace role se nezda�ila';
                                 try {
                                     const payload: unknown = await res.json();
-                                    if (payload && typeof payload === 'object' && 'error' in payload) {
-                                        const maybe = (payload as { error?: unknown }).error;
-                                        if (typeof maybe === 'string' && maybe.trim()) {
+                                    if (
+                                        payload &&
+                                        typeof payload === 'object' &&
+                                        'error' in payload
+                                    ) {
+                                        const maybe = (
+                                            payload as { error?: unknown }
+                                        ).error;
+                                        if (
+                                            typeof maybe === 'string' &&
+                                            maybe.trim()
+                                        ) {
                                             errorText = maybe;
                                         }
                                     }
@@ -99,17 +118,20 @@ export default async function init(el: HTMLElement) {
                         } catch {
                             setSelectValue(sel, prev);
                             if (message)
-                                message.textContent = 'Aktualizace role se nezdařila';
+                                message.textContent =
+                                    'Aktualizace role se nezdařila';
                         }
                     });
                 }
             } else if (message) {
-                message.textContent = data.error || 'Žádní uživatelé nenalezeni';
+                message.textContent =
+                    data.error || 'Žádní uživatelé nenalezeni';
             }
         } else {
             const data = await response.json().catch(() => ({}));
             if (message) {
-                message.textContent = data.error || 'Načtení uživatelů se nezdařilo';
+                message.textContent =
+                    data.error || 'Načtení uživatelů se nezdařilo';
             }
         }
     } catch {
@@ -118,4 +140,3 @@ export default async function init(el: HTMLElement) {
         }
     }
 }
-

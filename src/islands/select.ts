@@ -50,14 +50,17 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
         );
 
         const initialAttr = sel.getAttribute('data-value');
-        const initialOption = initialAttr !== null
-            ? options.find((o) => (o.dataset.value ?? '') === initialAttr)
-            : undefined;
+        const initialOption =
+            initialAttr !== null
+                ? options.find((o) => (o.dataset.value ?? '') === initialAttr)
+                : undefined;
         const fallbackOption =
             initialOption ||
             options.find((o) => o.getAttribute('aria-selected') === 'true') ||
             options[0];
-        const initialValue = fallbackOption ? fallbackOption.dataset.value ?? '' : '';
+        const initialValue = fallbackOption
+            ? (fallbackOption.dataset.value ?? '')
+            : '';
         setSelectValue(sel, initialValue);
 
         const open = () => {
@@ -87,7 +90,8 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
                 o.matches('[data-active]')
             );
             let nextIndex = currentIndex < 0 ? 0 : currentIndex;
-            if (e.key === 'ArrowDown') nextIndex = Math.min(options.length - 1, currentIndex + 1);
+            if (e.key === 'ArrowDown')
+                nextIndex = Math.min(options.length - 1, currentIndex + 1);
             if (e.key === 'ArrowUp') nextIndex = Math.max(0, currentIndex - 1);
             if (e.key === 'Escape') return close();
             if (e.key === 'Enter') {
@@ -105,7 +109,8 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
         options.forEach((opt) => {
             opt.addEventListener('click', () => {
                 const val = opt.dataset.value ?? '';
-                const label = opt.dataset.label ?? opt.textContent?.trim() ?? val;
+                const label =
+                    opt.dataset.label ?? opt.textContent?.trim() ?? val;
                 const prev = sel.getAttribute('data-value') || '';
                 if (val === prev) {
                     close();

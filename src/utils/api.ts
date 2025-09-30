@@ -3,9 +3,7 @@ const RUNTIME_BASE =
     (typeof document !== 'undefined' &&
         document.documentElement?.dataset?.base) ||
     '';
-const ORIGIN =
-    (typeof window !== 'undefined' && window.location?.origin) ||
-    '';
+const ORIGIN = (typeof window !== 'undefined' && window.location?.origin) || '';
 
 // Normalize to avoid accidental double slashes when appending paths
 const RAW_API_BASE =
@@ -23,7 +21,11 @@ export async function apiFetch(
     init?: FetchInit,
     options?: FetchOptions
 ) {
-    const opts: FetchInit = { cache: 'no-store', credentials: 'include', ...(init || {}) };
+    const opts: FetchInit = {
+        cache: 'no-store',
+        credentials: 'include',
+        ...(init || {}),
+    };
     let res = await fetch(`${API_BASE}${path}`, opts);
     if (res.status === 401 && !options?.skipRefresh) {
         // Attempt to refresh access token

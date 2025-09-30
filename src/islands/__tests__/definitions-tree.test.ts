@@ -1,7 +1,4 @@
-import {
-    isDescendantPath,
-    setupDragAndDrop,
-} from '../definitions-tree';
+import { isDescendantPath, setupDragAndDrop } from '../definitions-tree';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 type AjaxFn = Parameters<typeof setupDragAndDrop>[2]['ajax'];
@@ -58,12 +55,15 @@ describe('setupDragAndDrop', () => {
     beforeEach(() => {
         document.body.innerHTML = '';
         ajaxMock = jest.fn<AjaxFn>();
-        ajaxMock.mockImplementation(() => ({} as XMLHttpRequest));
+        ajaxMock.mockImplementation(() => ({}) as XMLHttpRequest);
         htmxMock = { ajax: ajaxMock };
     });
 
     const dispatchDragStart = (node: HTMLElement) => {
-        const dragStart = new Event('dragstart', { bubbles: true, cancelable: true });
+        const dragStart = new Event('dragstart', {
+            bubbles: true,
+            cancelable: true,
+        });
         node.dispatchEvent(dragStart);
     };
 
@@ -76,18 +76,25 @@ describe('setupDragAndDrop', () => {
         node.parentElement?.classList.remove('definition-item--drop-after');
         node.parentElement?.classList.remove('definition-item--drop-inside');
 
-        const dragOver = new Event('dragover', { bubbles: true, cancelable: true });
+        const dragOver = new Event('dragover', {
+            bubbles: true,
+            cancelable: true,
+        });
         Object.defineProperty(dragOver, 'clientY', { value: clientY });
-        jest
-            .spyOn(node.closest<HTMLElement>('.definition-item')!, 'getBoundingClientRect')
-            .mockReturnValue(bounding);
+        jest.spyOn(
+            node.closest<HTMLElement>('.definition-item')!,
+            'getBoundingClientRect'
+        ).mockReturnValue(bounding);
         const preventSpy = jest.spyOn(dragOver, 'preventDefault');
         node.dispatchEvent(dragOver);
         return preventSpy;
     };
 
     const dispatchDrop = (node: HTMLElement) => {
-        const dropEvent = new Event('drop', { bubbles: true, cancelable: true });
+        const dropEvent = new Event('drop', {
+            bubbles: true,
+            cancelable: true,
+        });
         const preventSpy = jest.spyOn(dropEvent, 'preventDefault');
         node.dispatchEvent(dropEvent);
         return preventSpy;

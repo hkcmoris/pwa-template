@@ -30,24 +30,31 @@ export default function init(el: HTMLElement) {
                     password: formData.get('password'),
                 }),
             });
-            const data = (await response.json().catch(() => ({}))) as LoginResponse;
+            const data = (await response
+                .json()
+                .catch(() => ({}))) as LoginResponse;
             if (message) {
                 if (response.ok && data.token) {
                     message.textContent = 'Přihlášení úspěšné';
                     const emailValue =
-                        (typeof data.user?.email === 'string' && data.user.email) ||
+                        (typeof data.user?.email === 'string' &&
+                            data.user.email) ||
                         formData.get('email');
                     const email =
                         typeof emailValue === 'string' ? emailValue : '';
                     const role =
-                        (typeof data.user?.role === 'string' && data.user.role) ||
+                        (typeof data.user?.role === 'string' &&
+                            data.user.role) ||
                         'user';
                     document.dispatchEvent(
-                        new CustomEvent('auth-changed', { detail: { email, role } })
+                        new CustomEvent('auth-changed', {
+                            detail: { email, role },
+                        })
                     );
                     window.location.href = `${BASE}/`;
                 } else {
-                    message.textContent = data.error || 'Přihlášení se nezdařilo';
+                    message.textContent =
+                        data.error || 'Přihlášení se nezdařilo';
                 }
             }
         } catch {

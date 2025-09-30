@@ -39,15 +39,19 @@ export default function init(el: HTMLElement) {
                 if (response.ok && data.token) {
                     message.textContent = 'Registrace úspěšná';
                     const emailValue =
-                        (typeof data.user?.email === 'string' && data.user.email) ||
+                        (typeof data.user?.email === 'string' &&
+                            data.user.email) ||
                         formData.get('email');
                     const email =
                         typeof emailValue === 'string' ? emailValue : '';
                     const role =
-                        (typeof data.user?.role === 'string' && data.user.role) ||
+                        (typeof data.user?.role === 'string' &&
+                            data.user.role) ||
                         'user';
                     document.dispatchEvent(
-                        new CustomEvent('auth-changed', { detail: { email, role } })
+                        new CustomEvent('auth-changed', {
+                            detail: { email, role },
+                        })
                     );
                 } else {
                     message.textContent =

@@ -172,11 +172,10 @@ const setupNodeActions = (
                     return;
                 }
 
-                sendRequest(
-                    htmx,
-                    `${base}/editor/definitions-rename`,
-                    { id, title: value }
-                );
+                sendRequest(htmx, `${base}/editor/definitions-rename`, {
+                    id,
+                    title: value,
+                });
 
                 closeModal();
             });
@@ -217,11 +216,9 @@ const setupNodeActions = (
             container
                 .querySelector('[data-modal-confirm]')
                 ?.addEventListener('click', () => {
-                    sendRequest(
-                        htmx,
-                        `${base}/editor/definitions-delete`,
-                        { id }
-                    );
+                    sendRequest(htmx, `${base}/editor/definitions-delete`, {
+                        id,
+                    });
 
                     closeModal();
                 });
@@ -231,11 +228,7 @@ const setupNodeActions = (
     });
 };
 
-const setupDragAndDrop = (
-    root: HTMLElement,
-    base: string,
-    htmx: HTMX
-) => {
+const setupDragAndDrop = (root: HTMLElement, base: string, htmx: HTMX) => {
     let dragContext: DragContext | null = null;
     const dropContext: DropContext = { item: null, position: null };
 
@@ -365,13 +358,10 @@ const setupDragAndDrop = (
             targetItem.dataset.position ?? '',
             10
         );
-        const siblingCollection =
-            targetItem.parentElement?.querySelectorAll(
-                ':scope > .definition-item'
-            );
-        const siblings = siblingCollection
-            ? Array.from(siblingCollection)
-            : [];
+        const siblingCollection = targetItem.parentElement?.querySelectorAll(
+            ':scope > .definition-item'
+        );
+        const siblings = siblingCollection ? Array.from(siblingCollection) : [];
         let targetPosition = Number.isNaN(rawPosition)
             ? siblings.indexOf(targetItem)
             : rawPosition;
@@ -399,9 +389,7 @@ const setupDragAndDrop = (
             position = childItems.length;
         } else {
             position =
-                dropPosition === 'before'
-                    ? targetPosition
-                    : targetPosition + 1;
+                dropPosition === 'before' ? targetPosition : targetPosition + 1;
         }
 
         if (parentId === dragId) {
@@ -418,7 +406,8 @@ const setupDragAndDrop = (
         }
 
         const currentParentRaw = dragContext.item.dataset.parent ?? '';
-        const currentParentId = currentParentRaw === '' ? null : currentParentRaw.trim();
+        const currentParentId =
+            currentParentRaw === '' ? null : currentParentRaw.trim();
         const currentPosition = Number.parseInt(
             dragContext.item.dataset.position ?? '',
             10
@@ -435,15 +424,11 @@ const setupDragAndDrop = (
             return;
         }
 
-        sendRequest(
-            htmx,
-            `${base}/editor/definitions-move`,
-            {
-                id: dragId,
-                parent_id: targetParentId ?? '',
-                position: String(desiredPosition),
-            }
-        );
+        sendRequest(htmx, `${base}/editor/definitions-move`, {
+            id: dragId,
+            parent_id: targetParentId ?? '',
+            position: String(desiredPosition),
+        });
 
         updateDropHighlight(null, null);
     });
@@ -478,15 +463,11 @@ const setupDragAndDrop = (
 
         const position = rootItems.length;
 
-        sendRequest(
-            htmx,
-            `${base}/editor/definitions-move`,
-            {
-                id: dragContext.id,
-                parent_id: '',
-                position,
-            }
-        );
+        sendRequest(htmx, `${base}/editor/definitions-move`, {
+            id: dragContext.id,
+            parent_id: '',
+            position,
+        });
 
         updateDropHighlight(null, null);
     });
@@ -692,7 +673,14 @@ export default function init(el: HTMLElement) {
         });
     };
 
-    setupNodeActions(el, actualBase, htmx, openModal, closeModal, openCreateModal);
+    setupNodeActions(
+        el,
+        actualBase,
+        htmx,
+        openModal,
+        closeModal,
+        openCreateModal
+    );
 
     setupDragAndDrop(el, actualBase, htmx);
 
@@ -702,4 +690,3 @@ export default function init(el: HTMLElement) {
         });
     }
 }
-

@@ -59,7 +59,9 @@ const highlightNav = () => {
         const lr = (u.searchParams.get('r') || lp).replace(/^\/+|\/+$/g, '');
         const match = (link.dataset.activeRoot || lr).replace(/^\/+|\/+$/g, '');
         const isHome = match === '';
-        const isActive = isHome ? current === '' : (current === match || current.startsWith(match + '/'));
+        const isActive = isHome
+            ? current === ''
+            : current === match || current.startsWith(match + '/');
         link.classList.toggle('active', isActive);
     });
 };
@@ -109,9 +111,9 @@ themeToggle?.addEventListener('click', () => {
 });
 
 const usernameEl = document.getElementById('username-right');
-const editorLink = document.getElementById('editor-link') as
-    | HTMLAnchorElement
-    | null;
+const editorLink = document.getElementById(
+    'editor-link'
+) as HTMLAnchorElement | null;
 const loginLink = document.getElementById(
     'login-link'
 ) as HTMLAnchorElement | null;
@@ -167,9 +169,9 @@ const scheduleTokenRefresh = (delay = REFRESH_INTERVAL_MS) => {
                 return;
             }
             if (res.ok) {
-                const payload = (await res.json().catch(() => null)) as
-                    | { user?: { email: string; role: string } | null }
-                    | null;
+                const payload = (await res.json().catch(() => null)) as {
+                    user?: { email: string; role: string } | null;
+                } | null;
                 const user = payload?.user ?? null;
                 if (scheduledEpoch !== authEpoch) {
                     return;
@@ -234,7 +236,10 @@ const setRoleUI = (role: string | null) => {
 
 const FETCH_RETRY_MS = 500;
 
-async function fetchMeAndUpdate(expectedEpoch: number = authEpoch, options: { preventDowngrade?: boolean } = {}) {
+async function fetchMeAndUpdate(
+    expectedEpoch: number = authEpoch,
+    options: { preventDowngrade?: boolean } = {}
+) {
     const { preventDowngrade = false } = options;
     try {
         // Allow refresh on 401 so links don't disappear when access expires.
@@ -287,7 +292,9 @@ updateAuthUI(storedUser);
 // Also restore role-based UI from storage (best effort) and then refresh via API
 setRoleUI(localStorage.getItem(ROLE_KEY));
 const initialEpoch = authEpoch;
-onIdle(() => fetchMeAndUpdate(initialEpoch, { preventDowngrade: Boolean(storedUser) }));
+onIdle(() =>
+    fetchMeAndUpdate(initialEpoch, { preventDowngrade: Boolean(storedUser) })
+);
 
 document.addEventListener('auth-changed', (event) => {
     authEpoch += 1;
@@ -306,10 +313,14 @@ document.addEventListener('auth-changed', (event) => {
     }
     updateAuthUI(detail?.email ?? null);
     const roleHint = detail
-        ? detail.role ?? localStorage.getItem(ROLE_KEY)
+        ? (detail.role ?? localStorage.getItem(ROLE_KEY))
         : null;
     setRoleUI(roleHint);
-    onIdle(() => fetchMeAndUpdate(currentEpoch, { preventDowngrade: Boolean(detail?.email) }));
+    onIdle(() =>
+        fetchMeAndUpdate(currentEpoch, {
+            preventDowngrade: Boolean(detail?.email),
+        })
+    );
 });
 
 logoutBtn?.addEventListener('click', async () => {
@@ -326,8 +337,8 @@ logoutBtn?.addEventListener('click', async () => {
 document.body.addEventListener('htmx:afterSwap', (e) => {
     const target =
         ((e as CustomEvent).detail &&
-            ((e as CustomEvent).detail as { target?: HTMLElement })
-                .target) || (e.target as HTMLElement);
+            ((e as CustomEvent).detail as { target?: HTMLElement }).target) ||
+        (e.target as HTMLElement);
 
     if (target?.id === 'content') {
         window.scrollTo(0, 0);
@@ -338,7 +349,9 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
 });
 
 document.body.addEventListener('htmx:oobAfterSwap', (event) => {
-    const detail = (event as CustomEvent).detail as { content?: Element } | undefined;
+    const detail = (event as CustomEvent).detail as
+        | { content?: Element }
+        | undefined;
     const swapped = detail?.content ?? (event.target as Element | null);
     if (swapped instanceof HTMLElement) {
         mountIslands(swapped as HTMLElement);
@@ -346,4 +359,3 @@ document.body.addEventListener('htmx:oobAfterSwap', (event) => {
         mountIslands();
     }
 });
-

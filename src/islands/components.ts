@@ -51,7 +51,6 @@ type ComponentModalOptions = {
     displayName?: string;
 };
 
-
 const setFormError = (message: string | null) => {
     const box = document.getElementById(COMPONENT_FORM_ERROR_ID);
     if (!(box instanceof HTMLElement)) {
@@ -82,7 +81,9 @@ const setupComponentForm = (form: HTMLFormElement) => {
     enhanceSelects(form);
 
     wrappers.forEach((wrapper) => {
-        const selectEl = wrapper.querySelector<HTMLElement>('.select[data-select]');
+        const selectEl = wrapper.querySelector<HTMLElement>(
+            '.select[data-select]'
+        );
         const hiddenInput = wrapper.querySelector<HTMLInputElement>(
             'input[type="hidden"]'
         );
@@ -90,7 +91,8 @@ const setupComponentForm = (form: HTMLFormElement) => {
             return;
         }
 
-        const button = selectEl.querySelector<HTMLButtonElement>('.select__button');
+        const button =
+            selectEl.querySelector<HTMLButtonElement>('.select__button');
         const required = selectEl.dataset.required === 'true';
 
         const updateValidity = (value: string) => {
@@ -120,15 +122,18 @@ const setupComponentForm = (form: HTMLFormElement) => {
         });
     });
 
-
     const mediaRadios = Array.from(
-        form.querySelectorAll<HTMLInputElement>('input[name="media_type"][data-media-choice]')
+        form.querySelectorAll<HTMLInputElement>(
+            'input[name="media_type"][data-media-choice]'
+        )
     );
     const mediaPanels = Array.from(
         form.querySelectorAll<HTMLElement>('[data-media-panel]')
     );
     const colorText = form.querySelector<HTMLInputElement>('[data-color-text]');
-    const colorPicker = form.querySelector<HTMLInputElement>('[data-color-picker]');
+    const colorPicker = form.querySelector<HTMLInputElement>(
+        '[data-color-picker]'
+    );
 
     type MediaMode = 'image' | 'color';
 
@@ -225,15 +230,14 @@ const setupComponentForm = (form: HTMLFormElement) => {
         form.querySelectorAll<HTMLElement>(
             '.select[data-select][data-required="true"]'
         ).forEach((selectEl) => {
-            const wrapper = selectEl.closest('[data-select-wrapper]') as
-                | HTMLElement
-                | null;
+            const wrapper = selectEl.closest(
+                '[data-select-wrapper]'
+            ) as HTMLElement | null;
             const hiddenInput = wrapper?.querySelector<HTMLInputElement>(
                 'input[type="hidden"]'
             );
-            const button = selectEl.querySelector<HTMLButtonElement>(
-                '.select__button'
-            );
+            const button =
+                selectEl.querySelector<HTMLButtonElement>('.select__button');
             if (!hiddenInput || !button) {
                 return;
             }
@@ -297,8 +301,7 @@ export default function init(root: HTMLElement) {
         if (
             previousSibling &&
             previousSibling.nodeType === Node.COMMENT_NODE &&
-            (previousSibling as Comment).data ===
-                'component-form-errors-anchor'
+            (previousSibling as Comment).data === 'component-form-errors-anchor'
         ) {
             errorAnchor = previousSibling as Comment;
         } else {
@@ -313,10 +316,7 @@ export default function init(root: HTMLElement) {
         if (!errorBox || !errorAnchor || !errorAnchor.parentNode) {
             return;
         }
-        errorAnchor.parentNode.insertBefore(
-            errorBox,
-            errorAnchor.nextSibling
-        );
+        errorAnchor.parentNode.insertBefore(errorBox, errorAnchor.nextSibling);
     };
 
     const moveErrorsIntoModal = (bodyContainer: HTMLElement | null) => {
@@ -427,7 +427,9 @@ export default function init(root: HTMLElement) {
     const openComponentModal = (options?: ComponentModalOptions) => {
         const mode = options?.mode ?? 'create';
         const isEdit = mode === 'edit';
-        const fragment = createTemplate.content.cloneNode(true) as DocumentFragment;
+        const fragment = createTemplate.content.cloneNode(
+            true
+        ) as DocumentFragment;
         const form = fragment.querySelector('form');
         if (!form) {
             return;
@@ -474,7 +476,7 @@ export default function init(root: HTMLElement) {
             parentHidden.value = parentValue;
         }
         if (componentIdInput) {
-            componentIdInput.value = isEdit ? options?.componentId ?? '' : '';
+            componentIdInput.value = isEdit ? (options?.componentId ?? '') : '';
         }
         const imageValue = options?.image ?? '';
         const rawColorValue = options?.color ?? '';
@@ -486,7 +488,8 @@ export default function init(root: HTMLElement) {
             const prefixed = trimmed.startsWith('#') ? trimmed : `#${trimmed}`;
             return prefixed.toUpperCase();
         })();
-        const mediaMode = options?.mediaType ?? (normalizedColor ? 'color' : 'image');
+        const mediaMode =
+            options?.mediaType ?? (normalizedColor ? 'color' : 'image');
         if (alternateInput) {
             alternateInput.value = options?.alternateTitle ?? '';
         }
@@ -503,15 +506,23 @@ export default function init(root: HTMLElement) {
             const pickerColor = /^#[0-9A-F]{6}$/u.test(normalizedColor)
                 ? normalizedColor
                 : /^#[0-9A-F]{3}$/u.test(normalizedColor)
-                ? `#${normalizedColor[1]}${normalizedColor[1]}${normalizedColor[2]}${normalizedColor[2]}${normalizedColor[3]}${normalizedColor[3]}`.toUpperCase()
-                : '#ffffff';
+                  ? `#${normalizedColor[1]}${normalizedColor[1]}${normalizedColor[2]}${normalizedColor[2]}${normalizedColor[3]}${normalizedColor[3]}`.toUpperCase()
+                  : '#ffffff';
             colorPicker.value = pickerColor;
         }
         form.dataset.mediaMode = mediaMode;
         if (positionInput) {
-            if (isEdit && options?.position !== undefined && options.position !== null) {
+            if (
+                isEdit &&
+                options?.position !== undefined &&
+                options.position !== null
+            ) {
                 positionInput.value = String(options.position);
-            } else if (!isEdit && typeof options?.childCount === 'number' && Number.isFinite(options.childCount)) {
+            } else if (
+                !isEdit &&
+                typeof options?.childCount === 'number' &&
+                Number.isFinite(options.childCount)
+            ) {
                 positionInput.value = String(options.childCount);
             } else {
                 positionInput.value = '';
@@ -550,8 +561,8 @@ export default function init(root: HTMLElement) {
                 ? `Upravit ${options.displayName.trim()}`
                 : 'Upravit komponentu'
             : options?.parentTitle?.trim()
-                  ? 'Přidat podkomponentu'
-                  : 'Přidat komponentu';
+              ? 'Přidat podkomponentu'
+              : 'Přidat komponentu';
 
         if (isEdit) {
             form.setAttribute('action', updateUrl);
@@ -612,18 +623,27 @@ export default function init(root: HTMLElement) {
             const parentId = item?.dataset.parent ?? '';
             const positionRaw = button.dataset.position;
             const parsedPosition =
-                positionRaw !== undefined ? Number.parseInt(positionRaw, 10) : NaN;
+                positionRaw !== undefined
+                    ? Number.parseInt(positionRaw, 10)
+                    : NaN;
             openComponentModal({
                 mode: 'edit',
-                componentId: button.dataset.componentId ?? item?.dataset.id ?? '',
+                componentId:
+                    button.dataset.componentId ?? item?.dataset.id ?? '',
                 definitionId: button.dataset.definitionId ?? '',
                 alternateTitle: button.dataset.alternateTitle ?? '',
                 description: button.dataset.description ?? '',
                 image: button.dataset.image ?? '',
                 color: button.dataset.color ?? '',
-                mediaType: (button.dataset.mediaType as 'image' | 'color' | undefined) ?? undefined,
+                mediaType:
+                    (button.dataset.mediaType as
+                        | 'image'
+                        | 'color'
+                        | undefined) ?? undefined,
                 parentId,
-                position: Number.isNaN(parsedPosition) ? undefined : parsedPosition,
+                position: Number.isNaN(parsedPosition)
+                    ? undefined
+                    : parsedPosition,
                 displayName: button.dataset.title ?? '',
             });
         } else if (action === 'delete') {
@@ -636,7 +656,10 @@ export default function init(root: HTMLElement) {
             const displayName = rawTitle.trim() || `ID ${componentId}`;
             let childCount = 0;
             if (item?.dataset.childrenCount) {
-                const parsedChildren = Number.parseInt(item.dataset.childrenCount, 10);
+                const parsedChildren = Number.parseInt(
+                    item.dataset.childrenCount,
+                    10
+                );
                 if (!Number.isNaN(parsedChildren) && parsedChildren > 0) {
                     childCount = parsedChildren;
                 }
