@@ -1,12 +1,13 @@
 /* Reusable custom select styles */
 .select{position:relative;display:inline-block;min-width:8rem}
 .select__button{width:100%;text-align:left;background:var(--bg);color:var(--fg);border:1px solid var(--fg);border-radius:.25rem;padding:.25rem .5rem;cursor:pointer}
-.select__button:hover,.select__button:focus-visible{background:var(--primary);background:var(--primary-hover);color:#fff}
+.select__button:hover,.select__button:focus-visible{background:var(--primary-hover);color:#fff}
 .select__button::after{content:'\25BE';float:right;opacity:.7}
-.select__list{position:absolute;inset:auto 0 auto 0;top:calc(100% + 2px);background:var(--bg);color:var(--fg);border:1px solid var(--fg);border-radius:.25rem;box-shadow:0 4px 8px rgb(0 0 0 / .12);max-height:14rem;overflow:auto;z-index:10;list-style:none;margin:0;padding:0}
+.select__list{position:absolute;inset:auto 0;top:calc(100% + 2px);background:var(--bg);color:var(--fg);border:1px solid var(--fg);border-radius:.25rem;box-shadow:0 4px 8px rgb(0 0 0 / 12%);max-height:14rem;overflow:auto;z-index:10;list-style:none;margin:0;padding:0}
 .select__list[hidden]{display:none}
 .select__option{padding:.25rem .5rem;cursor:pointer}
 .select__option[aria-selected="true"]{font-weight:600}
-.select__option:hover,.select__option[data-active]{background:var(--primary);background:var(--primary-hover);color:#fff}
+.select__option:hover,.select__option[data-active]{background:var(--primary-hover);color:#fff}
 html[data-theme="dark"] .select__button:hover,.select__option:hover{color:var(--primary-contrast)}
-@media (max-width:600px){.select{min-width:unset;width:100%}}
+
+@media (width <=600px){.select{min-width:unset;width:100%}}
