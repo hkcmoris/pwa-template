@@ -33,23 +33,6 @@
     "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/best-practices/errors-in-console/"
   },
   {
-    "name": "maxNumericValue",
-    "expected": 2000,
-    "actual": 2287.662,
-    "values": [
-      2296.036,
-      2325.2920000000004,
-      2287.662
-    ],
-    "operator": "<=",
-    "passed": false,
-    "auditId": "largest-contentful-paint",
-    "level": "error",
-    "url": "http://localhost:8000/",
-    "auditTitle": "Largest Contentful Paint",
-    "auditDocumentationLink": "https://developer.chrome.com/docs/lighthouse/performance/lighthouse-largest-contentful-paint/"
-  },
-  {
     "name": "minScore",
     "expected": 0.9,
     "actual": 0,
@@ -69,10 +52,10 @@
   {
     "name": "maxNumericValue",
     "expected": 14336,
-    "actual": 46518,
+    "actual": 46519,
     "values": [
-      46526,
-      46518,
+      46527,
+      46527,
       46519
     ],
     "operator": "<=",

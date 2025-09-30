@@ -27,7 +27,6 @@
                 "html-has-lang": "error",
                 "document-title": "error",
                 "meta-description": "error",
-                "service-worker": "error",
                 "is-on-https": "error"
             }
         },

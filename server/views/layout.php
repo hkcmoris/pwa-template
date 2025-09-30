@@ -68,7 +68,7 @@ function vite_asset(string $entry) {
       button:hover{background:var(--primary);background:var(--primary-hover)}
       table{width:100%;border-collapse:collapse}
       th{text-align:left}
-      main{padding:1rem;padding-top:3.5rem;min-height:100dvb;max-width:800px;margin:0 auto}
+      main{padding:1rem;padding-top:3.5rem;min-height:100dvb;max-width:1000px;margin:0 auto}
       .hidden{display:none}
       .auth-form{display:flex;flex-direction:column;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto}
       .auth-form__field{display:flex;flex-direction:column;width:100%}
