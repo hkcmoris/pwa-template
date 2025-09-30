@@ -1,5 +1,15 @@
 {
-    "extends": ["stylelint-config-standard"],
+    "extends": ["stylelint-config-standard", "stylelint-config-html"],
+    "overrides": [
+        {
+            "files": ["**/*.{php,html}"],
+            "customSyntax": "postcss-html",
+            "rules": {
+                "declaration-block-single-line-max-declarations": null
+            }
+        }
+    ],
+    "ignoreFiles": ["**/vendor/**", "**/node_modules/**"],
     "rules": {
         "declaration-block-single-line-max-declarations": 1,
         "selector-class-pattern": "^[a-z0-9\\-]+$"
