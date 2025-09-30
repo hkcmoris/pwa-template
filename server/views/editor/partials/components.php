@@ -130,7 +130,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     background: rgb(255 255 255 / 5%)
   }
 
-  .component-node__header {
+  .component-node-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -138,13 +138,13 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     flex-wrap: wrap
   }
 
-  .component-node__info {
+  .component-node-info {
     display: flex;
     flex-direction: column;
     gap: .25rem
   }
 
-  .component-node__info strong {
+  .component-node-info strong {
     font-weight: 600;
     font-size: 1rem
   }
@@ -169,21 +169,21 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     gap: .35rem
   }
 
-  .component-node__details {
+  .component-node-details {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: .5rem;
     margin: 0
   }
 
-  .component-node__details dt {
+  .component-node-details dt {
     font-weight: 600;
     font-size: .75rem;
     color: var(--fg-muted);
     margin-bottom: .2rem
   }
 
-  .component-node__details dd {
+  .component-node-details dd {
     margin: 0;
     font-size: .85rem
   }
@@ -203,14 +203,14 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     display: none
   }
 
-  .components-modal__overlay {
+  .components-modal-overlay {
     position: absolute;
     inset: 0;
     background: transparent;
     cursor: pointer
   }
 
-  .components-modal__panel {
+  .components-modal-panel {
     position: relative;
     background: var(--bg);
     color: var(--fg);
@@ -225,19 +225,19 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     z-index: 1
   }
 
-  .components-modal__panel header {
+  .components-modal-panel header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: .5rem
   }
 
-  .components-modal__panel header h3 {
+  .components-modal-panel header h3 {
     margin: 0;
     font-size: 1.1rem
   }
 
-  .components-modal__panel header button {
+  .components-modal-panel header button {
     border: none;
     background: transparent;
     color: inherit;
@@ -245,7 +245,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     cursor: pointer
   }
 
-  .components-modal__body {
+  .components-modal-body {
     display: flex;
     flex-direction: column;
     gap: 1rem

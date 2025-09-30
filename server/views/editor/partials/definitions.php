@@ -101,11 +101,11 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .definitions-empty{font-style:italic;color:#6b7280}
   .definitions-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgb(0 0 0 / 40%);padding:1rem;z-index:2000}
   .definitions-modal.hidden{display:none}
-  .definitions-modal__panel{background:var(--bg);color:var(--fg);border-radius:.5rem;box-shadow:0 12px 32px rgb(0 0 0 / 22%);max-width:420px;width:100%;padding:1rem;display:flex;flex-direction:column;gap:1rem}
-  .definitions-modal__panel header{display:flex;justify-content:space-between;align-items:center;gap:.5rem}
-  .definitions-modal__panel header h3{margin:0;font-size:1.1rem}
-  .definitions-modal__panel header button{border:none;background:transparent;color:inherit;font-size:1.2rem;cursor:pointer}
-  .definitions-modal__body{display:flex;flex-direction:column;gap:1rem}
+  .definitions-modal-panel{background:var(--bg);color:var(--fg);border-radius:.5rem;box-shadow:0 12px 32px rgb(0 0 0 / 22%);max-width:420px;width:100%;padding:1rem;display:flex;flex-direction:column;gap:1rem}
+  .definitions-modal-panel header{display:flex;justify-content:space-between;align-items:center;gap:.5rem}
+  .definitions-modal-panel header h3{margin:0;font-size:1.1rem}
+  .definitions-modal-panel header button{border:none;background:transparent;color:inherit;font-size:1.2rem;cursor:pointer}
+  .definitions-modal-body{display:flex;flex-direction:column;gap:1rem}
   .definition-modal-body{display:flex;flex-direction:column;gap:1rem}
   .definition-form--modal{display:flex;flex-direction:column;gap:.75rem}
   .definition-form--modal fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:.75rem}
