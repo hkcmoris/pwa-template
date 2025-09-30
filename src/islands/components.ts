@@ -324,7 +324,7 @@ export default function init(root: HTMLElement) {
             return;
         }
         const panel = bodyContainer.closest(
-            '.components-modal__panel'
+            '.components-modal-panel'
         ) as HTMLElement | null;
         if (!panel || panel.contains(errorBox)) {
             return;
@@ -348,17 +348,17 @@ export default function init(root: HTMLElement) {
 
     const openModal = (title: string, body: HTMLElement) => {
         modalRoot.innerHTML = `
-            <div class="components-modal__overlay" data-modal-close></div>
-            <div class="components-modal__panel" role="dialog" aria-modal="true">
+            <div class="components-modal-overlay" data-modal-close></div>
+            <div class="components-modal-panel" role="dialog" aria-modal="true">
               <header>
                 <h3>${escapeHtml(title)}</h3>
                 <button type="button" class="component-action" data-modal-close aria-label="Zavřít">×</button>
               </header>
-              <div class="components-modal__body"></div>
+              <div class="components-modal-body"></div>
             </div>
         `;
         const bodyContainer = modalRoot.querySelector(
-            '.components-modal__body'
+            '.components-modal-body'
         ) as HTMLElement | null;
         if (!bodyContainer) {
             return;

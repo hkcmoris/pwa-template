@@ -518,18 +518,18 @@ export default function init(el: HTMLElement) {
         if (!modalRoot) return;
 
         modalRoot.innerHTML = `
-            <div class="definitions-modal__overlay" data-modal-close></div>
-            <div class="definitions-modal__panel" role="dialog" aria-modal="true">
+            <div class="definitions-modal-overlay" data-modal-close></div>
+            <div class="definitions-modal-panel" role="dialog" aria-modal="true">
               <header>
                 <h3>${escapeHtml(title)}</h3>
                 <button type="button" class="definition-action" data-modal-close aria-label="Zavřít">×</button>
               </header>
-              <div class="definitions-modal__body"></div>
+              <div class="definitions-modal-body"></div>
             </div>
         `;
 
         const bodyContainer = modalRoot.querySelector(
-            '.definitions-modal__body'
+            '.definitions-modal-body'
         ) as HTMLElement;
 
         bodyContainer.appendChild(body);

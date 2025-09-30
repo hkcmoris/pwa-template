@@ -47,8 +47,8 @@ function vite_asset(string $entry) {
       main{padding:1rem;padding-top:3.5rem;min-height:100dvb;max-width:800px;margin:0 auto}
       .hidden{display:none}
       .auth-form{display:flex;flex-direction:column;align-items:center;gap:0.5rem;max-width:300px;margin:0 auto}
-      .auth-form__field{display:flex;flex-direction:column;width:100%}
-      .auth-form__input{width:100%;padding:.5rem;border:1px solid var(--fg);border-radius:.25rem}
+      .auth-form-field{display:flex;flex-direction:column;width:100%}
+      .auth-form-input{width:100%;padding:.5rem;border:1px solid var(--fg);border-radius:.25rem}
       .auth-form button{width:100%;font-size:1.1rem;margin-top:1rem}
     </style>
     <?php if (APP_ENV !== 'dev'):

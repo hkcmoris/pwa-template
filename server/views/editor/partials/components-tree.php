@@ -51,8 +51,8 @@ if (!function_exists('render_component_nodes')) {
 
             echo '<li class="component-item" data-id="' . $id . '" data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '" data-position="' . $position . '" data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '" data-children-count="' . $childCount . '" data-definition-id="' . $definitionId . '">';
             echo '<div class="component-node">';
-            echo '<div class="component-node__header">';
-            echo '<div class="component-node__info">';
+            echo '<div class="component-node-header">';
+            echo '<div class="component-node-info">';
             echo '<strong>' . $effectiveTitle . '</strong>';
             if ($alternateTitle !== '') {
                 echo '<span class="component-alias">alias "' . $alternateTitle . '"</span>';
@@ -67,7 +67,7 @@ if (!function_exists('render_component_nodes')) {
             echo '</div>';
             $hasDetails = $description !== '' || $image !== '' || $color !== '' || $dependencyCount > 0;
             if ($hasDetails) {
-                echo '<dl class="component-node__details">';
+                echo '<dl class="component-node-details">';
                 if ($description !== '') {
                     echo '<div><dt>Popis</dt><dd>' . $description . '</dd></div>';
                 }

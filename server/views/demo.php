@@ -32,9 +32,9 @@
 <section>
   <h2>Formulář</h2>
   <form class="auth-form">
-    <div class="auth-form__field">
+    <div class="auth-form-field">
       <label for="demo-input">Vstup</label>
-      <input id="demo-input" type="text" class="auth-form__input" placeholder="Textový vstup" />
+      <input id="demo-input" type="text" class="auth-form-input" placeholder="Textový vstup" />
     </div>
     <button type="submit">Odeslat</button>
   </form>
