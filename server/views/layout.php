@@ -36,9 +36,10 @@ function vite_asset(string $entry) {
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
+
       /* Navbar link styling, Editor subnav links (match header nav style) */
       header nav a,.subnav a{ 
-        font-family:"Montserrat",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
+        font-family:Montserrat,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,Cantarell,"Noto Sans","Helvetica Neue",Arial,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol",sans-serif;
         font-size:13px;
         letter-spacing:.02em;
         font-weight:700;
@@ -50,14 +51,15 @@ function vite_asset(string $entry) {
       [data-theme='dark'] header nav a:not(.active):hover,[data-theme='dark'] .subnav a:not(.active):hover{ color:#fff; }
       nav a.active{font-weight:900;color:var(--primary)}
       nav a.active:hover{color:var(--primary)}
-      header{display:flex;align-items:center;gap:.75rem;justify-content:flex-start;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / .05);z-index:999;}
+      header{display:flex;align-items:center;gap:.75rem;justify-content:flex-start;padding:.5rem 1rem;background:var(--bg);border-bottom:1px solid var(--fg);position:fixed;top:0;left:0;right:0;box-shadow:0 2px 4px rgb(0 0 0 / 5%);z-index:999;}
       .logo{font-weight:bold;line-height:0}
       .logo img,.logo svg{display:block}
       nav{display:flex;gap:.5rem;align-items:center;flex:1;min-width:0}
       .nav-links{display:flex;gap:.5rem;align-items:center;flex-wrap:nowrap}
       .nav-actions{display:flex;gap:.5rem;align-items:center;margin-left:auto}
       #menu-toggle{display:none;background:none;border:1px solid var(--fg);color:var(--fg);font-size:1.5rem;border-radius:.25rem;margin-left:auto}
-      @media (max-width:600px){
+
+      @media (width <=600px){
         nav{display:none;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:var(--bg);border-top:1px solid var(--fg);padding:.5rem 1rem;gap:.25rem}
         .nav-links{flex-direction:column;align-items:stretch;gap:.25rem}
         .nav-actions{flex-direction:column;align-items:stretch;gap:.25rem;margin-left:0}
@@ -65,7 +67,7 @@ function vite_asset(string $entry) {
         #menu-toggle{display:block}
       }
       button{cursor:pointer;background:var(--primary);color:var(--primary-contrast);border:none;border-radius:.25rem;padding:.5rem .75rem;transition:background .2s}
-      button:hover{background:var(--primary);background:var(--primary-hover)}
+      button:hover{background:var(--primary-hover)}
       table{width:100%;border-collapse:collapse}
       th{text-align:left}
       main{padding:1rem;padding-top:3.5rem;min-height:100dvb;max-width:1000px;margin:0 auto}
@@ -74,7 +76,7 @@ function vite_asset(string $entry) {
       .auth-form__field{display:flex;flex-direction:column;width:100%}
       .auth-form__input{width:100%;padding:.5rem;border:1px solid var(--fg);border-radius:.25rem}
       .auth-form button{width:100%;font-size:1.1rem;margin-top:1rem}
-      .app-version-badge{position:fixed;bottom:1rem;left:1rem;display:flex;align-items:center;gap:.4rem;background:color-mix(in srgb, var(--bg) 85%, var(--fg));color:var(--fg);padding:.4rem .6rem;border-radius:.75rem;border:1px solid color-mix(in srgb, var(--fg) 20%, transparent);box-shadow:0 4px 12px rgb(0 0 0 / .08);font-size:.75rem;line-height:1;z-index:1000;pointer-events:none}
+      .app-version-badge{position:fixed;bottom:1rem;left:1rem;display:flex;align-items:center;gap:.4rem;background:color-mix(in srgb, var(--bg) 85%, var(--fg));color:var(--fg);padding:.4rem .6rem;border-radius:.75rem;border:1px solid color-mix(in srgb, var(--fg) 20%, transparent);box-shadow:0 4px 12px rgb(0 0 0 / 8%);font-size:.75rem;line-height:1;z-index:1000;pointer-events:none}
       .app-version-dot{width:.5rem;height:.5rem;border-radius:999px;background:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb, var(--primary) 35%, transparent);display:block}
       [data-theme='dark'] .app-version-badge{background:color-mix(in srgb, var(--bg) 75%, var(--fg) 6%);border-color:color-mix(in srgb, var(--fg) 25%, transparent)}
       .app-version-badge strong{font-weight:600;letter-spacing:.04em}

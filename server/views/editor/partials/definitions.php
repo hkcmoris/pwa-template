@@ -74,17 +74,17 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .definition-primary:hover,.definition-primary:focus-visible{background:var(--primary-hover);border-color:var(--primary-hover)}
   .form-feedback{font-size:.85rem;border-radius:.35rem;padding:.5rem .6rem;margin:.5rem 0 0}
   .form-feedback.hidden{display:none}
-  .form-feedback.form-feedback--error{background:rgba(220,38,38,.12);border:1px solid #dc2626;color:#dc2626}
-  .form-feedback.form-feedback--success{background:rgba(22,163,74,.12);border:1px solid #16a34a;color:#166534}
+  .form-feedback.form-feedback--error{background:rgb(220 38 38 / 12%);border:1px solid #dc2626;color:#dc2626}
+  .form-feedback.form-feedback--success{background:rgb(22 163 74 / 12%);border:1px solid #16a34a;color:#166534}
   .definition-parent-cache{display:none}
   #definitions-list{margin:1.5rem 0}
   .definition-tree{list-style:none;padding-left:1rem;margin:0;display:flex;flex-direction:column;gap:.35rem}
-  .definition-tree ul{list-style:none;padding-left:1rem;margin:.35rem 0 0 0;display:flex;flex-direction:column;gap:.35rem;border-left:1px dashed rgba(0,0,0,.2)}
-  [data-theme="dark"] .definition-tree ul{border-color:rgba(255,255,255,.25)}
+  .definition-tree ul{list-style:none;padding-left:1rem;margin:.35rem 0 0;display:flex;flex-direction:column;gap:.35rem;border-left:1px dashed rgb(0 0 0 / 20%)}
+  [data-theme="dark"] .definition-tree ul{border-color:rgb(255 255 255 / 25%)}
   .definition-item{position:relative}
-  .definition-node{display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start;border:1px solid rgba(0,0,0,.15);border-radius:.35rem;padding:.4rem .5rem;background:rgba(0,0,0,.02);cursor:grab}
+  .definition-node{display:flex;justify-content:space-between;gap:.75rem;align-items:flex-start;border:1px solid rgb(0 0 0 / 15%);border-radius:.35rem;padding:.4rem .5rem;background:rgb(0 0 0 / 2%);cursor:grab}
   .definition-node:active{cursor:grabbing}
-  [data-theme="dark"] .definition-node{border-color:rgba(255,255,255,.2);background:rgba(255,255,255,.05)}
+  [data-theme="dark"] .definition-node{border-color:rgb(255 255 255 / 20%);background:rgb(255 255 255 / 5%)}
   .definition-node strong{font-weight:600}
   .definition-meta{font-size:.75rem;color:#555;margin-left:1rem;}
   [data-theme="dark"] .definition-meta{color:#cbd5e1}
@@ -99,9 +99,9 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .definition-item--drop-after > .definition-node{box-shadow:0 2px 0 0 var(--primary)}
   .definition-item--drop-inside > .definition-node{outline:2px dashed var(--primary)}
   .definitions-empty{font-style:italic;color:#6b7280}
-  .definitions-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.4);padding:1rem;z-index:2000}
+  .definitions-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgb(0 0 0 / 40%);padding:1rem;z-index:2000}
   .definitions-modal.hidden{display:none}
-  .definitions-modal__panel{background:var(--bg);color:var(--fg);border-radius:.5rem;box-shadow:0 12px 32px rgba(0,0,0,.22);max-width:420px;width:100%;padding:1rem;display:flex;flex-direction:column;gap:1rem}
+  .definitions-modal__panel{background:var(--bg);color:var(--fg);border-radius:.5rem;box-shadow:0 12px 32px rgb(0 0 0 / 22%);max-width:420px;width:100%;padding:1rem;display:flex;flex-direction:column;gap:1rem}
   .definitions-modal__panel header{display:flex;justify-content:space-between;align-items:center;gap:.5rem}
   .definitions-modal__panel header h3{margin:0;font-size:1.1rem}
   .definitions-modal__panel header button{border:none;background:transparent;color:inherit;font-size:1.2rem;cursor:pointer}

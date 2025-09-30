@@ -100,15 +100,15 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .component-tree ul {
     list-style: none;
     padding-left: 1.25rem;
-    margin: .35rem 0 0 0;
+    margin: .35rem 0 0;
     display: flex;
     flex-direction: column;
     gap: .35rem;
-    border-left: 1px dashed rgba(0, 0, 0, .2)
+    border-left: 1px dashed rgb(0 0 0 / 20%)
   }
 
   [data-theme="dark"] .component-tree ul {
-    border-color: rgba(255, 255, 255, .25)
+    border-color: rgb(255 255 255 / 25%)
   }
 
   .component-item {
@@ -116,18 +116,18 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   }
 
   .component-node {
-    border: 1px solid rgba(0, 0, 0, .15);
+    border: 1px solid rgb(0 0 0 / 15%);
     border-radius: .4rem;
     padding: .6rem .75rem;
-    background: rgba(0, 0, 0, .02);
+    background: rgb(0 0 0 / 2%);
     display: flex;
     flex-direction: column;
     gap: .6rem
   }
 
   [data-theme="dark"] .component-node {
-    border-color: rgba(255, 255, 255, .2);
-    background: rgba(255, 255, 255, .05)
+    border-color: rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 5%)
   }
 
   .component-node__header {
@@ -194,7 +194,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 0, 0, .4);
+    background: rgb(0 0 0 / 40%);
     padding: 1rem;
     z-index: 2000
   }
@@ -215,7 +215,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     background: var(--bg);
     color: var(--fg);
     border-radius: .5rem;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 22%);
     max-width: 480px;
     width: 100%;
     padding: 1rem;
@@ -337,14 +337,14 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     width: 1rem;
     height: 1rem;
     border-radius: 999px;
-    border: 1px solid rgba(0, 0, 0, .2);
+    border: 1px solid rgb(0 0 0 / 20%);
     margin-right: .35rem;
     vertical-align: middle;
     background: var(--chip-color, #000)
   }
 
   [data-theme="dark"] .component-color-chip {
-    border-color: rgba(255, 255, 255, .35)
+    border-color: rgb(255 255 255 / 35%)
   }
 
   .component-color-picker input[type="color"] {
@@ -390,13 +390,13 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   }
 
   .form-feedback.form-feedback--error {
-    background: rgba(220, 38, 38, .12);
+    background: rgb(220 38 38 / 12%);
     border: 1px solid #dc2626;
     color: #dc2626
   }
 
   .form-feedback.form-feedback--success {
-    background: rgba(22, 163, 74, .12);
+    background: rgb(22 163 74 / 12%);
     border: 1px solid #16a34a;
     color: #166534
   }

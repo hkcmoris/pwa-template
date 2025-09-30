@@ -13,7 +13,7 @@
         "build": "node scripts/build.mjs",
         "format": "prettier --write .",
         "lint:ts": "eslint \"src/**/*.{ts,tsx}\"",
-        "lint:css": "stylelint \"src/**/*.css\" \"server/**/*.{php,html}\" --fix",
+        "lint:css": "stylelint \"src/**/*.css\" --fix && stylelint \"server/**/*.{php,html}\"",
         "lint": "npm run lint:ts && npm run lint:css",
         "lhci": "lhci autorun",
         "test": "jest"

@@ -31,7 +31,7 @@ if (!in_array($active, ['definitions','components','images'], true)) {
 
 <h1>Editor</h1>
 <div id="editor-root">
-  <nav class="subnav" aria-label="Editor navigace" style="display:flex;gap:.5rem;margin:.5rem 0 .75rem 0;flex-wrap:wrap">
+  <nav class="subnav" aria-label="Editor navigace" style="display:flex;gap:.5rem;margin:.5rem 0 .75rem;flex-wrap:wrap">
     <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-push-url="true"
