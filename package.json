@@ -11,6 +11,7 @@
         "dev:php": "php -d post_max_size=32M -d upload_max_filesize=32M -S localhost:8000 -t server server/router.php",
         "start": "npm run dev:php",
         "build": "node scripts/build.mjs",
+        "format": "prettier --write .",
         "lint:ts": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:css": "stylelint \"src/**/*.css\"",
         "lint": "npm run lint:ts && npm run lint:css",
@@ -29,7 +30,9 @@
         "jest-environment-jsdom": "^30.1.2",
         "prettier": "^3.2.5",
         "stylelint": "^16.24.0",
+        "stylelint-config-recommended": "^17.0.0",
         "stylelint-config-standard": "^39.0.0",
+        "stylelint-order": "^7.0.0",
         "ts-jest": "^29.4.4",
         "typescript": "^5.4.0",
         "vite": "^7.1.3"
