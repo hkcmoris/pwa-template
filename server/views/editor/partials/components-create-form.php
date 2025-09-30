@@ -29,16 +29,16 @@ $parentPlaceholder = 'Kořenová komponenta';
         >
           <button
             type="button"
-            class="select__button"
+            class="select-button"
             id="component-modal-definition-button"
             aria-haspopup="listbox"
             aria-expanded="false"
             aria-labelledby="component-modal-definition-label component-modal-definition-button"
           ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
-          <ul class="select__list" role="listbox" tabindex="-1" hidden>
+          <ul class="select-list" role="listbox" tabindex="-1" hidden>
             <li
               role="option"
-              class="select__option"
+              class="select-option"
               data-value=""
               data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
               aria-selected="true"
@@ -54,7 +54,7 @@ $parentPlaceholder = 'Kořenová komponenta';
               ?>
               <li
                 role="option"
-                class="select__option"
+                class="select-option"
                 data-value="<?= $id ?>"
                 data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
                 aria-selected="false"
@@ -88,16 +88,16 @@ $parentPlaceholder = 'Kořenová komponenta';
         >
           <button
             type="button"
-            class="select__button"
+            class="select-button"
             id="component-modal-parent-button"
             aria-haspopup="listbox"
             aria-expanded="false"
             aria-labelledby="component-modal-parent-label component-modal-parent-button"
           ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
-          <ul class="select__list" role="listbox" tabindex="-1" hidden>
+          <ul class="select-list" role="listbox" tabindex="-1" hidden>
             <li
               role="option"
-              class="select__option"
+              class="select-option"
               data-value=""
               data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
               aria-selected="true"
@@ -113,7 +113,7 @@ $parentPlaceholder = 'Kořenová komponenta';
               ?>
               <li
                 role="option"
-                class="select__option"
+                class="select-option"
                 data-value="<?= $id ?>"
                 data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
                 aria-selected="false"

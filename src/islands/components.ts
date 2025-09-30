@@ -92,7 +92,7 @@ const setupComponentForm = (form: HTMLFormElement) => {
         }
 
         const button =
-            selectEl.querySelector<HTMLButtonElement>('.select__button');
+            selectEl.querySelector<HTMLButtonElement>('.select-button');
         const required = selectEl.dataset.required === 'true';
 
         const updateValidity = (value: string) => {
@@ -237,7 +237,7 @@ const setupComponentForm = (form: HTMLFormElement) => {
                 'input[type="hidden"]'
             );
             const button =
-                selectEl.querySelector<HTMLButtonElement>('.select__button');
+                selectEl.querySelector<HTMLButtonElement>('.select-button');
             if (!hiddenInput || !button) {
                 return;
             }
@@ -265,7 +265,7 @@ const getHtmx = (): HTMX | null => {
 
 const focusFirstField = (container: HTMLElement) => {
     const field = container.querySelector<HTMLElement>(
-        'button.select__button, input:not([type="hidden"]), textarea, select'
+        'button.select-button, input:not([type="hidden"]), textarea, select'
     );
     field?.focus();
 };

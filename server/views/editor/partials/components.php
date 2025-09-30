@@ -289,7 +289,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
 
   .component-form--modal input:not([type="hidden"]):focus,
   .component-form--modal textarea:focus,
-  .component-form--modal .select__button:focus {
+  .component-form--modal .select-button:focus {
     outline: 2px solid var(--primary);
     outline-offset: 1px
   }
@@ -405,7 +405,7 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     width: 100%
   }
 
-  .component-select[data-select-invalid] .select__button {
+  .component-select[data-select-invalid] .select-button {
     border-color: #dc2626
   }
 </style>

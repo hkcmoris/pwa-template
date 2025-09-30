@@ -433,10 +433,10 @@ function mount(el: HTMLElement) {
         const g = document.createElement('div');
         g.className = 'drag-ghost';
         const content = document.createElement('div');
-        content.className = 'drag-ghost__content';
+        content.className = 'drag-ghost-content';
 
         const thumbWrap = document.createElement('div');
-        thumbWrap.className = 'drag-ghost__thumb';
+        thumbWrap.className = 'drag-ghost-thumb';
         const thumbEl =
             (from.querySelector('.thumb img') as HTMLElement | null) ||
             (from.querySelector('.thumb svg') as HTMLElement | null);
@@ -460,7 +460,7 @@ function mount(el: HTMLElement) {
         }
 
         const label = document.createElement('span');
-        label.className = 'drag-ghost__label';
+        label.className = 'drag-ghost-label';
         label.textContent =
             qs<HTMLElement>(from, '.label')?.textContent || 'Přesunout';
 

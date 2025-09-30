@@ -47,22 +47,22 @@
       <div>
         <label>Vyberte roli</label>
         <div class="select" data-select data-value="user">
-          <button type="button" class="select__button" aria-haspopup="listbox" aria-expanded="false">user</button>
-          <ul class="select__list" role="listbox" hidden>
-            <li role="option" class="select__option" data-value="user" aria-selected="true">user</li>
-            <li role="option" class="select__option" data-value="admin" aria-selected="false">admin</li>
-            <li role="option" class="select__option" data-value="superadmin" aria-selected="false">superadmin</li>
+          <button type="button" class="select-button" aria-haspopup="listbox" aria-expanded="false">user</button>
+          <ul class="select-list" role="listbox" hidden>
+            <li role="option" class="select-option" data-value="user" aria-selected="true">user</li>
+            <li role="option" class="select-option" data-value="admin" aria-selected="false">admin</li>
+            <li role="option" class="select-option" data-value="superadmin" aria-selected="false">superadmin</li>
           </ul>
         </div>
       </div>
       <div>
         <label>Jednoduchý výběr</label>
         <div class="select" data-select data-value="Option A">
-          <button type="button" class="select__button" aria-haspopup="listbox" aria-expanded="false">Option A</button>
-          <ul class="select__list" role="listbox" hidden>
-            <li role="option" class="select__option" data-value="Option A" aria-selected="true">Option A</li>
-            <li role="option" class="select__option" data-value="Option B" aria-selected="false">Option B</li>
-            <li role="option" class="select__option" data-value="Option C" aria-selected="false">Option C</li>
+          <button type="button" class="select-button" aria-haspopup="listbox" aria-expanded="false">Option A</button>
+          <ul class="select-list" role="listbox" hidden>
+            <li role="option" class="select-option" data-value="Option A" aria-selected="true">Option A</li>
+            <li role="option" class="select-option" data-value="Option B" aria-selected="false">Option B</li>
+            <li role="option" class="select-option" data-value="Option C" aria-selected="false">Option C</li>
           </ul>
         </div>
       </div>

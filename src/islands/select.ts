@@ -1,11 +1,11 @@
 import './select.css';
 
 export function setSelectValue(sel: HTMLElement, value: string) {
-    const btn = sel.querySelector<HTMLButtonElement>('.select__button');
-    const list = sel.querySelector<HTMLUListElement>('.select__list');
+    const btn = sel.querySelector<HTMLButtonElement>('.select-button');
+    const list = sel.querySelector<HTMLUListElement>('.select-list');
     if (!btn || !list) return;
     const options = Array.from(
-        list.querySelectorAll<HTMLLIElement>('.select__option')
+        list.querySelectorAll<HTMLLIElement>('.select-option')
     );
     let label = value;
     options.forEach((o) => {
@@ -27,8 +27,8 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
 
     const closeAll = () => {
         selects.forEach((s) => {
-            const btn = s.querySelector<HTMLButtonElement>('.select__button');
-            const list = s.querySelector<HTMLUListElement>('.select__list');
+            const btn = s.querySelector<HTMLButtonElement>('.select-button');
+            const list = s.querySelector<HTMLUListElement>('.select-list');
             if (btn && list) {
                 btn.setAttribute('aria-expanded', 'false');
                 list.hidden = true;
@@ -42,11 +42,11 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
     });
 
     selects.forEach((sel) => {
-        const btn = sel.querySelector<HTMLButtonElement>('.select__button');
-        const list = sel.querySelector<HTMLUListElement>('.select__list');
+        const btn = sel.querySelector<HTMLButtonElement>('.select-button');
+        const list = sel.querySelector<HTMLUListElement>('.select-list');
         if (!btn || !list) return;
         const options = Array.from(
-            list.querySelectorAll<HTMLLIElement>('.select__option')
+            list.querySelectorAll<HTMLLIElement>('.select-option')
         );
 
         const initialAttr = sel.getAttribute('data-value');

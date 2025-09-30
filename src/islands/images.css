@@ -1,5 +1,56 @@
 /* Scoped styles for images island: modal, context menu, drag ghost */
 
+.drag-ghost {
+    position: fixed;
+    inset: 0 auto auto 0;
+    pointer-events: none;
+    user-select: none;
+    background: var(--bg, #111);
+    color: var(--fg, #fff);
+    border: 1px dashed var(--primary, #2563eb);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
+    transform: translate(-9999px, -9999px);
+    will-change: transform;
+    white-space: nowrap;
+    z-index: 2147483647; /* ensure on top of everything */
+    mix-blend-mode: normal;
+}
+
+.drag-ghost-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.drag-ghost-thumb {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 0.25rem;
+    background: rgb(0 0 0 / 6%);
+}
+
+.drag-ghost-thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
+
+.drag-ghost-thumb svg {
+    width: 32px;
+    height: 32px;
+    display: block;
+}
+
+.drag-ghost-label {
+    font-weight: 500;
+}
+
 #img-modal {
     position: fixed;
     inset: 0;
@@ -104,57 +155,6 @@
     background: var(--primary);
     color: #fff;
     outline: none;
-}
-
-.drag-ghost {
-    position: fixed;
-    inset: 0 auto auto 0;
-    pointer-events: none;
-    user-select: none;
-    background: var(--bg, #111);
-    color: var(--fg, #fff);
-    border: 1px dashed var(--primary, #2563eb);
-    border-radius: 0.25rem;
-    padding: 0.25rem 0.5rem;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 25%);
-    transform: translate(-9999px, -9999px);
-    will-change: transform;
-    white-space: nowrap;
-    z-index: 2147483647; /* ensure on top of everything */
-    mix-blend-mode: normal;
-}
-
-.drag-ghost__content {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.drag-ghost__thumb {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border-radius: 0.25rem;
-    background: rgb(0 0 0 / 6%);
-}
-
-.drag-ghost__thumb img {
-    max-width: 100%;
-    max-height: 100%;
-    display: block;
-}
-
-.drag-ghost__thumb svg {
-    width: 32px;
-    height: 32px;
-    display: block;
-}
-
-.drag-ghost__label {
-    font-weight: 500;
 }
 
 /* Subtle UX hint while dragging */

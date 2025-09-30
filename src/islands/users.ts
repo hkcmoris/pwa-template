@@ -26,11 +26,11 @@ export default async function init(el: HTMLElement) {
                 const roleCell =
                     canEdit && !isSelf
                         ? `<div class="select" data-select data-user-id="${u.id}" data-prev="${role}">
-                          <button type="button" class="select__button" aria-haspopup="listbox" aria-expanded="false">${role}</button>
-                          <ul class="select__list" role="listbox" tabindex="-1" hidden>
-                            <li role="option" class="select__option" data-value="user" aria-selected="${role === 'user'}">user</li>
-                            <li role="option" class="select__option" data-value="admin" aria-selected="${role === 'admin'}">admin</li>
-                            <li role="option" class="select__option" data-value="superadmin" aria-selected="${role === 'superadmin'}">superadmin</li>
+                          <button type="button" class="select-button" aria-haspopup="listbox" aria-expanded="false">${role}</button>
+                          <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                            <li role="option" class="select-option" data-value="user" aria-selected="${role === 'user'}">user</li>
+                            <li role="option" class="select-option" data-value="admin" aria-selected="${role === 'admin'}">admin</li>
+                            <li role="option" class="select-option" data-value="superadmin" aria-selected="${role === 'superadmin'}">superadmin</li>
                           </ul>
                        </div>`
                         : role +
