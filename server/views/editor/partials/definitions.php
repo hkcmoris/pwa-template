@@ -111,8 +111,8 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
   .definition-form--modal fieldset{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:.75rem}
   .definition-field{display:flex;flex-direction:column;gap:.35rem}
   .definition-field label{font-weight:600;font-size:.9rem}
-  .definition-form--modal input,.definition-form--modal .select__button{border:1px solid var(--fg);border-radius:.35rem;padding:.4rem .5rem;font:inherit;background:transparent;color:inherit;width:100%;text-align:left}
-  .definition-form--modal input:focus,.definition-form--modal .select__button:focus{outline:2px solid var(--primary);outline-offset:1px}
-  .definition-form--modal .select__button:hover,.definition-form--modal .select__button:focus-visible{background:var(--primary);color:var(--primary-contrast)}
+  .definition-form--modal input,.definition-form--modal .select-button{border:1px solid var(--fg);border-radius:.35rem;padding:.4rem .5rem;font:inherit;background:transparent;color:inherit;width:100%;text-align:left}
+  .definition-form--modal input:focus,.definition-form--modal .select-button:focus{outline:2px solid var(--primary);outline-offset:1px}
+  .definition-form--modal .select-button:hover,.definition-form--modal .select-button:focus-visible{background:var(--primary);color:var(--primary-contrast)}
   .definition-modal-actions{display:flex;justify-content:flex-end;gap:.5rem}
 </style>
