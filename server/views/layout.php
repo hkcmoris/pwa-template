@@ -30,9 +30,9 @@ function vite_asset(string $entry) {
     <meta name="description" content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor – rychlá PWA s PHP SSR.') ?>" />
     <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
     <style>
-      :root{--bg:#fff;--fg:#111;--primary:#2563eb;--primary-contrast:#fff;--primary-hover: color-mix(in srgb, var(--primary) 85%, black)}
+      :root{--bg:#fff;--fg:#111;--primary:#2563eb;--primary-contrast:#fff;--primary-hover:color-mix(in srgb,var(--primary) 85%,black);--fg-muted:#4b5563}
       *,*::before,*::after{box-sizing:border-box}
-      [data-theme='dark']{--bg:#212529;--fg:#f5f5f5;--primary:#60a5fa;--primary-contrast:#0f172a;--primary-hover: color-mix(in srgb, var(--primary) 70%, white)}
+      [data-theme='dark']{--bg:#212529;--fg:#f5f5f5;--primary:#60a5fa;--primary-contrast:#0f172a;--primary-hover: color-mix(in srgb, var(--primary) 70%, white);--fg-muted:#cbd5e1}
       body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,sans-serif;line-height:1.5}
       a{color:var(--primary);text-decoration:none}
       a:hover{text-decoration:underline}
