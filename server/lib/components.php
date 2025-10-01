@@ -8,10 +8,24 @@ function components_fetch_rows(?PDO $pdo = null): array
 {
 
     $pdo = $pdo ?? get_db_connection();
-    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.color, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
-            FROM components c
-            INNER JOIN definitions d ON d.id = c.definition_id
-            ORDER BY (c.parent_id IS NULL) DESC, c.parent_id, c.position, c.id';
+    $sql = <<<'SQL'
+    SELECT
+        c.id,
+        c.definition_id,
+        c.parent_id,
+        c.alternate_title,
+        c.description,
+        c.image,
+        c.color,
+        c.dependency_tree,
+        c.position,
+        c.created_at,
+        c.updated_at,
+        d.title AS definition_title
+    FROM components c
+    INNER JOIN definitions d ON d.id = c.definition_id
+    ORDER BY (c.parent_id IS NULL) DESC, c.parent_id, c.position, c.id
+    SQL;
     $stmt = $pdo->query($sql);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $componentIds = array_map(static fn($row) => isset($row['id']) ? (int) $row['id'] : 0, $rows);
@@ -33,7 +47,16 @@ function components_fetch_rows(?PDO $pdo = null): array
 function components_fetch_price_history(PDO $pdo, array $componentIds, int $limitPerComponent = 10): array
 {
 
-    $uniqueIds = array_values(array_filter(array_unique(array_map(static fn($id) => (int) $id, $componentIds)), static fn($id) => $id > 0));
+    $mappedIds = array_map(
+        static fn($id) => (int) $id,
+        $componentIds
+    );
+    $uniqueIds = array_values(
+        array_filter(
+            array_unique($mappedIds),
+            static fn($id) => $id > 0
+        )
+    );
     if (empty($uniqueIds)) {
         return [];
     }
@@ -79,10 +102,24 @@ function components_fetch_price_history(PDO $pdo, array $componentIds, int $limi
 function components_find(PDO $pdo, int $id): ?array
 {
 
-    $sql = 'SELECT c.id, c.definition_id, c.parent_id, c.alternate_title, c.description, c.image, c.color, c.dependency_tree, c.position, c.created_at, c.updated_at, d.title AS definition_title
-            FROM components c
-            INNER JOIN definitions d ON d.id = c.definition_id
-            WHERE c.id = :id';
+    $sql = <<<'SQL'
+    SELECT
+        c.id,
+        c.definition_id,
+        c.parent_id,
+        c.alternate_title,
+        c.description,
+        c.image,
+        c.color,
+        c.dependency_tree,
+        c.position,
+        c.created_at,
+        c.updated_at,
+        d.title AS definition_title
+    FROM components c
+    INNER JOIN definitions d ON d.id = c.definition_id
+    WHERE c.id = :id
+    SQL;
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
@@ -185,8 +222,16 @@ function components_normalise_media_inputs(?string $image, ?string $color): arra
     return [$image, $color];
 }
 
-function components_insert_component_row(PDO $pdo, int $definitionId, ?int $parentId, ?string $alternateTitle, ?string $description, ?string $image, ?string $color, int $position): int
-{
+function components_insert_component_row(
+    PDO $pdo,
+    int $definitionId,
+    ?int $parentId,
+    ?string $alternateTitle,
+    ?string $description,
+    ?string $image,
+    ?string $color,
+    int $position
+): int {
     if ($position < 0) {
         $position = 0;
     }
@@ -208,7 +253,10 @@ function components_insert_component_row(PDO $pdo, int $definitionId, ?int $pare
         $descriptionValue = null;
     }
 
-    $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
+    $shift = $pdo->prepare(
+        'UPDATE components SET position = position + 1 ' .
+        'WHERE parent_id <=> :parent AND position >= :position'
+    );
     if ($parentId === null) {
         $shift->bindValue(':parent', null, PDO::PARAM_NULL);
     } else {
@@ -216,7 +264,29 @@ function components_insert_component_row(PDO $pdo, int $definitionId, ?int $pare
     }
     $shift->bindValue(':position', $position, PDO::PARAM_INT);
     $shift->execute();
-    $stmt = $pdo->prepare('INSERT INTO components (definition_id, parent_id, alternate_title, description, image, color, dependency_tree, position) VALUES (:definition, :parent, :alternate, :description, :image, :color, :dependency, :position)');
+    $stmt = $pdo->prepare(
+        <<<'SQL'
+        INSERT INTO components (
+            definition_id,
+            parent_id,
+            alternate_title,
+            description,
+            image,
+            color,
+            dependency_tree,
+            position
+        ) VALUES (
+            :definition,
+            :parent,
+            :alternate,
+            :description,
+            :image,
+            :color,
+            :dependency,
+            :position
+        )
+        SQL
+    );
     $stmt->bindValue(':definition', $definitionId, PDO::PARAM_INT);
     if ($parentId === null) {
         $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -262,7 +332,19 @@ function components_insert_price_entry(PDO $pdo, int $componentId, string $amoun
         $currencyValue = 'CZK';
     }
 
-    $stmt = $pdo->prepare('INSERT INTO prices (component_id, amount, currency) VALUES (:component, :amount, :currency)');
+    $stmt = $pdo->prepare(
+        <<<'SQL'
+        INSERT INTO prices (
+            component_id,
+            amount,
+            currency
+        ) VALUES (
+            :component,
+            :amount,
+            :currency
+        )
+        SQL
+    );
     $stmt->bindValue(':component', $componentId, PDO::PARAM_INT);
     $stmt->bindValue(':amount', $amount, PDO::PARAM_STR);
     $stmt->bindValue(':currency', $currencyValue, PDO::PARAM_STR);
@@ -319,14 +401,33 @@ function components_seed_definition_children(PDO $pdo, int $componentId, int $de
             continue;
         }
 
-        $childId = components_insert_component_row($pdo, $childDefinitionId, $componentId, null, null, null, null, $position);
+        $childId = components_insert_component_row(
+            $pdo,
+            $childDefinitionId,
+            $componentId,
+            null,
+            null,
+            null,
+            null,
+            $position
+        );
         $position += 1;
         components_seed_definition_children($pdo, $childId, $childDefinitionId);
     }
 }
 
-function components_create(PDO $pdo, int $definitionId, ?int $parentId, ?string $alternateTitle, ?string $description, ?string $image, ?string $color, int $position, ?string $priceAmount = null, string $priceCurrency = 'CZK'): array
-{
+function components_create(
+    PDO $pdo,
+    int $definitionId,
+    ?int $parentId,
+    ?string $alternateTitle,
+    ?string $description,
+    ?string $image,
+    ?string $color,
+    int $position,
+    ?string $priceAmount = null,
+    string $priceCurrency = 'CZK'
+): array {
     $pdo->beginTransaction();
     try {
         if (!definitions_find($pdo, $definitionId)) {
@@ -335,7 +436,16 @@ function components_create(PDO $pdo, int $definitionId, ?int $parentId, ?string 
         if ($parentId !== null && !components_parent_exists($pdo, $parentId)) {
             throw new RuntimeException('Vybraný rodič neexistuje.');
         }
-        $componentId = components_insert_component_row($pdo, $definitionId, $parentId, $alternateTitle, $description, $image, $color, $position);
+        $componentId = components_insert_component_row(
+            $pdo,
+            $definitionId,
+            $parentId,
+            $alternateTitle,
+            $description,
+            $image,
+            $color,
+            $position
+        );
         components_seed_definition_children($pdo, $componentId, $definitionId);
         if ($priceAmount !== null) {
             components_insert_price_entry($pdo, $componentId, $priceAmount, $priceCurrency);
@@ -472,8 +582,19 @@ function components_is_descendant(PDO $pdo, int $ancestorId, int $candidateId): 
     return false;
 }
 
-function components_update(PDO $pdo, int $componentId, int $definitionId, ?int $parentId, ?string $alternateTitle, ?string $description, ?string $image, ?string $color, ?int $position, ?string $priceAmount = null, string $priceCurrency = 'CZK'): array
-{
+function components_update(
+    PDO $pdo,
+    int $componentId,
+    int $definitionId,
+    ?int $parentId,
+    ?string $alternateTitle,
+    ?string $description,
+    ?string $image,
+    ?string $color,
+    ?int $position,
+    ?string $priceAmount = null,
+    string $priceCurrency = 'CZK'
+): array {
     $pdo->beginTransaction();
     try {
         $current = components_find($pdo, $componentId);
@@ -534,7 +655,10 @@ function components_update(PDO $pdo, int $componentId, int $definitionId, ?int $
             $color = null;
         }
 
-        $shift = $pdo->prepare('UPDATE components SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
+        $shift = $pdo->prepare(
+            'UPDATE components SET position = position + 1 ' .
+            'WHERE parent_id <=> :parent AND position >= :position'
+        );
         if ($parentId === null) {
             $shift->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
@@ -542,7 +666,19 @@ function components_update(PDO $pdo, int $componentId, int $definitionId, ?int $
         }
         $shift->bindValue(':position', $position, PDO::PARAM_INT);
         $shift->execute();
-        $update = $pdo->prepare('UPDATE components SET definition_id = :definition, parent_id = :parent, alternate_title = :alternate, description = :description, image = :image, color = :color, position = :position WHERE id = :id');
+        $update = $pdo->prepare(
+            <<<'SQL'
+            UPDATE components
+            SET definition_id = :definition,
+                parent_id = :parent,
+                alternate_title = :alternate,
+                description = :description,
+                image = :image,
+                color = :color,
+                position = :position
+            WHERE id = :id
+            SQL
+        );
         $update->bindValue(':definition', $definitionId, PDO::PARAM_INT);
         if ($parentId === null) {
             $update->bindValue(':parent', null, PDO::PARAM_NULL);
