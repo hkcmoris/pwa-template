@@ -1,9 +1,5 @@
 <?php
 
-require_once __DIR__ . '/db.php';
-require_once __DIR__ . '/logger.php';
-require_once __DIR__ . '/jwt.php';
-
 function refresh_token_random(): string
 {
     return rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');

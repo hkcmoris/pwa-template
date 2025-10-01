@@ -1,8 +1,7 @@
 <?php
 
 // index.php
-require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/lib/auth.php';
+require_once __DIR__ . '/bootstrap.php';
 // Resolve route from query-string fallback or pretty URL path
 $qsRoute = isset($_GET['r']) ? trim((string)$_GET['r'], '/') : '';
 if (!$qsRoute || (defined('PRETTY_URLS') && PRETTY_URLS)) {
