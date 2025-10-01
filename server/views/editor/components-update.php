@@ -18,7 +18,9 @@ $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
     echo '<div id="components-list"></div>';
-    echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">Nemáte oprávnění spravovat komponenty.</div>';
+    echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
+        'Nemáte oprávnění spravovat komponenty.' .
+        '</div>';
     return;
 }
 
@@ -139,7 +141,19 @@ if ($componentId === null || $definitionId === null) {
 }
 
 try {
-    components_update($pdo, $componentId, $definitionId, $parentId, $alternateTitle !== '' ? $alternateTitle : null, $description !== '' ? $description : null, $image !== '' ? $image : null, $color !== '' ? strtoupper($color) : null, $position, $priceValue, 'CZK');
+    components_update(
+        $pdo,
+        $componentId,
+        $definitionId,
+        $parentId,
+        $alternateTitle !== '' ? $alternateTitle : null,
+        $description !== '' ? $description : null,
+        $image !== '' ? $image : null,
+        $color !== '' ? strtoupper($color) : null,
+        $position,
+        $priceValue,
+        'CZK'
+    );
     components_render_fragments($pdo, [
         'message' => 'Komponenta byla aktualizována.',
         'message_type' => 'success',

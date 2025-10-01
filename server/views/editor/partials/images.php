@@ -3,12 +3,16 @@ require_once __DIR__ . '/../../../lib/images.php';
 
 $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GET['path']) : '';
 [$curDir, $currentPath] = img_resolve($currentPath);
+$beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
 ?>
 
 <h2>Správce galerie</h2>
 
-<div id="images-root" data-island="images"
-     data-current-path="<?= htmlspecialchars($currentPath) ?>">
+<div
+  id="images-root"
+  data-island="images"
+  data-current-path="<?= htmlspecialchars($currentPath) ?>"
+>
   <?php if (!function_exists('imagewebp') && !class_exists('Imagick')) : ?>
     <div class="upload-errors" role="alert">
       Poznámka: Konverze do WebP není dostupná (chybí PHP GD s WebP nebo Imagick). Nahrávání selže, dokud ji nepovolíte.
@@ -35,7 +39,7 @@ $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_r
        hx-select="#image-grid"
        hx-trigger="load"
        hx-swap="outerHTML"
-       hx-on="htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }">
+       hx-on="<?= htmlspecialchars($beforeSwapHandler, ENT_QUOTES) ?>">
     Načítám
   </div>
   <!-- Context menu (custom) -->

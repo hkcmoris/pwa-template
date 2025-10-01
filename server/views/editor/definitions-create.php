@@ -17,7 +17,9 @@ $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
     echo '<div id="definitions-list"></div>';
-    echo '<div id="definition-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">Nemáte oprávnění spravovat definice.</div>';
+    echo '<div id="definition-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
+        'Nemáte oprávnění spravovat definice.' .
+        '</div>';
     return;
 }
 
@@ -64,7 +66,12 @@ if (empty($errors)) {
     }
     definitions_create($pdo, $title, $parentId, $position);
     http_response_code(201);
-    log_message('Definition created successfully with title=' . $title . ', parentId=' . var_export($parentId, true) . ', position=' . $position, 'INFO');
+    log_message(
+        'Definition created successfully with title=' . $title .
+        ', parentId=' . var_export($parentId, true) .
+        ', position=' . $position,
+        'INFO'
+    );
     definitions_render_fragments($pdo, [
         'message' => 'Definice byla uložena.',
         'message_type' => 'success',

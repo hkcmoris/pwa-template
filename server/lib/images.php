@@ -201,7 +201,14 @@ function img_list(string $rel, string $baseUrl): array
   // Sort dirs A-Z, images by mtime desc
     usort($dirs, fn($a, $b)=> strcasecmp($a['name'], $b['name']));
     usort($images, fn($a, $b)=> ($b['mtime'] <=> $a['mtime']) ?: strcasecmp($a['name'], $b['name']));
-    return ['root' => $root, 'dir' => $dir, 'rel' => $rel, 'urlPrefix' => $urlPrefix, 'dirs' => $dirs, 'images' => $images];
+    return [
+        'root' => $root,
+        'dir' => $dir,
+        'rel' => $rel,
+        'urlPrefix' => $urlPrefix,
+        'dirs' => $dirs,
+        'images' => $images,
+    ];
 }
 
 // Generate a safe filename with .webp extension, avoiding collisions
@@ -336,7 +343,14 @@ function img_move(string $relFile, string $relDestDir): bool
     $target = $destDir . '/' . $name;
     $i = 0;
     do {
-        $target = $destDir . '/' . ($i === 0 ? $name : preg_replace('#(.*?)(?:_(\d+))?\.(webp|[^.]+)$#', '$1_' . $i . '.$3', $name));
+        $candidateName = $i === 0
+            ? $name
+            : preg_replace(
+                '#(.*?)(?:_(\d+))?\.(webp|[^.]+)$#',
+                '$1_' . $i . '.$3',
+                $name
+            );
+        $target = $destDir . '/' . $candidateName;
         $targetThumb = preg_replace('#\.webp$#i', '.thumb.webp', $target);
         $i++;
     } while ((file_exists($target) || ($hasThumb && file_exists($targetThumb))) && $i < 10000);
@@ -422,7 +436,7 @@ function img_move_dir(string $relDir, string $relDestDir): bool
     if (!img_ensure_dir($destDir)) {
         return false;
     }
-  // Prevent moving a dir into itself or its own descendant
+    // Prevent moving a dir into itself or its own descendant
     $normFull = str_replace('\\', '/', realpath($fullDir) ?: $fullDir);
     $normDest = str_replace('\\', '/', realpath($destDir) ?: $destDir);
     if ($normDest === $normFull || strpos($normDest . '/', $normFull . '/') === 0) {
@@ -501,7 +515,7 @@ function img_generate_thumb(string $webpPath, int $size = 96): bool
     if (!$thumbPath || !is_file($webpPath)) {
         return false;
     }
-  // Imagick path
+    // Imagick path
     if (class_exists('Imagick')) {
         try {
             $im = new Imagick();
@@ -520,7 +534,7 @@ function img_generate_thumb(string $webpPath, int $size = 96): bool
           // fall through to GD
         }
     }
-  // GD path
+    // GD path
     if (function_exists('imagecreatefromwebp') && function_exists('imagewebp')) {
         $src = @imagecreatefromwebp($webpPath);
         if (!$src) {
@@ -536,7 +550,7 @@ function img_generate_thumb(string $webpPath, int $size = 96): bool
             @imagedestroy($src);
             return false;
         }
-      // preserve alpha
+        // preserve alpha
         @imagealphablending($dst, false);
         @imagesavealpha($dst, true);
         $transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);

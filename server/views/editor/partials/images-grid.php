@@ -12,6 +12,8 @@ $path = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GE
 [$dir, $path] = img_resolve($path);
 $list = img_list($path, img_root_url($BASE));
 
+$beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
+
 // Compute parent path
 $parentRel = '';
 if ($path !== '') {
@@ -20,7 +22,7 @@ if ($path !== '') {
 ?>
 
 <div id="image-grid" class="grid" data-current-path="<?= htmlspecialchars($path) ?>"
-     hx-on="htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }">
+     hx-on="<?= htmlspecialchars($beforeSwapHandler, ENT_QUOTES) ?>">
   <?php if ($path !== '') : ?>
   <div class="tile folder" tabindex="0" data-up="1"
        data-folder-rel="<?= htmlspecialchars($parentRel) ?>"
@@ -55,7 +57,14 @@ if ($path !== '') {
   <div class="tile image" tabindex="0"
        data-image-rel="<?= htmlspecialchars($img['rel']) ?>"
        data-image-url="<?= htmlspecialchars($img['url']) ?>">
-    <div class="thumb"><img loading="lazy" decoding="async" src="<?= htmlspecialchars($img['thumbUrl'] ?? $img['url']) ?>" alt="<?= htmlspecialchars($img['name']) ?>"></div>
+    <div class="thumb">
+      <img
+        loading="lazy"
+        decoding="async"
+        src="<?= htmlspecialchars($img['thumbUrl'] ?? $img['url']) ?>"
+        alt="<?= htmlspecialchars($img['name']) ?>"
+      >
+    </div>
     <div class="label" title="<?= htmlspecialchars($img['name']) ?>"><?= htmlspecialchars($img['name']) ?></div>
   </div>
   <?php endforeach; ?>

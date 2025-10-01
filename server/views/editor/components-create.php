@@ -18,7 +18,9 @@ $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
     echo '<div id="components-list"></div>';
-    echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">Nemáte oprávnění spravovat komponenty.</div>';
+    echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
+        'Nemáte oprávnění spravovat komponenty.' .
+        '</div>';
     return;
 }
 
@@ -119,7 +121,18 @@ if ($position === null) {
 }
 
 try {
-    components_create($pdo, $definitionId, $parentId, $alternateTitle !== '' ? $alternateTitle : null, $description !== '' ? $description : null, $image !== '' ? $image : null, $color !== '' ? strtoupper($color) : null, $position, $priceValue, 'CZK');
+    components_create(
+        $pdo,
+        $definitionId,
+        $parentId,
+        $alternateTitle !== '' ? $alternateTitle : null,
+        $description !== '' ? $description : null,
+        $image !== '' ? $image : null,
+        $color !== '' ? strtoupper($color) : null,
+        $position,
+        $priceValue,
+        'CZK'
+    );
     http_response_code(201);
     components_render_fragments($pdo, [
         'message' => 'Komponenta byla uložena.',
