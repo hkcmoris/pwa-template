@@ -74,7 +74,12 @@ class FakePDO extends PDO
     {
         $this->executions[] = ['sql' => $query, 'params' => $params];
         $normalizedQuery = trim(preg_replace('/\s+/', ' ', $query) ?? '');
-        if (str_starts_with($normalizedQuery, 'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id =')) {
+        if (
+            str_starts_with(
+                $normalizedQuery,
+                'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id ='
+            )
+        ) {
             $id = isset($params[':id']) ? (int) $params[':id'] : 0;
             $row = $this->rows[$id] ?? null;
             return $row ? [$row] : [];
@@ -116,7 +121,10 @@ class FakePDO extends PDO
             return [[0 => $max]];
         }
 
-        if ($normalizedQuery === 'SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE') {
+        if (
+            $normalizedQuery ===
+            'SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE'
+        ) {
             $parent = $params[':parent'] ?? null;
             $ids = $this->selectIdsForParent($parent);
             return array_map(static fn(int $id): array => ['id' => $id], $ids);
@@ -136,7 +144,11 @@ class FakePDO extends PDO
             return [];
         }
 
-        if ($normalizedQuery === 'UPDATE definitions SET position = position - 1 WHERE parent_id <=> :parent AND id <> :id AND position > :position') {
+        if (
+            $normalizedQuery ===
+            'UPDATE definitions SET position = position - 1 ' .
+            'WHERE parent_id <=> :parent AND id <> :id AND position > :position'
+        ) {
             $parent = $params[':parent'] ?? null;
             $skipId = isset($params[':id']) ? (int) $params[':id'] : 0;
             $threshold = isset($params[':position']) ? (int) $params[':position'] : 0;
@@ -152,7 +164,10 @@ class FakePDO extends PDO
             return [];
         }
 
-        if ($normalizedQuery === 'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position') {
+        if (
+            $normalizedQuery ===
+            'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position'
+        ) {
             $parent = $params[':parent'] ?? null;
             $threshold = isset($params[':position']) ? (int) $params[':position'] : 0;
             foreach ($this->rows as &$row) {

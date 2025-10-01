@@ -139,6 +139,8 @@ class FakeStatement
             return;
         }
 
-        throw new PDOException('SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens');
+        throw new PDOException(
+            'SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens'
+        );
     }
 }
