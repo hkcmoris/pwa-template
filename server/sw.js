@@ -28,7 +28,11 @@ self.addEventListener('fetch', (event) => {
             try {
                 const response = await fetch(event.request);
                 // Cache built assets (respect subfolder deployments)
-                if (url.pathname.startsWith(`${SCOPE_PATH} / public / assets / `)) {
+                if (
+                    url.pathname.startsWith(
+                        `${SCOPE_PATH} / public / assets / `
+                    )
+                ) {
                     cache.put(event.request, response.clone());
                 }
                 return response;

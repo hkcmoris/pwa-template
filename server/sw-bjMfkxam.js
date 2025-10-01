@@ -1,4 +1,4 @@
-const CACHE_NAME = 'runtime-B-0mdZWn';
+const CACHE_NAME = 'runtime-bjMfkxam';
 
 // Derive base path from SW registration scope ('' or '/subdir')
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
@@ -28,7 +28,11 @@ self.addEventListener('fetch', (event) => {
             try {
                 const response = await fetch(event.request);
                 // Cache built assets (respect subfolder deployments)
-                if (url.pathname.startsWith(`${SCOPE_PATH} / public / assets / `)) {
+                if (
+                    url.pathname.startsWith(
+                        `${SCOPE_PATH} / public / assets / `
+                    )
+                ) {
                     cache.put(event.request, response.clone());
                 }
                 return response;

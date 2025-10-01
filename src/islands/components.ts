@@ -131,8 +131,9 @@ const parsePriceHistoryDataset = (
         if (!Array.isArray(parsed)) {
             return undefined;
         }
-        return parsed.filter((item): item is PriceHistoryItem =>
-            item !== null && typeof item === 'object'
+        return parsed.filter(
+            (item): item is PriceHistoryItem =>
+                item !== null && typeof item === 'object'
         );
     } catch {
         return undefined;
@@ -159,7 +160,11 @@ const renderPriceHistory = (
 
         const amountSpan = document.createElement('span');
         amountSpan.className = 'component-price-history-amount';
-        const currency = (entry.currency ?? fallbackCurrency ?? 'CZK').toUpperCase();
+        const currency = (
+            entry.currency ??
+            fallbackCurrency ??
+            'CZK'
+        ).toUpperCase();
         const numericAmount = toNumericPrice(entry.amount ?? '');
         if (numericAmount !== null) {
             try {
@@ -355,7 +360,8 @@ const setupComponentForm = (form: HTMLFormElement) => {
         applyColorToPicker(value);
     });
 
-    const priceInput = form.querySelector<HTMLInputElement>('[data-price-input]');
+    const priceInput =
+        form.querySelector<HTMLInputElement>('[data-price-input]');
     priceInput?.addEventListener('blur', () => {
         priceInput.value = normalisePriceInput(priceInput.value);
     });

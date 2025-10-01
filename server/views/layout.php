@@ -582,7 +582,7 @@ function vite_asset(string $entry)
           ></script>
           <?php endif; ?>
       <?php endif; ?>
-      <?php endif; ?>
+    
 
     <?php
       // Resolve service worker asset and scope based on build hash
