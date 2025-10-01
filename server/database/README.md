@@ -12,6 +12,10 @@ This directory collects SQL migrations and helper snippets that can be executed 
 
 - `migrations/20250920_create_components.sql` creates the `components` hierarchy linked to definitions. Each component references a definition, may nest under another component, and stores descriptive metadata plus a JSON dependency tree.
 
+## Pricing domain
+
+- `migrations/20251003_create_prices.sql` stores price history entries per component. Each insert captures the component reference, amount (defaulting currency to EUR), and timestamp. New rows append to the history so the latest price can be selected without losing previous values. Components without pricing simply omit rows in this table.
+
 **Suggested workflow**
 
 1. Run `php server/install.php` after updating database credentials in `.env`. This creates the base schema including the new definitions structures.
