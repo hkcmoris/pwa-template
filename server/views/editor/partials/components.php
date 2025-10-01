@@ -261,9 +261,26 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     border: 0;
     padding: 0;
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: .75rem
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr)
+  }
+
+  @media (width >= 720px) {
+    .component-form--modal fieldset {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start
+    }
+  }
+
+  .component-form--modal legend {
+    font-weight: 600;
+    font-size: .95rem;
+    grid-column: 1 / -1
+  }
+
+  .component-field--full {
+    grid-column: 1 / -1
   }
 
   .component-field {
