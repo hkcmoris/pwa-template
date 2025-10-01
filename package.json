@@ -14,7 +14,9 @@
         "format": "prettier --write .",
         "lint:ts": "eslint \"src/**/*.{ts,tsx}\"",
         "lint:css": "stylelint \"src/**/*.css\" --fix && stylelint \"server/**/*.{php,html}\"",
-        "lint": "npm run lint:ts && npm run lint:css",
+        "lint:php": "composer --working-dir=server run lint:php",
+        "fix:php": "composer --working-dir=server run fix:php",
+        "lint": "npm run lint:ts && npm run lint:css && npm run lint:php",
         "lhci": "lhci autorun",
         "test": "jest"
     },

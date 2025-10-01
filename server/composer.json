@@ -15,5 +15,14 @@
         "platform": {
             "php": "7.4.0"
         }
+    },
+    "scripts": {
+        "lint:php:cs": "phpcs -q --standard=phpcs.xml",
+        "fix:php": "phpcbf -q --standard=phpcs.xml",
+        "lint:php:stan": "phpstan analyse -c phpstan.neon",
+        "lint:php": [
+            "@lint:php:cs",
+            "@lint:php:stan"
+        ]
     }
 }
