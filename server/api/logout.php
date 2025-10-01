@@ -1,8 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/cors.php';
-require_once __DIR__ . '/../lib/logger.php';
-require_once __DIR__ . '/../lib/auth.php';
 
 header('Content-Type: application/json');
 

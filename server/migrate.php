@@ -1,10 +1,9 @@
 <?php
 
 // Lightweight migration runner. Intended for local development only.
-require_once __DIR__ . '/config/config.php';
+require_once __DIR__ . '/bootstrap.php';
 require_once __DIR__ . '/config/config-root.php';
 require_once __DIR__ . '/lib/db-root.php';
-require_once __DIR__ . '/lib/logger.php';
 
 $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '';
 $isCli = PHP_SAPI === 'cli';

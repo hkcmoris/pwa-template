@@ -1,9 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../config/config.php';
-require_once __DIR__ . '/../config/config-root.php';
-require_once __DIR__ . '/logger.php';
-
 function get_db_root_connection(): PDO
 {
 
