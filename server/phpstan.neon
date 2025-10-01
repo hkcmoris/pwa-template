@@ -2,5 +2,5 @@ parameters:
   phpVersion: 70400
   level: 6
   paths: [ . ]
-  excludePaths: [ vendor, public/assets, node_modules ]
+  excludePaths: [ vendor, public/assets ]
   tmpDir: var/phpstan
