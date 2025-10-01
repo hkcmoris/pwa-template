@@ -16,56 +16,74 @@ if (!is_array($data) || !isset($data['scenario'])) {
 }
 
 $scenario = (string) $data['scenario'];
+
+/**
+ * Build a canonical row definition used across scenarios.
+ *
+ * @return array<string,mixed>
+ */
+$makeRow = static function (int $id, ?int $parentId, int $position, string $title): array {
+    return [
+        'id' => $id,
+        'parent_id' => $parentId,
+        'position' => $position,
+        'title' => $title,
+        'meta' => null,
+        'created_at' => null,
+        'updated_at' => null,
+    ];
+};
+
 $scenarios = [
     'move_to_new_parent' => [
         'rows' => [
-            ['id' => 1, 'parent_id' => null, 'position' => 0, 'title' => 'Root', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 2, 'parent_id' => 1, 'position' => 0, 'title' => 'Alpha', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 3, 'parent_id' => 1, 'position' => 1, 'title' => 'Beta', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 4, 'parent_id' => null, 'position' => 1, 'title' => 'Extra', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 5, 'parent_id' => 4, 'position' => 0, 'title' => 'Child', 'meta' => null, 'created_at' => null, 'updated_at' => null],
+            $makeRow(1, null, 0, 'Root'),
+            $makeRow(2, 1, 0, 'Alpha'),
+            $makeRow(3, 1, 1, 'Beta'),
+            $makeRow(4, null, 1, 'Extra'),
+            $makeRow(5, 4, 0, 'Child'),
         ],
         'move' => ['id' => 3, 'parent' => 4, 'position' => 1],
     ],
     'move_within_parent_down' => [
         'rows' => [
-            ['id' => 10, 'parent_id' => null, 'position' => 0, 'title' => 'Root', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 11, 'parent_id' => 10, 'position' => 0, 'title' => 'One', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 12, 'parent_id' => 10, 'position' => 1, 'title' => 'Two', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 13, 'parent_id' => 10, 'position' => 2, 'title' => 'Three', 'meta' => null, 'created_at' => null, 'updated_at' => null],
+            $makeRow(10, null, 0, 'Root'),
+            $makeRow(11, 10, 0, 'One'),
+            $makeRow(12, 10, 1, 'Two'),
+            $makeRow(13, 10, 2, 'Three'),
         ],
         'move' => ['id' => 11, 'parent' => 10, 'position' => 2],
     ],
     'move_to_root' => [
         'rows' => [
-            ['id' => 20, 'parent_id' => null, 'position' => 0, 'title' => 'Root', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 21, 'parent_id' => 20, 'position' => 0, 'title' => 'Child A', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 22, 'parent_id' => 20, 'position' => 1, 'title' => 'Child B', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 23, 'parent_id' => null, 'position' => 1, 'title' => 'Sibling Root', 'meta' => null, 'created_at' => null, 'updated_at' => null],
+            $makeRow(20, null, 0, 'Root'),
+            $makeRow(21, 20, 0, 'Child A'),
+            $makeRow(22, 20, 1, 'Child B'),
+            $makeRow(23, null, 1, 'Sibling Root'),
         ],
         'move' => ['id' => 22, 'parent' => null, 'position' => 5],
     ],
     'no_op_same_slot' => [
         'rows' => [
-            ['id' => 30, 'parent_id' => null, 'position' => 0, 'title' => 'Root', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 31, 'parent_id' => 30, 'position' => 0, 'title' => 'Left', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 32, 'parent_id' => 30, 'position' => 1, 'title' => 'Right', 'meta' => null, 'created_at' => null, 'updated_at' => null],
+            $makeRow(30, null, 0, 'Root'),
+            $makeRow(31, 30, 0, 'Left'),
+            $makeRow(32, 30, 1, 'Right'),
         ],
         'move' => ['id' => 31, 'parent' => 30, 'position' => 0],
     ],
     'chained_reparenting_preserves_children' => [
         'rows' => [
-            ['id' => 0, 'parent_id' => null, 'position' => 0, 'title' => 'Root A', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 1, 'parent_id' => 0, 'position' => 0, 'title' => 'Child A1', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 2, 'parent_id' => 0, 'position' => 1, 'title' => 'Child A2', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 3, 'parent_id' => null, 'position' => 1, 'title' => 'Root B', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 4, 'parent_id' => 3, 'position' => 0, 'title' => 'Child B1', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 5, 'parent_id' => 3, 'position' => 1, 'title' => 'Child B2', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 6, 'parent_id' => 3, 'position' => 2, 'title' => 'Child B3', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 7, 'parent_id' => null, 'position' => 2, 'title' => 'Root C', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 8, 'parent_id' => 7, 'position' => 0, 'title' => 'Child C1', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 9, 'parent_id' => null, 'position' => 3, 'title' => 'Root D', 'meta' => null, 'created_at' => null, 'updated_at' => null],
-            ['id' => 10, 'parent_id' => null, 'position' => 4, 'title' => 'Root E', 'meta' => null, 'created_at' => null, 'updated_at' => null],
+            $makeRow(0, null, 0, 'Root A'),
+            $makeRow(1, 0, 0, 'Child A1'),
+            $makeRow(2, 0, 1, 'Child A2'),
+            $makeRow(3, null, 1, 'Root B'),
+            $makeRow(4, 3, 0, 'Child B1'),
+            $makeRow(5, 3, 1, 'Child B2'),
+            $makeRow(6, 3, 2, 'Child B3'),
+            $makeRow(7, null, 2, 'Root C'),
+            $makeRow(8, 7, 0, 'Child C1'),
+            $makeRow(9, null, 3, 'Root D'),
+            $makeRow(10, null, 4, 'Root E'),
         ],
         'moves' => [
             ['id' => 10, 'parent' => 9, 'position' => 0, 'label' => 'after_first'],

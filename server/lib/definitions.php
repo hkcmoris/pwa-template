@@ -65,7 +65,9 @@ function definitions_fetch_tree(?PDO $pdo = null): array
 function definitions_find(PDO $pdo, int $id): ?array
 {
 
-    $stmt = $pdo->prepare('SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id = :id');
+    $stmt = $pdo->prepare(
+        'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id = :id'
+    );
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
     $row = $stmt->fetch();
@@ -141,7 +143,10 @@ function definitions_reorder_positions(PDO $pdo, ?int $parentId): void
     foreach ($ids as $index => $id) {
         $update->bindValue(':position', $index, PDO::PARAM_INT);
         $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
-        log_message('Phase 2: Update query: ' . $update->queryString . ' with position=' . $index . ' and id=' . (int)$id, 'DEBUG');
+        log_message(
+            'Phase 2: Update query: ' . $update->queryString . ' with position=' . $index . ' and id=' . (int)$id,
+            'DEBUG'
+        );
         $update->execute();
     }
 }
@@ -163,7 +168,10 @@ function definitions_update_title(PDO $pdo, int $id, string $title): array
 function definitions_create(PDO $pdo, string $title, ?int $parentId, int $position): array
 {
 
-    log_message('Creating definition with title=' . $title . ', parentId=' . var_export($parentId, true) . ', position=' . $position, 'DEBUG');
+    $message = 'Creating definition with title=' . $title
+        . ', parentId=' . var_export($parentId, true)
+        . ', position=' . $position;
+    log_message($message, 'DEBUG');
     $pdo->beginTransaction();
     try {
         if ($parentId !== null && !definitions_parent_exists($pdo, $parentId)) {
@@ -178,7 +186,9 @@ function definitions_create(PDO $pdo, string $title, ?int $parentId, int $positi
         if ($position > $count) {
             $position = $count;
         }
-        $shift = $pdo->prepare('UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position');
+        $shift = $pdo->prepare(
+            'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position'
+        );
         if ($parentId === null) {
             $shift->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
@@ -187,7 +197,9 @@ function definitions_create(PDO $pdo, string $title, ?int $parentId, int $positi
         $shift->bindValue(':position', $position, PDO::PARAM_INT);
         log_message('Shift query: ' . $shift->queryString, 'DEBUG');
         $shift->execute();
-        $stmt = $pdo->prepare('INSERT INTO definitions (parent_id, title, position, meta) VALUES (:parent, :title, :position, NULL)');
+        $stmt = $pdo->prepare(
+            'INSERT INTO definitions (parent_id, title, position, meta) VALUES (:parent, :title, :position, NULL)'
+        );
         if ($parentId === null) {
             $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
@@ -225,7 +237,9 @@ function definitions_delete(PDO $pdo, int $id): void
         $stmt = $pdo->prepare('DELETE FROM definitions WHERE id = :id');
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
-        $stmt = $pdo->prepare('UPDATE definitions SET position = position - 1 WHERE parent_id <=> :parent AND position > :position');
+        $stmt = $pdo->prepare(
+            'UPDATE definitions SET position = position - 1 WHERE parent_id <=> :parent AND position > :position'
+        );
         if ($parentId === null) {
             $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
@@ -314,7 +328,9 @@ function definitions_move(PDO $pdo, int $id, ?int $newParentId, int $newPosition
         }
         $lockParent = static function (PDO $pdo, ?int $parentId): void {
 
-            $stmt = $pdo->prepare('SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE');
+            $stmt = $pdo->prepare(
+                'SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE'
+            );
             if ($parentId === null) {
                 $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
             } else {
