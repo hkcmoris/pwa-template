@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/auth.php';
 require_once __DIR__ . '/../../lib/db.php';
@@ -6,9 +7,7 @@ require_once __DIR__ . '/../../lib/logger.php';
 require_once __DIR__ . '/../../lib/components.php';
 require_once __DIR__ . '/../../lib/definitions.php';
 require_once __DIR__ . '/components-response.php';
-
 log_message('Components create request received', 'INFO');
-
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
@@ -24,7 +23,6 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
-
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
 $alternateTitle = isset($_POST['alternate_title']) ? trim((string) $_POST['alternate_title']) : '';
@@ -34,15 +32,12 @@ $color = isset($_POST['color']) ? trim((string) $_POST['color']) : '';
 $mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'image';
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
 $priceParam = isset($_POST['price']) ? trim((string) $_POST['price']) : '';
-
 $mediaType = $mediaType === 'color' ? 'color' : 'image';
-
 $errors = [];
 $definitionId = null;
 $parentId = null;
 $position = null;
 $priceValue = null;
-
 if ($definitionParam === '' || !preg_match('/^\d+$/', (string) $definitionParam)) {
     $errors[] = 'Vyberte prosím platnou definici.';
 } else {
@@ -124,18 +119,7 @@ if ($position === null) {
 }
 
 try {
-    components_create(
-        $pdo,
-        $definitionId,
-        $parentId,
-        $alternateTitle !== '' ? $alternateTitle : null,
-        $description !== '' ? $description : null,
-        $image !== '' ? $image : null,
-        $color !== '' ? strtoupper($color) : null,
-        $position,
-        $priceValue,
-        'CZK'
-    );
+    components_create($pdo, $definitionId, $parentId, $alternateTitle !== '' ? $alternateTitle : null, $description !== '' ? $description : null, $image !== '' ? $image : null, $color !== '' ? strtoupper($color) : null, $position, $priceValue, 'CZK');
     http_response_code(201);
     components_render_fragments($pdo, [
         'message' => 'Komponenta byla uložena.',

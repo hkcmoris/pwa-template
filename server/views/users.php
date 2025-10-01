@@ -1,4 +1,5 @@
 <?php
+
 if (!isset($role) || !in_array($role, ['admin','superadmin'], true)) {
     echo '<h1>Přístup odepřen</h1><p>Nemáte oprávnění pro zobrazení uživatelů.</p>';
     return;

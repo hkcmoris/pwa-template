@@ -1,4 +1,5 @@
 <?php
+
 // Lightweight migration runner. Intended for local development only.
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/config-root.php';

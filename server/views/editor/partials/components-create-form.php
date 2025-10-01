@@ -43,15 +43,15 @@ $parentPlaceholder = 'Kořenová komponenta';
               data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
               aria-selected="true"
             ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php foreach ($definitionOptions as $definition): ?>
-              <?php
+            <?php foreach ($definitionOptions as $definition) : ?>
+                <?php
                 $depth = isset($definition['depth']) ? (int) $definition['depth'] : 0;
                 $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
                 $rawTitle = (string) ($definition['title'] ?? '');
                 $id = (int) ($definition['id'] ?? 0);
                 $labelText = $rawTitle . ' (ID ' . $id . ')';
                 $displayText = $indent . $labelText;
-              ?>
+                ?>
               <li
                 role="option"
                 class="select-option"
@@ -102,15 +102,15 @@ $parentPlaceholder = 'Kořenová komponenta';
               data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
               aria-selected="true"
             ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php foreach ($componentOptions as $component): ?>
-              <?php
+            <?php foreach ($componentOptions as $component) : ?>
+                <?php
                 $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
                 $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
                 $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
                 $id = (int) ($component['id'] ?? 0);
                 $labelText = $rawTitle . ' (ID ' . $id . ')';
                 $displayText = $indent . $labelText;
-              ?>
+                ?>
               <li
                 role="option"
                 class="select-option"

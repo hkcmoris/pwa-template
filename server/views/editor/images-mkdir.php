@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/images.php';
 
@@ -7,10 +8,9 @@ $current = isset($_POST['current']) && is_string($_POST['current']) ? img_saniti
 $name    = isset($_POST['name']) && is_string($_POST['name']) ? $_POST['name'] : '';
 
 if ($name !== '') {
-  @img_create_dir($current, $name);
+    @img_create_dir($current, $name);
 }
 
 // Re-render current view
 $_GET['path'] = $current;
 require __DIR__ . '/partials/images-grid.php';
-

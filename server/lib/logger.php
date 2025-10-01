@@ -1,20 +1,21 @@
 <?php
-function log_message(string $message, string $level = 'INFO'): void {
+
+function log_message(string $message, string $level = 'INFO'): void
+{
+
     $timestamp = date('c');
     $normalizedLevel = strtoupper($level);
     $spacing = in_array($normalizedLevel, ['INFO', 'WARN'], true) ? '  ' : ' ';
     $line = "[$timestamp] [$normalizedLevel]{$spacing}$message\n";
-
-    // Use a dedicated logs directory with daily-rotated files
+// Use a dedicated logs directory with daily-rotated files
     $logDir = __DIR__ . '/../logs';
     if (!is_dir($logDir)) {
-        // Best effort create; 0775 is safer than 0777 but still permissive on shared hosts
+    // Best effort create; 0775 is safer than 0777 but still permissive on shared hosts
         @mkdir($logDir, 0775, true);
     }
 
     $logFile = $logDir . '/' . date('Y-m-d') . '.log';
-
-    // Ensure file exists and has sane permissions
+// Ensure file exists and has sane permissions
     if (!file_exists($logFile)) {
         if (@file_put_contents($logFile, '') !== false) {
             @chmod($logFile, 0644);

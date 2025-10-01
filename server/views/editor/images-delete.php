@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/images.php';
 
@@ -7,10 +8,9 @@ $file = isset($_POST['file']) && is_string($_POST['file']) ? img_sanitize_rel($_
 $current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
 
 if ($file) {
-  @img_delete($file);
+    @img_delete($file);
 }
 
 // Re-render current view
 $_GET['path'] = $current;
 require __DIR__ . '/partials/images-grid.php';
-

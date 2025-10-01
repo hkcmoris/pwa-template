@@ -1,9 +1,14 @@
 <?php
-function base64url_encode(string $data): string {
+
+function base64url_encode(string $data): string
+{
+
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
 }
 
-function base64url_decode(string $data): string {
+function base64url_decode(string $data): string
+{
+
     $remainder = strlen($data) % 4;
     if ($remainder) {
         $data .= str_repeat('=', 4 - $remainder);
@@ -11,7 +16,9 @@ function base64url_decode(string $data): string {
     return base64_decode(strtr($data, '-_', '+/'));
 }
 
-function generate_jwt(array $payload, string $secret, int $exp = 3600): string {
+function generate_jwt(array $payload, string $secret, int $exp = 3600): string
+{
+
     $header = ['typ' => 'JWT', 'alg' => 'HS256'];
     $payload['exp'] = time() + $exp;
     $segments = [
@@ -27,7 +34,9 @@ function generate_jwt(array $payload, string $secret, int $exp = 3600): string {
 /**
  * @return array|false Payload array on success, false on failure
  */
-function verify_jwt(string $jwt, string $secret) {
+function verify_jwt(string $jwt, string $secret)
+{
+
     $parts = explode('.', $jwt);
     if (count($parts) !== 3) {
         return false;

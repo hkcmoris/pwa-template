@@ -26,7 +26,9 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     hx-on="select:change: const hidden=this.querySelector(&#39;#definition-parent-value&#39;); if(hidden){const raw=(event.detail && event.detail.value) || &#39;&#39;; hidden.value=raw;}"
     style="display:none"
   >
-    <?php $definitionsParentSwap = false; $selectedParent = null; include __DIR__ . '/definitions-parent-select.php'; ?>
+    <?php $definitionsParentSwap = false;
+    $selectedParent = null;
+    include __DIR__ . '/definitions-parent-select.php'; ?>
   </div>
 </div>
 

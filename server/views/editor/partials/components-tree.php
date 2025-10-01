@@ -3,7 +3,8 @@ $tree = $componentsTree ?? [];
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
 if (!function_exists('render_component_nodes')) {
-    function render_component_nodes(array $nodes, string $path = ''): void {
+    function render_component_nodes(array $nodes, string $path = ''): void
+    {
         if (empty($nodes)) {
             return;
         }
@@ -109,9 +110,9 @@ if (!function_exists('render_component_nodes')) {
 }
 ?>
 <div id="components-list">
-  <?php if (empty($tree)): ?>
+  <?php if (empty($tree)) : ?>
     <p class="components-empty">Zatím nebyly vytvořeny žádné komponenty.</p>
-  <?php else: ?>
-    <?php render_component_nodes($tree); ?>
+  <?php else : ?>
+      <?php render_component_nodes($tree); ?>
   <?php endif; ?>
 </div>

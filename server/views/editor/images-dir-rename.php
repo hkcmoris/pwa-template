@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/images.php';
 
@@ -8,10 +9,9 @@ $new = isset($_POST['newName']) && is_string($_POST['newName']) ? $_POST['newNam
 $current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
 
 if ($dir && $new) {
-  @img_rename_dir($dir, $new);
+    @img_rename_dir($dir, $new);
 }
 
 // Re-render current view
 $_GET['path'] = $current;
 require __DIR__ . '/partials/images-grid.php';
-

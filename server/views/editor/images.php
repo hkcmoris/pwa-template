@@ -1,1 +1,4 @@
-<?php $editorActive = 'images'; require __DIR__ . '/../editor.php';
+<?php
+
+$editorActive = 'images';
+require __DIR__ . '/../editor.php';

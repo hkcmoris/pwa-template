@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__.'/../config/config.php';
-require_once __DIR__.'/../lib/auth.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../lib/auth.php';
 // Resolve current user for SSR gating and header state
 $currentUser = app_get_current_user();
 $role = $currentUser['role'] ?? 'guest';
@@ -8,17 +8,22 @@ $username = $username ?? ($currentUser['email'] ?? 'Návštěvník');
 $title  = $title  ?? 'HAGEMANN konfigurátor';
 $route  = $route  ?? 'home';
 $theme  = $_COOKIE['theme'] ?? 'light';
-if ($theme !== 'dark' && $theme !== 'light') $theme = 'light';
+if ($theme !== 'dark' && $theme !== 'light') {
+    $theme = 'light';
+}
 
 // Normalized base path for subfolder deployments ('' or '/subdir')
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
-function vite_asset(string $entry) {
-  static $m = null;
+function vite_asset(string $entry)
+{
+    static $m = null;
   // Vite manifest location under outDir
-  $path = __DIR__ . '/../public/assets/.vite/manifest.json';
-  if ($m === null && is_file($path)) $m = json_decode(file_get_contents($path), true);
-  return $m[$entry] ?? null;
+    $path = __DIR__ . '/../public/assets/.vite/manifest.json';
+    if ($m === null && is_file($path)) {
+        $m = json_decode(file_get_contents($path), true);
+    }
+    return $m[$entry] ?? null;
 }
 ?>
 <!doctype html>
@@ -81,18 +86,18 @@ function vite_asset(string $entry) {
       [data-theme='dark'] .app-version-badge{background:color-mix(in srgb, var(--bg) 75%, var(--fg) 6%);border-color:color-mix(in srgb, var(--fg) 25%, transparent)}
       .app-version-badge strong{font-weight:600;letter-spacing:.04em}
     </style>
-    <?php if (APP_ENV !== 'dev'):
-      $main = vite_asset('src/main.ts');
-      $fontsCss = vite_asset('src/styles/fonts.css');
-      if ($main && !empty($main['css'])):
-        foreach ($main['css'] as $css): ?>
+    <?php if (APP_ENV !== 'dev') :
+        $main = vite_asset('src/main.ts');
+        $fontsCss = vite_asset('src/styles/fonts.css');
+        if ($main && !empty($main['css'])) :
+            foreach ($main['css'] as $css) : ?>
           <link rel="stylesheet" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($css) ?>"><?php
-        endforeach;
-      endif;
-      if ($fontsCss && !empty($fontsCss['file'])): ?>
+            endforeach;
+        endif;
+        if ($fontsCss && !empty($fontsCss['file'])) : ?>
         <link rel="preload" as="style" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>" onload="this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"></noscript>
-      <?php endif;
+        <?php endif;
     endif; ?>
   </head>
     <body>
@@ -157,26 +162,26 @@ function vite_asset(string $entry) {
       <main id="content">
       <?php
         if (!empty($view) && is_file(__DIR__ . "/{$view}.php")) {
-          require __DIR__ . "/{$view}.php";
+            require __DIR__ . "/{$view}.php";
         } else {
-          ?><h1>PWA Template</h1><?php
+            ?><h1>PWA Template</h1><?php
         }
-      ?>
+        ?>
     </main>
     <div class="app-version-badge" role="note">
       <span class="app-version-dot" aria-hidden="true"></span>
       <span class="app-version-text">Verze <strong>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, 'UTF-8') ?></strong></span>
     </div>
       <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-      <?php if (APP_ENV === 'dev'): ?>
+      <?php if (APP_ENV === 'dev') : ?>
         <script type="module" src="http://localhost:5173/@vite/client"></script>
         <script type="module" src="http://localhost:5173/src/main.ts"></script>
         <link rel="preload" as="style" href="http://localhost:5173/src/styles/fonts.css" onload="this.rel='stylesheet'">
         <noscript><link rel="stylesheet" href="http://localhost:5173/src/styles/fonts.css"></noscript>
-      <?php else: ?>
-        <?php if (!empty($main['file'])): ?>
+      <?php else : ?>
+          <?php if (!empty($main['file'])) : ?>
           <script type="module" src="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($main['file']) ?>"></script>
-        <?php endif; ?>
+          <?php endif; ?>
       <?php endif; ?>
 
     <?php
@@ -186,24 +191,24 @@ function vite_asset(string $entry) {
       $swScopePath = ($swBasePath === '') ? '/' : $swBasePath . '/';
       $swPublicPath = $swBasePath . '/sw.js';
       $swHash = null;
-      if (APP_ENV !== 'dev') {
+    if (APP_ENV !== 'dev') {
         $main = $main ?? vite_asset('src/main.ts');
         if ($main && !empty($main['file'])) {
-          if (preg_match('/main-([^.]+)\\.js$/', $main['file'], $m)) {
-            $swHash = $m[1];
-            $swPublicPath = $swBasePath . '/sw-' . $swHash . '.js';
-          }
+            if (preg_match('/main-([^.]+)\\.js$/', $main['file'], $m)) {
+                $swHash = $m[1];
+                $swPublicPath = $swBasePath . '/sw-' . $swHash . '.js';
+            }
         }
-      }
+    }
       $swScopeJson = json_encode($swScopePath, JSON_UNESCAPED_SLASHES);
       $swPathJson = json_encode($swPublicPath, JSON_UNESCAPED_SLASHES);
       $swKillPaths = [$swBasePath . '/sw.js'];
-      if ($swHash) {
+    if ($swHash) {
         $swKillPaths[] = $swPublicPath;
-      }
+    }
       $swKillJson = json_encode($swKillPaths, JSON_UNESCAPED_SLASHES);
     ?>
-    <?php if (!defined('SW_ENABLED') || SW_ENABLED): ?>
+    <?php if (!defined('SW_ENABLED') || SW_ENABLED) : ?>
     <script>
       if ('serviceWorker' in navigator) {
         const registerSw = () => {
@@ -212,7 +217,7 @@ function vite_asset(string $entry) {
         (window.requestIdleCallback || ((cb) => setTimeout(cb, 0)))(registerSw);
       }
     </script>
-    <?php else: ?>
+    <?php else : ?>
     <script>
       if ('serviceWorker' in navigator) {
         const baseScope = <?= $swScopeJson ?>;
@@ -258,7 +263,7 @@ function vite_asset(string $entry) {
       }
     </script>
     <?php endif; ?>
-    <?php if (defined('PRETTY_URLS') && !PRETTY_URLS): ?>
+    <?php if (defined('PRETTY_URLS') && !PRETTY_URLS) : ?>
     <script>
       // Fallback: rewrite in-app links to query-string routing when pretty URLs are blocked by parent .htaccess
       (function(){

@@ -9,7 +9,7 @@ $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_r
 
 <div id="images-root" data-island="images"
      data-current-path="<?= htmlspecialchars($currentPath) ?>">
-  <?php if (!function_exists('imagewebp') && !class_exists('Imagick')): ?>
+  <?php if (!function_exists('imagewebp') && !class_exists('Imagick')) : ?>
     <div class="upload-errors" role="alert">
       Poznámka: Konverze do WebP není dostupná (chybí PHP GD s WebP nebo Imagick). Nahrávání selže, dokud ji nepovolíte.
     </div>
@@ -38,7 +38,6 @@ $currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_r
        hx-on="htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }">
     Načítám
   </div>
-
   <!-- Context menu (custom) -->
   <div id="img-context-menu" class="hidden" role="menu" aria-hidden="true"></div>
   <!-- Modal container for image preview -->

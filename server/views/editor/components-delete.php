@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/auth.php';
 require_once __DIR__ . '/../../lib/db.php';
@@ -54,4 +55,3 @@ try {
         'message_type' => 'error',
     ]);
 }
-

@@ -2,9 +2,9 @@
 require_once __DIR__ . '/../../../lib/images.php';
 
 if (!headers_sent()) {
-  header('Cache-Control: no-store, no-cache, must-revalidate, private');
-  header('Pragma: no-cache');
-  header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
+    header('Cache-Control: no-store, no-cache, must-revalidate, private');
+    header('Pragma: no-cache');
+    header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
 }
 
 $BASE = $BASE ?? (defined('BASE_PATH') ? rtrim(BASE_PATH, '/') : '');
@@ -15,13 +15,13 @@ $list = img_list($path, img_root_url($BASE));
 // Compute parent path
 $parentRel = '';
 if ($path !== '') {
-  $parentRel = (strpos($path, '/') !== false) ? dirname($path) : '';
+    $parentRel = (strpos($path, '/') !== false) ? dirname($path) : '';
 }
 ?>
 
 <div id="image-grid" class="grid" data-current-path="<?= htmlspecialchars($path) ?>"
      hx-on="htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }">
-  <?php if ($path !== ''): ?>
+  <?php if ($path !== '') : ?>
   <div class="tile folder" tabindex="0" data-up="1"
        data-folder-rel="<?= htmlspecialchars($parentRel) ?>"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($parentRel) ?>"
@@ -36,7 +36,7 @@ if ($path !== '') {
   </div>
   <?php endif; ?>
 
-  <?php foreach ($list['dirs'] as $d): ?>
+  <?php foreach ($list['dirs'] as $d) : ?>
   <div class="tile folder" tabindex="0"
        data-folder-rel="<?= htmlspecialchars($d['rel']) ?>"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($d['rel']) ?>"
@@ -51,7 +51,7 @@ if ($path !== '') {
   </div>
   <?php endforeach; ?>
 
-  <?php foreach ($list['images'] as $img): ?>
+  <?php foreach ($list['images'] as $img) : ?>
   <div class="tile image" tabindex="0"
        data-image-rel="<?= htmlspecialchars($img['rel']) ?>"
        data-image-url="<?= htmlspecialchars($img['url']) ?>">

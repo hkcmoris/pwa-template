@@ -1,13 +1,12 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/auth.php';
 require_once __DIR__ . '/../../lib/db.php';
 require_once __DIR__ . '/../../lib/logger.php';
 require_once __DIR__ . '/../../lib/definitions.php';
 require_once __DIR__ . '/definitions-response.php';
-
 log_message('Definitions create request received', 'INFO');
-
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
@@ -28,7 +27,6 @@ $parentParam = $_POST['parent_id'] ?? '';
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
 $errors = [];
 $parentId = null;
-
 if ($title === '') {
     log_message('Title is empty', 'ERROR');
     $errors[] = 'Vyplňte prosím název definice.';
@@ -74,6 +72,7 @@ if (empty($errors)) {
 } else {
     http_response_code(422);
     $escapedErrors = array_map(function ($msg) {
+
         return htmlspecialchars($msg, ENT_QUOTES, 'UTF-8');
     }, $errors);
     definitions_render_fragments($pdo, [

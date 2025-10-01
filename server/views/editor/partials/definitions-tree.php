@@ -3,7 +3,8 @@ $tree = $definitionsTree ?? [];
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
 if (!function_exists('render_definition_nodes')) {
-    function render_definition_nodes(array $nodes, string $path = ''): void {
+    function render_definition_nodes(array $nodes, string $path = ''): void
+    {
         if (empty($nodes)) {
             return;
         }
@@ -41,9 +42,9 @@ if (!function_exists('render_definition_nodes')) {
 }
 ?>
 <div id="definitions-list" data-island="definitions-tree" data-base="<?= htmlspecialchars($BASE) ?>">
-  <?php if (empty($tree)): ?>
+  <?php if (empty($tree)) : ?>
     <p class="definitions-empty">Zatím nebyly vytvořeny žádné definice.</p>
-  <?php else: ?>
-    <?php render_definition_nodes($tree); ?>
+  <?php else : ?>
+      <?php render_definition_nodes($tree); ?>
   <?php endif; ?>
 </div>

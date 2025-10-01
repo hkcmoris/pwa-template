@@ -1,17 +1,15 @@
 <?php
+
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/config-root.php';
-
 try {
     $dsn = 'mysql:host=' . DB_HOST . ';charset=utf8mb4';
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
     ];
     $pdo = new PDO($dsn, DB_A_USER, DB_A_PASS, $options);
-
     $pdo->exec('CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
     $pdo->exec('USE `' . DB_NAME . '`');
-
     $pdo->exec('CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL,
@@ -20,12 +18,11 @@ try {
         role VARCHAR(20) NOT NULL DEFAULT "user",
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-
-    // Best-effort migration for existing installs lacking the role column
+// Best-effort migration for existing installs lacking the role column
     try {
         $pdo->exec('ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT "user"');
     } catch (PDOException $e) {
-        // Ignore if column already exists
+    // Ignore if column already exists
     }
 
     $pdo->exec('CREATE TABLE IF NOT EXISTS refresh_tokens (
@@ -39,7 +36,6 @@ try {
         INDEX (user_id),
         CONSTRAINT fk_refresh_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-
     $definitionsTableSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS definitions (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -57,7 +53,6 @@ CREATE TABLE IF NOT EXISTS definitions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($definitionsTableSql);
-
     $definitionComponentsSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS definition_components (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -72,7 +67,6 @@ CREATE TABLE IF NOT EXISTS definition_components (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($definitionComponentsSql);
-
     $componentsSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS components (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -94,7 +88,6 @@ CREATE TABLE IF NOT EXISTS components (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($componentsSql);
-
     $pricesSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS prices (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -109,7 +102,6 @@ CREATE TABLE IF NOT EXISTS prices (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($pricesSql);
-
     $definitionTreeViewSql = <<<'SQL'
 CREATE OR REPLACE VIEW definition_tree AS
 WITH RECURSIVE tree AS (
@@ -155,10 +147,8 @@ SELECT
 FROM tree;
 SQL;
     $pdo->exec($definitionTreeViewSql);
-
     echo "Database setup complete\n";
 } catch (PDOException $e) {
     fwrite(STDERR, 'Error: ' . $e->getMessage() . "\n");
     exit(1);
 }
-

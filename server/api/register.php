@@ -1,19 +1,16 @@
 <?php
-require_once __DIR__.'/cors.php';
-require_once __DIR__.'/../lib/db.php';
-require_once __DIR__.'/../lib/jwt.php';
-require_once __DIR__.'/../lib/auth.php';
-require_once __DIR__.'/../lib/logger.php';
 
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/../lib/db.php';
+require_once __DIR__ . '/../lib/jwt.php';
+require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/logger.php';
 header('Content-Type: application/json');
-
 $input = json_decode(file_get_contents('php://input'), true);
 $username = $input['username'] ?? '';
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
-
 log_message("Registration attempt for {$email}");
-
 if (!$username || !$email || !$password) {
     log_message('Registration failed: missing username, email or password', 'ERROR');
     http_response_code(400);
@@ -22,11 +19,9 @@ if (!$username || !$email || !$password) {
 }
 
 $db = get_db_connection();
-
 try {
     $stmt = $db->prepare('SELECT id FROM users WHERE email = :email');
     $stmt->execute([':email' => $email]);
-
     if ($stmt->fetch()) {
         log_message("Registration failed: email already registered ({$email})", 'ERROR');
         http_response_code(409);
@@ -35,9 +30,7 @@ try {
     }
 
     $hash = password_hash($password, PASSWORD_DEFAULT);
-    $stmt = $db->prepare(
-        'INSERT INTO users (username, email, password) VALUES (:username, :email, :password)'
-    );
+    $stmt = $db->prepare('INSERT INTO users (username, email, password) VALUES (:username, :email, :password)');
     $stmt->execute([':username' => $username, ':email' => $email, ':password' => $hash]);
     $userId = $db->lastInsertId();
     log_message("User registered: {$email}");
@@ -57,7 +50,6 @@ setcookie('token', $token, [
     'expires' => time() + $accessTtl,
     'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
 ]);
-
 // Issue refresh token (14 days)
 $refreshTtl = 14 * 24 * 3600;
 $refresh = create_refresh_token((int)$userId, $refreshTtl);
@@ -67,7 +59,6 @@ setcookie('refresh_token', $refresh, [
     'expires' => time() + $refreshTtl,
     'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
 ]);
-
 http_response_code(201);
 echo json_encode(['token' => $token, 'user' => [
     'email' => $email,

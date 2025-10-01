@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/images.php';
 
@@ -8,7 +9,7 @@ $to   = isset($_POST['to']) && is_string($_POST['to']) ? img_sanitize_rel($_POST
 $current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
 
 if ($file && is_string($to)) {
-  @img_move($file, $to);
+    @img_move($file, $to);
 }
 
 // Re-render current view

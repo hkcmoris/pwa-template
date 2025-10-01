@@ -1,10 +1,10 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/auth.php';
 require_once __DIR__ . '/../../lib/db.php';
 require_once __DIR__ . '/../../lib/definitions.php';
 require_once __DIR__ . '/definitions-response.php';
-
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
@@ -23,7 +23,6 @@ $pdo = get_db_connection();
 $idParam = $_POST['id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
 $positionParam = $_POST['position'] ?? '';
-
 if (!preg_match('/^\d+$/', (string) $idParam)) {
     http_response_code(422);
     definitions_render_fragments($pdo, [
@@ -57,7 +56,6 @@ if (!preg_match('/^\d+$/', (string) $positionParam)) {
 }
 
 $position = (int) $positionParam;
-
 try {
     definitions_move($pdo, $id, $parentId, $position);
     print($id . ': [' . $parentId . ', ' . $position . ']');

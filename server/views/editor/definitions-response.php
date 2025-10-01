@@ -1,7 +1,9 @@
 <?php
+
 require_once __DIR__ . '/../../lib/definitions.php';
 
-function definitions_render_fragments(PDO $pdo, array $options = []): void {
+function definitions_render_fragments(PDO $pdo, array $options = []): void
+{
     $definitionsTree = definitions_fetch_tree($pdo);
     $definitionsFlat = definitions_flatten_tree($definitionsTree);
     $selectedParent = $options['selected_parent'] ?? null;

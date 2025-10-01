@@ -1,19 +1,16 @@
 <?php
+
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../lib/definitions.php';
-
 class FakePDO extends PDO
 {
     /** @var array<int,array<string,mixed>> */
     public array $rows = [];
-
-    /** @var array<int,array{type:string,action:string}> */
+/** @var array<int,array{type:string,action:string}> */
     public array $operations = [];
-
-    /** @var array<int,array{sql:string,params:array<string,mixed>}> */
+/** @var array<int,array{sql:string,params:array<string,mixed>}> */
     public array $executions = [];
-
-    /** @param array<int,array<string,mixed>> $rows */
+/** @param array<int,array<string,mixed>> $rows */
     public function __construct(array $rows)
     {
         $this->rows = [];
@@ -61,9 +58,7 @@ class FakePDO extends PDO
     public function executeQuery(string $query, array $params): array
     {
         $this->executions[] = ['sql' => $query, 'params' => $params];
-
         $normalizedQuery = trim(preg_replace('/\s+/', ' ', $query) ?? '');
-
         if (str_starts_with($normalizedQuery, 'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id =')) {
             $id = isset($params[':id']) ? (int) $params[':id'] : 0;
             $row = $this->rows[$id] ?? null;
@@ -208,6 +203,7 @@ class FakePDO extends PDO
             }
         }
         usort($result, static function (array $a, array $b): int {
+
             if ($a['position'] === $b['position']) {
                 return $a['id'] <=> $b['id'];
             }
@@ -220,22 +216,15 @@ class FakePDO extends PDO
 class FakeStatement
 {
     private FakePDO $pdo;
-
     private string $query;
-
     public string $queryString;
-
-    /** @var array<int,string> */
+/** @var array<int,string> */
     private array $placeholders;
-
-    /** @var array<string,mixed> */
+/** @var array<string,mixed> */
     private array $params = [];
-
-    /** @var array<int,array<string|int,mixed>> */
+/** @var array<int,array<string|int,mixed>> */
     private array $results = [];
-
     private int $cursor = 0;
-
     public function __construct(FakePDO $pdo, string $query)
     {
         $this->pdo = $pdo;
@@ -263,7 +252,6 @@ class FakeStatement
         }
 
         $this->assertPlaceholderMatch();
-
         $this->results = $this->pdo->executeQuery($this->query, $this->params);
         $this->cursor = 0;
         return true;
@@ -334,30 +322,24 @@ class FakeStatement
     {
         $boundKeys = array_keys($this->params);
         sort($boundKeys);
-
         $expected = $this->placeholders;
         sort($expected);
-
         if ($boundKeys === $expected) {
             return;
         }
 
-        throw new PDOException(
-            'SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens'
-        );
+        throw new PDOException('SQLSTATE[HY093]: Invalid parameter number: number of bound variables does not match number of tokens');
     }
 }
 
 $input = trim(stream_get_contents(STDIN));
 $data = $input !== '' ? json_decode($input, true) : null;
-
 if (!is_array($data) || !isset($data['scenario'])) {
     fwrite(STDERR, "Missing scenario input\n");
     exit(1);
 }
 
 $scenario = (string) $data['scenario'];
-
 $scenarios = [
     'move_to_new_parent' => [
         'rows' => [
@@ -416,7 +398,6 @@ $scenarios = [
         ],
     ],
 ];
-
 if (!isset($scenarios[$scenario])) {
     fwrite(STDERR, "Unknown scenario: {$scenario}\n");
     exit(1);
@@ -424,14 +405,15 @@ if (!isset($scenarios[$scenario])) {
 
 $scenarioData = $scenarios[$scenario];
 $pdo = new FakePDO($scenarioData['rows']);
-
 /**
  * @param array<int,array<string,mixed>> $rows
  * @return array<int,array<string,mixed>>
  */
 $sortRows = static function (array $rows): array {
+
     $normalized = array_values($rows);
     usort($normalized, static function (array $a, array $b): int {
+
         $parentA = $a['parent_id'];
         $parentB = $b['parent_id'];
         if ($parentA === $parentB) {
@@ -450,7 +432,6 @@ $sortRows = static function (array $rows): array {
     });
     return $normalized;
 };
-
 $moves = [];
 if (isset($scenarioData['moves']) && is_array($scenarioData['moves'])) {
     $moves = $scenarioData['moves'];
@@ -461,7 +442,6 @@ if (isset($scenarioData['moves']) && is_array($scenarioData['moves'])) {
 $status = 'ok';
 $error = null;
 $snapshots = [];
-
 try {
     foreach ($moves as $move) {
         if (!is_array($move)) {
@@ -473,9 +453,7 @@ try {
             $parent = (int) $move['parent'];
         }
         $position = isset($move['position']) ? (int) $move['position'] : 0;
-
         definitions_move($pdo, $id, $parent, $position);
-
         if (isset($move['label']) && $move['label'] !== '') {
             $snapshots[(string) $move['label']] = $sortRows($pdo->rows);
         }
@@ -486,7 +464,6 @@ try {
 }
 
 $rows = $sortRows($pdo->rows);
-
 $output = [
     'status' => $status,
     'error' => $error,
@@ -494,7 +471,6 @@ $output = [
     'operations' => $pdo->operations,
     'executions' => $pdo->executions,
 ];
-
 if ($snapshots !== []) {
     $output['snapshots'] = $snapshots;
 }

@@ -1,8 +1,9 @@
 <?php
-require_once __DIR__.'/cors.php';
-require_once __DIR__.'/../lib/db.php';
-require_once __DIR__.'/../lib/jwt.php';
-require_once __DIR__.'/../lib/logger.php';
+
+require_once __DIR__ . '/cors.php';
+require_once __DIR__ . '/../lib/db.php';
+require_once __DIR__ . '/../lib/jwt.php';
+require_once __DIR__ . '/../lib/logger.php';
 
 header('Content-Type: application/json');
 
@@ -28,10 +29,7 @@ if (!$caller || !in_array(($caller['role'] ?? 'user'), ['admin','superadmin'], t
 }
 
 log_message("Users list requested by {$caller['email']}");
-
 $stmt = $db->prepare('SELECT id, username, email, role, created_at FROM users');
 $stmt->execute();
 $users = $stmt->fetchAll();
-
 echo json_encode(['users' => $users]);
-

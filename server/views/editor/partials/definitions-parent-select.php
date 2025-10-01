@@ -19,14 +19,14 @@ if ($selectedParent !== null) {
   <button type="button" class="select-button" id="definition-parent-button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="definition-parent-label definition-parent-button"><?= htmlspecialchars($currentLabel, ENT_QUOTES, 'UTF-8') ?></button>
   <ul class="select-list" role="listbox" tabindex="-1" hidden>
     <li role="option" class="select-option" data-value="" data-label="<?= htmlspecialchars($rootLabel, ENT_QUOTES, 'UTF-8') ?>" aria-selected="<?= $currentValue === '' ? 'true' : 'false' ?>"><?= htmlspecialchars($rootLabel, ENT_QUOTES, 'UTF-8') ?></li>
-    <?php foreach ($flat as $item): ?>
-      <?php
+    <?php foreach ($flat as $item) : ?>
+        <?php
         $value = (string) $item['id'];
         $label = $item['title'] . ' (ID ' . (int) $item['id'] . ')';
         $indent = $item['depth'] > 0 ? str_repeat('— ', (int) $item['depth']) : '';
         $display = $indent . $label;
         $selected = $value === $currentValue ? 'true' : 'false';
-      ?>
+        ?>
       <li role="option" class="select-option" data-value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8') ?>" data-label="<?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>" aria-selected="<?= $selected ?>"><?= htmlspecialchars($display, ENT_QUOTES, 'UTF-8') ?></li>
     <?php endforeach; ?>
   </ul>

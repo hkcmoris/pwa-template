@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/auth.php';
 require_once __DIR__ . '/../../lib/db.php';
@@ -6,9 +7,7 @@ require_once __DIR__ . '/../../lib/logger.php';
 require_once __DIR__ . '/../../lib/components.php';
 require_once __DIR__ . '/../../lib/definitions.php';
 require_once __DIR__ . '/components-response.php';
-
 log_message('Components update request received', 'INFO');
-
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
@@ -24,7 +23,6 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
-
 $componentParam = $_POST['component_id'] ?? '';
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
@@ -35,16 +33,13 @@ $color = isset($_POST['color']) ? trim((string) $_POST['color']) : '';
 $mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'image';
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
 $priceParam = isset($_POST['price']) ? trim((string) $_POST['price']) : '';
-
 $mediaType = $mediaType === 'color' ? 'color' : 'image';
-
 $errors = [];
 $componentId = null;
 $definitionId = null;
 $parentId = null;
 $position = null;
 $priceValue = null;
-
 if ($componentParam === '' || !preg_match('/^\d+$/', (string) $componentParam)) {
     $errors[] = 'Vyberte prosím platnou komponentu.';
 } else {
@@ -144,19 +139,7 @@ if ($componentId === null || $definitionId === null) {
 }
 
 try {
-    components_update(
-        $pdo,
-        $componentId,
-        $definitionId,
-        $parentId,
-        $alternateTitle !== '' ? $alternateTitle : null,
-        $description !== '' ? $description : null,
-        $image !== '' ? $image : null,
-        $color !== '' ? strtoupper($color) : null,
-        $position,
-        $priceValue,
-        'CZK'
-    );
+    components_update($pdo, $componentId, $definitionId, $parentId, $alternateTitle !== '' ? $alternateTitle : null, $description !== '' ? $description : null, $image !== '' ? $image : null, $color !== '' ? strtoupper($color) : null, $position, $priceValue, 'CZK');
     components_render_fragments($pdo, [
         'message' => 'Komponenta byla aktualizována.',
         'message_type' => 'success',
@@ -169,4 +152,3 @@ try {
         'message_type' => 'error',
     ]);
 }
-
