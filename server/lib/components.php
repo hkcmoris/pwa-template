@@ -10,15 +10,77 @@ function components_fetch_rows(?PDO $pdo = null): array {
             INNER JOIN definitions d ON d.id = c.definition_id
             ORDER BY (c.parent_id IS NULL) DESC, c.parent_id, c.position, c.id';
     $stmt = $pdo->query($sql);
-    $rows = $stmt->fetchAll();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $componentIds = array_map(
+        static fn($row) => isset($row['id']) ? (int) $row['id'] : 0,
+        $rows
+    );
+    $priceHistoryMap = components_fetch_price_history($pdo, $componentIds);
+
     $normalised = [];
     foreach ($rows as $row) {
         $row['dependency_tree'] = components_normalise_dependency_tree($row['dependency_tree'] ?? null);
         $row['effective_title'] = components_effective_title($row);
+        $rowId = isset($row['id']) ? (int) $row['id'] : 0;
+        $history = $priceHistoryMap[$rowId] ?? [];
+        $row['price_history'] = $history;
+        $row['latest_price'] = $history[0] ?? null;
         $normalised[] = $row;
     }
     log_message('Fetched ' . count($normalised) . ' components from database', 'DEBUG');
     return $normalised;
+}
+
+function components_fetch_price_history(PDO $pdo, array $componentIds, int $limitPerComponent = 10): array {
+    $uniqueIds = array_values(
+        array_filter(
+            array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
+            static fn($id) => $id > 0
+        )
+    );
+
+    if (empty($uniqueIds)) {
+        return [];
+    }
+
+    $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
+    $sql = 'SELECT component_id, amount, currency, created_at'
+        . ' FROM prices'
+        . ' WHERE component_id IN (' . $placeholders . ')'
+        . ' ORDER BY component_id, created_at DESC';
+
+    $stmt = $pdo->prepare($sql);
+    foreach ($uniqueIds as $index => $componentId) {
+        $stmt->bindValue($index + 1, $componentId, PDO::PARAM_INT);
+    }
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $history = [];
+    foreach ($rows as $row) {
+        $componentId = isset($row['component_id']) ? (int) $row['component_id'] : 0;
+        if ($componentId <= 0) {
+            continue;
+        }
+        if (!isset($history[$componentId])) {
+            $history[$componentId] = [];
+        }
+        if (count($history[$componentId]) >= $limitPerComponent) {
+            continue;
+        }
+        $amount = isset($row['amount']) ? (string) $row['amount'] : '';
+        $currency = isset($row['currency']) && $row['currency'] !== null
+            ? strtoupper((string) $row['currency'])
+            : 'CZK';
+        $createdAt = isset($row['created_at']) ? (string) $row['created_at'] : '';
+        $history[$componentId][] = [
+            'amount' => $amount,
+            'currency' => $currency,
+            'created_at' => $createdAt,
+        ];
+    }
+
+    return $history;
 }
 
 function components_find(PDO $pdo, int $id): ?array {
@@ -29,12 +91,16 @@ function components_find(PDO $pdo, int $id): ?array {
     $stmt = $pdo->prepare($sql);
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
         return null;
     }
     $row['dependency_tree'] = components_normalise_dependency_tree($row['dependency_tree'] ?? null);
     $row['effective_title'] = components_effective_title($row);
+    $priceHistory = components_fetch_price_history($pdo, [$id]);
+    $history = $priceHistory[$id] ?? [];
+    $row['price_history'] = $history;
+    $row['latest_price'] = $history[0] ?? null;
     return $row;
 }
 
@@ -197,6 +263,49 @@ function components_insert_component_row(
     return (int) $pdo->lastInsertId();
 }
 
+function components_insert_price_entry(PDO $pdo, int $componentId, string $amount, string $currency = 'CZK'): void {
+    $currencyValue = strtoupper(substr(trim($currency), 0, 3));
+    if ($currencyValue === '') {
+        $currencyValue = 'CZK';
+    }
+
+    $stmt = $pdo->prepare('INSERT INTO prices (component_id, amount, currency) VALUES (:component, :amount, :currency)');
+    $stmt->bindValue(':component', $componentId, PDO::PARAM_INT);
+    $stmt->bindValue(':amount', $amount, PDO::PARAM_STR);
+    $stmt->bindValue(':currency', $currencyValue, PDO::PARAM_STR);
+    $stmt->execute();
+}
+
+function components_normalise_price_input(?string $rawInput): array {
+    $value = $rawInput !== null ? trim((string) $rawInput) : '';
+    if ($value === '') {
+        return [null, null];
+    }
+
+    $sanitised = str_replace(',', '.', preg_replace('/\s+/', '', $value));
+    if (!preg_match('/^\d+(?:\.\d{1,2})?$/', $sanitised)) {
+        return [null, 'Cena musí být nezáporné číslo s nejvýše dvěma desetinnými místy.'];
+    }
+
+    [$whole, $fraction] = array_pad(explode('.', $sanitised, 2), 2, '');
+    if ($fraction === '') {
+        $fraction = '00';
+    } else {
+        $fraction = str_pad(substr($fraction, 0, 2), 2, '0');
+    }
+
+    $normalisedWhole = ltrim($whole, '0');
+    if ($normalisedWhole === '') {
+        $normalisedWhole = '0';
+    }
+
+    if (strlen($normalisedWhole) > 10) {
+        return [null, 'Cena je příliš vysoká.'];
+    }
+
+    return [$normalisedWhole . '.' . $fraction, null];
+}
+
 function components_seed_definition_children(PDO $pdo, int $componentId, int $definitionId): void {
     $children = definitions_fetch_children($pdo, $definitionId);
     if (empty($children)) {
@@ -239,7 +348,9 @@ function components_create(
     ?string $description,
     ?string $image,
     ?string $color,
-    int $position
+    int $position,
+    ?string $priceAmount = null,
+    string $priceCurrency = 'CZK'
 ): array {
     $pdo->beginTransaction();
     try {
@@ -261,6 +372,10 @@ function components_create(
         );
 
         components_seed_definition_children($pdo, $componentId, $definitionId);
+
+        if ($priceAmount !== null) {
+            components_insert_price_entry($pdo, $componentId, $priceAmount, $priceCurrency);
+        }
 
         $pdo->commit();
         $row = components_find($pdo, $componentId);
@@ -388,7 +503,9 @@ function components_update(
     ?string $description,
     ?string $image,
     ?string $color,
-    ?int $position
+    ?int $position,
+    ?string $priceAmount = null,
+    string $priceCurrency = 'CZK'
 ): array {
     $pdo->beginTransaction();
 
@@ -493,6 +610,10 @@ function components_update(
         $update->bindValue(':position', $position, PDO::PARAM_INT);
         $update->bindValue(':id', $componentId, PDO::PARAM_INT);
         $update->execute();
+
+        if ($priceAmount !== null) {
+            components_insert_price_entry($pdo, $componentId, $priceAmount, $priceCurrency);
+        }
 
         $pdo->commit();
 

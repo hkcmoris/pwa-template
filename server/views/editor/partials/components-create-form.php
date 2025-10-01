@@ -145,6 +145,28 @@ $parentPlaceholder = 'Kořenová komponenta';
         placeholder="Krátký popis komponenty"
       ></textarea>
     </div>
+    <div class="component-field component-field--price">
+      <label for="component-modal-price">Cena</label>
+      <div class="component-price-input">
+        <input
+          type="text"
+          id="component-modal-price"
+          name="price"
+          inputmode="decimal"
+          autocomplete="off"
+          placeholder="např. 2499,00"
+          data-price-input
+        >
+        <span class="component-price-suffix" data-price-currency>CZK</span>
+      </div>
+      <p class="component-help">Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).</p>
+      <div class="component-price-history" data-price-history-wrapper>
+        <span class="component-price-history-label">Historie cen</span>
+        <ul class="component-price-history-list" data-price-history-list>
+          <li class="component-price-history-empty" data-empty-state>Žádné záznamy.</li>
+        </ul>
+      </div>
+    </div>
     <div class="component-field component-field--media">
       <span class="component-media-label">Reprezentace</span>
       <div class="component-media-toggle" data-media-toggle>
