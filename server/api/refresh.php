@@ -50,7 +50,11 @@ setcookie('refresh_token', $newRefresh, [
 ]);
 
 // Issue new access token (10 minutes)
-$access = generate_jwt(['sub' => $userId, 'email' => $user['email'], 'role' => $user['role'] ?? 'user'], JWT_SECRET, 600);
+$access = generate_jwt(
+    ['sub' => $userId, 'email' => $user['email'], 'role' => $user['role'] ?? 'user'],
+    JWT_SECRET,
+    600
+);
 setcookie('token', $access, [
     'httponly' => true,
     'samesite' => 'Lax',

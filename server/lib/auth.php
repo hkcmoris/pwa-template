@@ -20,7 +20,9 @@ function create_refresh_token(int $userId, int $ttlSeconds = 1209600): string
     $hash = refresh_token_hash($token);
     $expires = date('Y-m-d H:i:s', time() + $ttlSeconds);
     $db = get_db_connection();
-    $stmt = $db->prepare('INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (:user_id, :hash, :expires)');
+    $stmt = $db->prepare(
+        'INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES (:user_id, :hash, :expires)'
+    );
     $stmt->execute([':user_id' => $userId, ':hash' => $hash, ':expires' => $expires]);
     return $token;
 }
@@ -32,7 +34,9 @@ function find_valid_refresh_token(string $token)
 {
     $hash = refresh_token_hash($token);
     $db = get_db_connection();
-    $stmt = $db->prepare('SELECT id, user_id, token_hash, expires_at, revoked FROM refresh_tokens WHERE token_hash = :hash LIMIT 1');
+    $stmt = $db->prepare(
+        'SELECT id, user_id, token_hash, expires_at, revoked FROM refresh_tokens WHERE token_hash = :hash LIMIT 1'
+    );
     $stmt->execute([':hash' => $hash]);
     $row = $stmt->fetch();
     if (!$row) {

@@ -32,7 +32,12 @@ if (!defined('BASE_PATH')) {
 // APP_PRETTY_URLS can be: 1/0, true/false (string) or boolean
 $pretty = $env['APP_PRETTY_URLS'] ?? getenv('APP_PRETTY_URLS') ?? '1';
 if (!defined('PRETTY_URLS')) {
-    $prettyNorm = is_bool($pretty) ? $pretty : (is_int($pretty) ? ($pretty === 1) : (strtolower((string)$pretty) === '1' || strtolower((string)$pretty) === 'true'));
+    $prettyNorm = is_bool($pretty)
+        ? $pretty
+        : (is_int($pretty)
+            ? ($pretty === 1)
+            : (strtolower((string)$pretty) === '1' || strtolower((string)$pretty) === 'true')
+        );
     define('PRETTY_URLS', $prettyNorm ? true : false);
 }
 

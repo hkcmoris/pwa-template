@@ -29,7 +29,11 @@ if (!$user || !password_verify($password, $user['password'])) {
 }
 
 $accessTtl = 600;
-$token = generate_jwt(['sub' => $user['id'], 'email' => $email, 'role' => $user['role'] ?? 'user'], JWT_SECRET, $accessTtl);
+$token = generate_jwt(
+    ['sub' => $user['id'], 'email' => $email, 'role' => $user['role'] ?? 'user'],
+    JWT_SECRET,
+    $accessTtl
+);
 setcookie('token', $token, [
     'httponly' => true,
     'samesite' => 'Lax',
