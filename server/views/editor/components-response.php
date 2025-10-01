@@ -28,6 +28,6 @@ function components_render_fragments(PDO $pdo, array $options = []): void
         $class .= ' hidden';
     }
     $safeMessage = $message ? htmlspecialchars($message, ENT_QUOTES, 'UTF-8') : '';
-    echo '<div id="component-form-errors" hx-swap-oob="true" class="' . $class . 
+    echo '<div id="component-form-errors" hx-swap-oob="true" class="' . $class .
         '" role="status" aria-live="polite">' . $safeMessage . '</div>';
 }
