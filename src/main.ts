@@ -1,5 +1,41 @@
 import { API_BASE, apiFetch } from './utils/api';
 
+const HOME_BG_LIGHT = new URL('./assets/bg-light.webp', import.meta.url).href;
+const HOME_BG_DARK = new URL('./assets/bg-dark.png', import.meta.url).href;
+
+if (typeof document !== 'undefined') {
+    document.documentElement.style.setProperty(
+        '--home-bg-light',
+        `url("${HOME_BG_LIGHT}")`
+    );
+    document.documentElement.style.setProperty(
+        '--home-bg-dark',
+        `url("${HOME_BG_DARK}")`
+    );
+}
+
+
+const normalizeRoute = (value: string) => value.replace(/^\/+|\/+$/g, '');
+const getCurrentRoute = () => {
+    const base = BASE || '';
+    const url = new URL(window.location.href);
+    let pathname = url.pathname;
+    if (base && pathname.startsWith(base)) {
+        pathname = pathname.slice(base.length);
+    }
+    const fallback = normalizeRoute(pathname);
+    const routeParam = url.searchParams.get('r');
+    return normalizeRoute(routeParam ?? fallback);
+};
+
+const updateBodyRoute = () => {
+    if (!document.body) {
+        return;
+    }
+    const route = getCurrentRoute();
+    document.body.dataset.route = route === '' ? 'home' : route;
+};
+
 const BASE =
     (typeof document !== 'undefined' &&
         document.documentElement?.dataset?.base) ||
@@ -43,30 +79,26 @@ const navLinks = navMenu?.querySelectorAll<HTMLAnchorElement>('a');
 
 const highlightNav = () => {
     const base = BASE || '';
-    const current = (() => {
-        const url = new URL(window.location.href);
-        let p = url.pathname;
-        if (base && p.startsWith(base)) p = p.slice(base.length);
-        p = p.replace(/^\/+|\/+$/g, '');
-        const r = url.searchParams.get('r');
-        return (r ? r : p).replace(/^\/+|\/+$/g, '');
-    })();
+    const current = getCurrentRoute();
     navLinks?.forEach((link) => {
-        const u = new URL(link.href, window.location.href);
-        let lp = u.pathname;
-        if (base && lp.startsWith(base)) lp = lp.slice(base.length);
-        lp = lp.replace(/^\/+|\/+$/g, '');
-        const lr = (u.searchParams.get('r') || lp).replace(/^\/+|\/+$/g, '');
-        const match = (link.dataset.activeRoot || lr).replace(/^\/+|\/+$/g, '');
+        const url = new URL(link.href, window.location.href);
+        let path = url.pathname;
+        if (base && path.startsWith(base)) {
+            path = path.slice(base.length);
+        }
+        const fallback = normalizeRoute(path);
+        const route = normalizeRoute(url.searchParams.get('r') ?? fallback);
+        const match = normalizeRoute(link.dataset.activeRoot || route);
         const isHome = match === '';
-        const isActive = isHome
+        const active = isHome
             ? current === ''
-            : current === match || current.startsWith(match + '/');
-        link.classList.toggle('active', isActive);
+            : current === match || current.startsWith(`${match}/`);
+        link.classList.toggle('active', active);
     });
 };
 
 highlightNav();
+updateBodyRoute();
 
 menuButton?.addEventListener('click', () => {
     navMenu?.classList.toggle('open');
@@ -334,6 +366,11 @@ logoutBtn?.addEventListener('click', async () => {
     window.location.href = pretty ? `${BASE}/login` : `${BASE}/?r=login`;
 });
 
+document.body.addEventListener('htmx:historyRestore', () => {
+    highlightNav();
+    updateBodyRoute();
+});
+
 document.body.addEventListener('htmx:afterSwap', (e) => {
     const target =
         ((e as CustomEvent).detail &&
@@ -346,6 +383,7 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
 
     mountIslands();
     highlightNav();
+    updateBodyRoute();
 });
 
 document.body.addEventListener('htmx:oobAfterSwap', (event) => {
@@ -359,3 +397,4 @@ document.body.addEventListener('htmx:oobAfterSwap', (event) => {
         mountIslands();
     }
 });
+

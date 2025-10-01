@@ -50,6 +50,8 @@ function vite_asset(string $entry)
         --primary-contrast: #fff;
         --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
         --fg-muted: #4b5563;
+        --home-bg-light: none;
+        --home-bg-dark: none;
       }
 
       *,
@@ -258,6 +260,18 @@ function vite_asset(string $entry)
         margin: 0 auto;
       }
 
+      body[data-route="home"] {
+        background-color: var(--bg);
+        background-image: var(--home-bg-light, none);
+        background-position: center bottom;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+
+      [data-theme='dark'] body[data-route="home"] {
+        background-image: var(--home-bg-dark, none);
+      }
+
       .hidden {
         display: none;
       }
@@ -357,7 +371,7 @@ function vite_asset(string $entry)
         endif;
     endif; ?>
   </head>
-    <body>
+    <body data-route="<?= htmlspecialchars($view) ?>">
     <header>
       <div class="logo">
         <svg
@@ -582,7 +596,6 @@ function vite_asset(string $entry)
           ></script>
           <?php endif; ?>
       <?php endif; ?>
-    
 
     <?php
       // Resolve service worker asset and scope based on build hash
@@ -728,7 +741,3 @@ function vite_asset(string $entry)
     <?php endif; ?>
   </body>
 </html>
-
-
-
-
