@@ -1,0 +1,6 @@
+parameters:
+  phpVersion: 70400
+  level: 6
+  paths: [ . ]
+  excludePaths: [ vendor, public/assets, node_modules ]
+  tmpDir: var/phpstan
