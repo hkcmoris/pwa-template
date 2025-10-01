@@ -95,6 +95,21 @@ CREATE TABLE IF NOT EXISTS components (
 SQL;
     $pdo->exec($componentsSql);
 
+    $pricesSql = <<<'SQL'
+CREATE TABLE IF NOT EXISTS prices (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  component_id BIGINT UNSIGNED NOT NULL,
+  amount DECIMAL(12, 2) NOT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  CONSTRAINT fk_prices_component FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE,
+  CHECK (amount >= 0),
+  KEY idx_prices_component_created (component_id, created_at DESC)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SQL;
+    $pdo->exec($pricesSql);
+
     $definitionTreeViewSql = <<<'SQL'
 CREATE OR REPLACE VIEW definition_tree AS
 WITH RECURSIVE tree AS (
