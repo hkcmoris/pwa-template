@@ -33,6 +33,7 @@ $image = isset($_POST['image']) ? trim((string) $_POST['image']) : '';
 $color = isset($_POST['color']) ? trim((string) $_POST['color']) : '';
 $mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'image';
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
+$priceParam = isset($_POST['price']) ? trim((string) $_POST['price']) : '';
 
 $mediaType = $mediaType === 'color' ? 'color' : 'image';
 
@@ -40,6 +41,7 @@ $errors = [];
 $definitionId = null;
 $parentId = null;
 $position = null;
+$priceValue = null;
 
 if ($definitionParam === '' || !preg_match('/^\d+$/', (string) $definitionParam)) {
     $errors[] = 'Vyberte prosím platnou definici.';
@@ -94,6 +96,11 @@ if ($positionParam !== '') {
     }
 }
 
+[$priceValue, $priceError] = components_normalise_price_input($priceParam);
+if ($priceError !== null) {
+    $errors[] = $priceError;
+}
+
 if (!empty($errors)) {
     http_response_code(422);
     components_render_fragments($pdo, [
@@ -125,7 +132,9 @@ try {
         $description !== '' ? $description : null,
         $image !== '' ? $image : null,
         $color !== '' ? strtoupper($color) : null,
-        $position
+        $position,
+        $priceValue,
+        'CZK'
     );
     http_response_code(201);
     components_render_fragments($pdo, [

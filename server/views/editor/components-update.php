@@ -34,6 +34,7 @@ $image = isset($_POST['image']) ? trim((string) $_POST['image']) : '';
 $color = isset($_POST['color']) ? trim((string) $_POST['color']) : '';
 $mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'image';
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
+$priceParam = isset($_POST['price']) ? trim((string) $_POST['price']) : '';
 
 $mediaType = $mediaType === 'color' ? 'color' : 'image';
 
@@ -42,6 +43,7 @@ $componentId = null;
 $definitionId = null;
 $parentId = null;
 $position = null;
+$priceValue = null;
 
 if ($componentParam === '' || !preg_match('/^\d+$/', (string) $componentParam)) {
     $errors[] = 'Vyberte prosím platnou komponentu.';
@@ -118,6 +120,11 @@ if ($positionParam !== '') {
     }
 }
 
+[$priceValue, $priceError] = components_normalise_price_input($priceParam);
+if ($priceError !== null) {
+    $errors[] = $priceError;
+}
+
 if (!empty($errors)) {
     http_response_code(422);
     components_render_fragments($pdo, [
@@ -146,7 +153,9 @@ try {
         $description !== '' ? $description : null,
         $image !== '' ? $image : null,
         $color !== '' ? strtoupper($color) : null,
-        $position
+        $position,
+        $priceValue,
+        'CZK'
     );
     components_render_fragments($pdo, [
         'message' => 'Komponenta byla aktualizována.',

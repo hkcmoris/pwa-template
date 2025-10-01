@@ -35,6 +35,12 @@ const COMPONENT_FORM_ERROR_ID = 'component-form-errors';
 
 type ComponentModalMode = 'create' | 'edit';
 
+type PriceHistoryItem = {
+    amount?: string;
+    currency?: string;
+    created_at?: string;
+};
+
 type ComponentModalOptions = {
     mode?: ComponentModalMode;
     componentId?: string;
@@ -49,6 +55,9 @@ type ComponentModalOptions = {
     mediaType?: 'image' | 'color';
     position?: number;
     displayName?: string;
+    priceAmount?: string;
+    priceCurrency?: string;
+    priceHistory?: PriceHistoryItem[];
 };
 
 const setFormError = (message: string | null) => {
@@ -68,6 +77,129 @@ const setFormError = (message: string | null) => {
         box.removeAttribute('role');
         delete box.dataset.clientError;
     }
+};
+
+const toNumericPrice = (value: string | undefined | null): number | null => {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+    const compact = trimmed.replace(/\s+/g, '').replace(',', '.');
+    if (!/^\d+(?:\.\d+)?$/u.test(compact)) {
+        return null;
+    }
+    const numeric = Number.parseFloat(compact);
+    return Number.isFinite(numeric) ? numeric : null;
+};
+
+const formatPriceForInput = (value: string | undefined | null): string => {
+    const numeric = toNumericPrice(value);
+    if (numeric === null) {
+        return '';
+    }
+    return numeric.toFixed(2).replace('.', ',');
+};
+
+const normalisePriceInput = (value: string): string => {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return '';
+    }
+    const compact = trimmed.replace(/\s+/g, '');
+    const normalised = compact.replace(',', '.');
+    if (!/^\d+(?:\.\d{0,2})?$/u.test(normalised)) {
+        return trimmed;
+    }
+    const numeric = Number.parseFloat(normalised);
+    if (!Number.isFinite(numeric)) {
+        return trimmed;
+    }
+    return numeric.toFixed(2).replace('.', ',');
+};
+
+const parsePriceHistoryDataset = (
+    raw: string | undefined
+): PriceHistoryItem[] | undefined => {
+    if (!raw) {
+        return undefined;
+    }
+    try {
+        const parsed = JSON.parse(raw) as unknown;
+        if (!Array.isArray(parsed)) {
+            return undefined;
+        }
+        return parsed.filter((item): item is PriceHistoryItem =>
+            item !== null && typeof item === 'object'
+        );
+    } catch {
+        return undefined;
+    }
+};
+
+const renderPriceHistory = (
+    list: HTMLElement,
+    history: PriceHistoryItem[],
+    fallbackCurrency: string
+) => {
+    list.innerHTML = '';
+    if (!history.length) {
+        const emptyItem = document.createElement('li');
+        emptyItem.className = 'component-price-history-empty';
+        emptyItem.textContent = 'Žádné záznamy.';
+        list.appendChild(emptyItem);
+        return;
+    }
+
+    history.forEach((entry) => {
+        const item = document.createElement('li');
+        item.className = 'component-price-history-item';
+
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'component-price-history-amount';
+        const currency = (entry.currency ?? fallbackCurrency ?? 'CZK').toUpperCase();
+        const numericAmount = toNumericPrice(entry.amount ?? '');
+        if (numericAmount !== null) {
+            try {
+                const formatter = new Intl.NumberFormat('cs-CZ', {
+                    style: 'currency',
+                    currency,
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+                amountSpan.textContent = formatter.format(numericAmount);
+            } catch {
+                amountSpan.textContent = `${numericAmount.toFixed(2)} ${currency}`;
+            }
+        } else if (entry.amount) {
+            amountSpan.textContent = `${entry.amount} ${currency}`;
+        } else {
+            amountSpan.textContent = `— ${currency}`;
+        }
+
+        const time = document.createElement('time');
+        const rawDate = entry.created_at ?? '';
+        if (rawDate) {
+            const parsedDate = new Date(rawDate);
+            if (!Number.isNaN(parsedDate.getTime())) {
+                time.dateTime = parsedDate.toISOString();
+                time.textContent = new Intl.DateTimeFormat('cs-CZ', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                }).format(parsedDate);
+            } else {
+                time.textContent = rawDate;
+            }
+        } else {
+            time.textContent = '—';
+        }
+
+        item.appendChild(amountSpan);
+        item.appendChild(time);
+        list.appendChild(item);
+    });
 };
 
 const setupComponentForm = (form: HTMLFormElement) => {
@@ -221,6 +353,11 @@ const setupComponentForm = (form: HTMLFormElement) => {
         const value = normaliseHex(colorText.value);
         colorText.value = value;
         applyColorToPicker(value);
+    });
+
+    const priceInput = form.querySelector<HTMLInputElement>('[data-price-input]');
+    priceInput?.addEventListener('blur', () => {
+        priceInput.value = normalisePriceInput(priceInput.value);
     });
 
     updateMediaMode(mediaMode);
@@ -462,6 +599,15 @@ export default function init(root: HTMLElement) {
         const positionInput = form.querySelector<HTMLInputElement>(
             '#component-modal-position'
         );
+        const priceField = form.querySelector<HTMLInputElement>(
+            '#component-modal-price'
+        );
+        const priceHistoryList = form.querySelector<HTMLElement>(
+            '[data-price-history-list]'
+        );
+        const priceCurrencyLabel = form.querySelector<HTMLElement>(
+            '[data-price-currency]'
+        );
         const legend = form.querySelector('legend');
         const submitButton = form.querySelector<HTMLButtonElement>(
             'button[type="submit"]'
@@ -511,6 +657,20 @@ export default function init(root: HTMLElement) {
             colorPicker.value = pickerColor;
         }
         form.dataset.mediaMode = mediaMode;
+        const priceCurrency = (options?.priceCurrency ?? 'CZK').toUpperCase();
+        if (priceCurrencyLabel) {
+            priceCurrencyLabel.textContent = priceCurrency;
+        }
+        if (priceField) {
+            priceField.value = formatPriceForInput(options?.priceAmount);
+            priceField.dataset.currency = priceCurrency;
+        }
+        if (priceHistoryList) {
+            const history = Array.isArray(options?.priceHistory)
+                ? options?.priceHistory
+                : [];
+            renderPriceHistory(priceHistoryList, history, priceCurrency);
+        }
         if (positionInput) {
             if (
                 isEdit &&
@@ -626,6 +786,11 @@ export default function init(root: HTMLElement) {
                 positionRaw !== undefined
                     ? Number.parseInt(positionRaw, 10)
                     : NaN;
+            const priceAmount = button.dataset.priceAmount ?? '';
+            const priceCurrency = button.dataset.priceCurrency ?? 'CZK';
+            const priceHistory = parsePriceHistoryDataset(
+                button.dataset.priceHistory
+            );
             openComponentModal({
                 mode: 'edit',
                 componentId:
@@ -645,6 +810,9 @@ export default function init(root: HTMLElement) {
                     ? undefined
                     : parsedPosition,
                 displayName: button.dataset.title ?? '',
+                priceAmount,
+                priceCurrency,
+                priceHistory,
             });
         } else if (action === 'delete') {
             const componentId = button.dataset.id ?? item?.dataset.id ?? '';

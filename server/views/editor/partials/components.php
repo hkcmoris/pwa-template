@@ -277,6 +277,84 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
     font-size: .9rem
   }
 
+  .component-field--price {
+    gap: .5rem;
+  }
+
+  .component-price-input {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    max-width: 320px;
+  }
+
+  .component-price-input input {
+    flex: 1;
+    text-align: right;
+  }
+
+  .component-price-suffix {
+    font-weight: 600;
+    font-size: .9rem;
+  }
+
+  .component-price-history {
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+
+  .component-price-history-label {
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--fg-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  [data-theme="dark"] .component-price-history-label {
+    color: var(--fg-muted, #94a3b8);
+  }
+
+  .component-price-history-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .35rem;
+  }
+
+  .component-price-history-item {
+    display: flex;
+    justify-content: space-between;
+    gap: .75rem;
+    font-size: .85rem;
+  }
+
+  .component-price-history-amount {
+    font-weight: 600;
+  }
+
+  .component-price-history-item time {
+    font-size: .8rem;
+    color: var(--fg-muted, #6b7280);
+  }
+
+  [data-theme="dark"] .component-price-history-item time {
+    color: var(--fg-muted, #cbd5e1);
+  }
+
+  .component-price-history-empty {
+    font-size: .85rem;
+    font-style: italic;
+    color: var(--fg-muted, #6b7280);
+  }
+
+  [data-theme="dark"] .component-price-history-empty {
+    color: var(--fg-muted, #94a3b8);
+  }
+
   .component-form--modal input:not([type="hidden"]),
   .component-form--modal textarea {
     border: 1px solid var(--fg);
