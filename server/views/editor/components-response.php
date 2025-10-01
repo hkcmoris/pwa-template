@@ -1,24 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
+use PDO;
+
 require_once __DIR__ . '/../../lib/components.php';
 require_once __DIR__ . '/../../lib/definitions.php';
 
-function components_render_fragments(PDO $pdo, array $options = []): void
+function components_render_fragments(\PDO $pdo, array $options = []): void
 {
 
     $componentsTree = components_fetch_tree($pdo);
     $componentsFlat = components_flatten_tree($componentsTree);
     $definitionsTree = definitions_fetch_tree($pdo);
     $definitionsFlat = definitions_flatten_tree($definitionsTree);
+
     $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
     $message = $options['message'] ?? null;
     $messageType = $options['message_type'] ?? 'success';
+
     include __DIR__ . '/partials/components-tree.php';
+
     ob_start();
     include __DIR__ . '/partials/components-create-form.php';
     $formMarkup = ob_get_clean();
+
     echo '<template id="component-create-template" hx-swap-oob="true">' . $formMarkup . '</template>';
     $totalCount = count($componentsFlat);
+
     echo '<div id="component-summary" hx-swap-oob="true" class="component-summary">' .
         '<p><strong>Celkem komponent:</strong> ' . $totalCount . '</p></div>';
     $class = 'form-feedback';
