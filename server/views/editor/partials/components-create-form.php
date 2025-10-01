@@ -136,7 +136,7 @@ $parentPlaceholder = 'Kořenová komponenta';
       >
       <p class="component-help">Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.</p>
     </div>
-    <div class="component-field">
+    <div class="component-field component-field--full">
       <label for="component-modal-description">Popis</label>
       <textarea
         id="component-modal-description"
@@ -145,7 +145,7 @@ $parentPlaceholder = 'Kořenová komponenta';
         placeholder="Krátký popis komponenty"
       ></textarea>
     </div>
-    <div class="component-field component-field--price">
+    <div class="component-field component-field--price component-field--full">
       <label for="component-modal-price">Cena</label>
       <div class="component-price-input">
         <input
@@ -167,7 +167,7 @@ $parentPlaceholder = 'Kořenová komponenta';
         </ul>
       </div>
     </div>
-    <div class="component-field component-field--media">
+    <div class="component-field component-field--media component-field--full">
       <span class="component-media-label">Reprezentace</span>
       <div class="component-media-toggle" data-media-toggle>
         <label><input type="radio" name="media_type" value="image" checked data-media-choice="image"> Obrazek</label>
