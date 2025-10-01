@@ -16,8 +16,17 @@ if (!function_exists('render_definition_nodes')) {
             $children = $node['children'] ?? [];
             $childCount = count($children);
             $nodePath = ltrim(($path === '' ? '' : $path . '/') . $id, '/');
-            echo '<li class="definition-item" data-id="' . $id . '" data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '" data-position="' . $position . '" data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '" data-children-count="' . $childCount . '">';
-            echo '<div class="definition-node" draggable="true" data-id="' . $id . '" data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '">';
+            echo '<li class="definition-item"'
+                . ' data-id="' . $id . '"'
+                . ' data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-position="' . $position . '"'
+                . ' data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-children-count="' . $childCount . '"'
+                . '">';
+            echo '<div class="definition-node" draggable="true"'
+                . ' data-id="' . $id . '"'
+                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . '">';
             echo '<div class="definition-node-info">';
             echo '<strong>' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '</strong>';
             $metaParts = [];
@@ -26,9 +35,22 @@ if (!function_exists('render_definition_nodes')) {
             echo '<span class="definition-meta">' . implode(' | ', $metaParts) . '</span>';
             echo '</div>';
             echo '<div class="definition-actions">';
-            echo '<button type="button" class="definition-action" draggable="false" data-action="create-child" data-parent-id="' . $id . '" data-parent-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '" data-parent-children="' . $childCount . '">Přidat poduzel</button>';
-            echo '<button type="button" class="definition-action" draggable="false" data-action="rename" data-id="' . $id . '" data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '">Přejmenovat</button>';
-            echo '<button type="button" class="definition-action definition-action--danger" draggable="false" data-action="delete" data-id="' . $id . '" data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '">Smazat</button>';
+            echo '<button type="button" class="definition-action" draggable="false"'
+                . ' data-action="create-child"'
+                . ' data-parent-id="' . $id . '"'
+                . ' data-parent-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-parent-children="' . $childCount . '"'
+                . '">Přidat poduzel</button>';
+            echo '<button type="button" class="definition-action" draggable="false"'
+                . ' data-action="rename"'
+                . ' data-id="' . $id . '"'
+                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . '">Přejmenovat</button>';
+            echo '<button type="button" class="definition-action definition-action--danger" draggable="false"'
+                . ' data-action="delete"'
+                . ' data-id="' . $id . '"'
+                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . '">Smazat</button>';
             echo '<span class="definition-drag-indicator" draggable="false" aria-hidden="true">⋮⋮</span>';
             echo '</div>';
             echo '</div>';

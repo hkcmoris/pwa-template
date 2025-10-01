@@ -7,6 +7,8 @@ namespace App\Tests\Support;
 use PDO;
 use RuntimeException;
 
+require_once __DIR__ . '/FakeStatement.php';
+
 class FakePDO extends PDO
 {
     /**

@@ -15,7 +15,12 @@ $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
     echo '<div id="definitions-list"></div>';
-    echo '<div id="definition-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">Nemáte oprávnění spravovat definice.</div>';
+    echo '<div id="definition-form-errors"'
+        . ' hx-swap-oob="true"'
+        . ' class="form-feedback form-feedback--error"'
+        . '>'
+        . 'Nemáte oprávnění spravovat definice.'
+        . '</div>';
     return;
 }
 

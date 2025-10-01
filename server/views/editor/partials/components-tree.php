@@ -68,7 +68,14 @@ if (!function_exists('render_component_nodes')) {
             ];
             $metaLine = htmlspecialchars(implode(' | ', $metaParts), ENT_QUOTES, 'UTF-8');
 
-            echo '<li class="component-item" data-id="' . $id . '" data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '" data-position="' . $position . '" data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '" data-children-count="' . $childCount . '" data-definition-id="' . $definitionId . '">';
+            echo '<li class="component-item"'
+                . ' data-id="' . $id . '"'
+                . ' data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-position="' . $position . '"'
+                . ' data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-children-count="' . $childCount . '"'
+                . ' data-definition-id="' . $definitionId . '"'
+                . '">';
             echo '<div class="component-node">';
             echo '<div class="component-node-header">';
             echo '<div class="component-node-info">';
@@ -79,9 +86,32 @@ if (!function_exists('render_component_nodes')) {
             echo '<span class="component-meta">' . $metaLine . '</span>';
             echo '</div>';
             echo '<div class="component-actions">';
-            echo '<button type="button" class="component-action" data-action="create-child" data-parent-id="' . $id . '" data-parent-title="' . $effectiveTitle . '" data-parent-children="' . $childCount . '">Přidat podkomponentu</button>';
-            echo '<button type="button" class="component-action" data-action="edit" data-component-id="' . $id . '" data-title="' . $effectiveTitle . '" data-definition-id="' . $definitionId . '" data-alternate-title="' . htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') . '" data-description="' . htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') . '" data-image="' . htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') . '" data-color="' . htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') . '" data-media-type="' . $mediaType . '" data-position="' . $position . '" data-price-amount="' . htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') . '" data-price-currency="' . htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') . '" data-price-history="' . $priceHistoryJson . '">Upravit</button>';
-            echo '<button type="button" class="component-action component-action--danger" data-action="delete" data-id="' . $id . '" data-title="' . $effectiveTitle . '">Smazat</button>';
+            echo '<button type="button" class="component-action"'
+                . ' data-action="create-child"'
+                . ' data-parent-id="' . $id . '"'
+                . ' data-parent-title="' . $effectiveTitle . '"'
+                . ' data-parent-children="' . $childCount . '"'
+                . '">Přidat podkomponentu</button>';
+            echo '<button type="button" class="component-action"'
+                . ' data-action="edit"'
+                . ' data-component-id="' . $id . '"'
+                . ' data-title="' . $effectiveTitle . '"'
+                . ' data-definition-id="' . $definitionId . '"'
+                . ' data-alternate-title="' . htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-description="' . htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-image="' . htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-color="' . htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-media-type="' . $mediaType . '"'
+                . ' data-position="' . $position . '"'
+                . ' data-price-amount="' . htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-price-currency="' . htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-price-history="' . $priceHistoryJson . '"'
+                . '">Upravit</button>';
+            echo '<button type="button" class="component-action component-action--danger"'
+                . ' data-action="delete"'
+                . ' data-id="' . $id . '"'
+                . ' data-title="' . $effectiveTitle . '"'
+                . '">Smazat</button>';
             echo '</div>';
             echo '</div>';
             $hasDetails = $description !== '' || $image !== '' || $color !== '' || $dependencyCount > 0;
@@ -94,7 +124,10 @@ if (!function_exists('render_component_nodes')) {
                     echo '<div><dt>Obrázek</dt><dd>' . $image . '</dd></div>';
                 }
                 if ($color !== '') {
-                    echo '<div><dt>Barva</dt><dd><span class="component-color-chip" style="--chip-color:' . $color . ';"></span>' . $color . '</dd></div>';
+                    echo '<div><dt>Barva</dt><dd>'
+                        . '<span class="component-color-chip" style="--chip-color:' . $color . ';"></span>'
+                        . $color
+                        . '</dd></div>';
                 }
                 echo '<div><dt>Závislosti</dt><dd>' . $dependencyCount . '</dd></div>';
                 echo '</dl>';

@@ -11,9 +11,17 @@ $definitionsTree = definitions_fetch_tree($pdo);
 $definitionsFlat = definitions_flatten_tree($definitionsTree);
 ?>
 
-<div id="components-root" data-island="components" data-base="<?= htmlspecialchars($BASE) ?>">
+<div
+  id="components-root"
+  data-island="components"
+  data-base="<?= htmlspecialchars($BASE) ?>"
+>
   <h2>Komponenty</h2>
-  <p style="max-width:640px">Komponenty rozšiřují definice konfigurátoru o konkrétní stavební bloky. Každá komponenta vychází z vybrané definice, může mít vlastní hierarchii a ukládá popis, obrázek i závislosti na dalších volbách.</p>
+  <p style="max-width:640px">
+    Komponenty rozšiřují definice konfigurátoru o konkrétní stavební bloky.
+    Každá komponenta vychází z vybrané definice, může mít vlastní hierarchii
+    a ukládá popis, obrázek i závislosti na dalších volbách.
+  </p>
   <div class="component-toolbar">
     <button type="button" id="component-open-create" class="component-primary">Přidat komponentu</button>
   </div>
