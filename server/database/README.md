@@ -14,7 +14,7 @@ This directory collects SQL migrations and helper snippets that can be executed 
 
 ## Pricing domain
 
-- `migrations/20251003_create_prices.sql` stores price history entries per component. Each insert captures the component reference, amount (defaulting currency to EUR), and timestamp. New rows append to the history so the latest price can be selected without losing previous values. Components without pricing simply omit rows in this table.
+- `migrations/20251003_create_prices.sql` stores price history entries per component. Each insert captures the component reference, amount (defaulting currency to CZK), and timestamp. New rows append to the history so the latest price can be selected without losing previous values. Components without pricing simply omit rows in this table.
 
 **Suggested workflow**
 
