@@ -11,8 +11,8 @@ function definitions_render_fragments(PDO $pdo, array $options = []): void
     $messageType = $options['message_type'] ?? 'success';
     $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
-    $hxOnSelect = 'select:change: const hidden=this.querySelector(\'#definition-parent-value\'); '
-        . 'if(hidden){const raw=(event.detail && event.detail.value) || \''\'; hidden.value=raw;}';
+    $hxOnSelect = 'select:change: const hidden=this.querySelector(\'#definition-parent-value\'); ' .
+        'if(hidden){const raw=(event.detail && event.detail.value) || \'\'; hidden.value=raw;}';
 
     include __DIR__ . '/partials/definitions-tree.php';
 
