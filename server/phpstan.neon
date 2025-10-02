@@ -2,5 +2,7 @@ parameters:
   phpVersion: 70400
   level: 6
   paths: [ . ]
-  excludePaths: [ vendor, public/assets ]
+  excludePaths: [ vendor, var, public/assets ]
   tmpDir: var/phpstan
+  bootstrapFiles:
+    - phpstan-bootstrap.php

@@ -32,6 +32,10 @@ if (!$user) {
 
 // Rotate refresh token
 $refreshTtl = 14 * 24 * 3600;
+
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$cookiePath = '/' . trim($base, '/');
+
 $newRefresh = rotate_refresh_token($refresh, $userId, $refreshTtl);
 if (!$newRefresh) {
     http_response_code(401);
@@ -43,7 +47,7 @@ setcookie('refresh_token', $newRefresh, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $refreshTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
 ]);
 
 // Issue new access token (10 minutes)
@@ -55,7 +59,7 @@ $access = generate_jwt(
 setcookie('token', $access, [
     'httponly' => true,
     'samesite' => 'Lax',
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
 ]);
 
 echo json_encode(['token' => $access, 'expires_in' => 600]);

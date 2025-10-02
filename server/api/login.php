@@ -6,6 +6,8 @@ header('Content-Type: application/json');
 $input = json_decode(file_get_contents('php://input'), true);
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$cookiePath = '/' . trim($base, '/');
 log_message("Login attempt for {$email}");
 if (!$email || !$password) {
     log_message('Login failed: missing email or password', 'ERROR');
@@ -35,7 +37,7 @@ setcookie('token', $token, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $accessTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
 ]);
 // Issue refresh token (14 days) and set cookie
 $refreshTtl = 14 * 24 * 3600;
@@ -44,7 +46,7 @@ setcookie('refresh_token', $refresh, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $refreshTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
 ]);
 log_message("User logged in: {$email}");
 $role = $user['role'] ?? 'user';

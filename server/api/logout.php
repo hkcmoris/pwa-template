@@ -5,7 +5,8 @@ require_once __DIR__ . '/cors.php';
 
 header('Content-Type: application/json');
 
-$cookiePath = (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/');
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$cookiePath = '/' . trim($base, '/');
 $cookieOptions = [
     'expires' => time() - 3600,
     'path' => $cookiePath,

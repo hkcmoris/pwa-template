@@ -40,12 +40,14 @@ try {
 
 // Issue access token (10 minutes)
 $accessTtl = 600;
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$cookiePath = '/' . trim($base, '/');
 $token = generate_jwt(['sub' => $userId, 'email' => $email], JWT_SECRET, $accessTtl);
 setcookie('token', $token, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $accessTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
 ]);
 // Issue refresh token (14 days)
 $refreshTtl = 14 * 24 * 3600;
@@ -54,7 +56,7 @@ setcookie('refresh_token', $refresh, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $refreshTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
 ]);
 http_response_code(201);
 echo json_encode(['token' => $token, 'user' => [
