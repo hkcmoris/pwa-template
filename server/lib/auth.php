@@ -24,7 +24,7 @@ function create_refresh_token(int $userId, int $ttlSeconds = 1209600): string
 }
 
 /**
- * @return array|false Row array if valid, false otherwise
+ * @return array{id:int,user_id:int,token_hash:string,expires_at:string,revoked:int}|false
  */
 function find_valid_refresh_token(string $token)
 {
@@ -34,17 +34,27 @@ function find_valid_refresh_token(string $token)
         'SELECT id, user_id, token_hash, expires_at, revoked FROM refresh_tokens WHERE token_hash = :hash LIMIT 1'
     );
     $stmt->execute([':hash' => $hash]);
-    $row = $stmt->fetch();
-    if (!$row) {
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!is_array($row)) {
         return false;
     }
-    if ((int)$row['revoked'] === 1) {
+    $normalized = [
+        'id' => isset($row['id']) ? (int)$row['id'] : 0,
+        'user_id' => isset($row['user_id']) ? (int)$row['user_id'] : 0,
+        'token_hash' => isset($row['token_hash']) ? (string)$row['token_hash'] : '',
+        'expires_at' => isset($row['expires_at']) ? (string)$row['expires_at'] : '',
+        'revoked' => isset($row['revoked']) ? (int)$row['revoked'] : 0,
+    ];
+    if ($normalized['id'] === 0 || $normalized['user_id'] === 0 || $normalized['token_hash'] === '') {
         return false;
     }
-    if (strtotime($row['expires_at']) <= time()) {
+    if ($normalized['revoked'] === 1) {
         return false;
     }
-    return $row;
+    if ($normalized['expires_at'] === '' || strtotime($normalized['expires_at']) <= time()) {
+        return false;
+    }
+    return $normalized;
 }
 
 function revoke_refresh_token_by_hash(string $hash): void
@@ -66,7 +76,7 @@ function revoke_refresh_token(string $token): void
 function rotate_refresh_token(string $token, int $userId, int $ttlSeconds = 1209600)
 {
     $row = find_valid_refresh_token($token);
-    if (!$row || (int)$row['user_id'] !== $userId) {
+    if (!$row || $row['user_id'] !== $userId) {
         return false;
     }
     revoke_refresh_token_by_hash($row['token_hash']);
@@ -76,12 +86,12 @@ function rotate_refresh_token(string $token, int $userId, int $ttlSeconds = 1209
 /**
  * Returns the current authenticated user based on the access token cookie.
  * NOTE: Name intentionally prefixed to avoid clashing with PHP's built-in get_current_user().
- * @return array|null ['id'=>int,'email'=>string,'username'=>string,'role'=>string] or null
+ * @return array{id:int,username:string,email:string,role:string}|null
  */
 function app_get_current_user(): ?array
 {
     $token = $_COOKIE['token'] ?? '';
-    if (!$token) {
+    if ($token === '') {
         return null;
     }
     $payload = verify_jwt($token, JWT_SECRET);
@@ -92,15 +102,15 @@ function app_get_current_user(): ?array
         $db = get_db_connection();
         $stmt = $db->prepare('SELECT id, username, email, role FROM users WHERE id = :id');
         $stmt->execute([':id' => (int)$payload['sub']]);
-        $row = $stmt->fetch();
-        if (!$row) {
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!is_array($row)) {
             return null;
         }
         return [
-            'id' => (int)$row['id'],
-            'username' => $row['username'],
-            'email' => $row['email'],
-            'role' => $row['role'] ?? 'user',
+            'id' => isset($row['id']) ? (int)$row['id'] : 0,
+            'username' => isset($row['username']) ? (string)$row['username'] : '',
+            'email' => isset($row['email']) ? (string)$row['email'] : '',
+            'role' => isset($row['role']) && $row['role'] !== '' ? (string)$row['role'] : 'user',
         ];
     } catch (Throwable $e) {
         log_message('app_get_current_user error: ' . $e->getMessage(), 'ERROR');

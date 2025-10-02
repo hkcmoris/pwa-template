@@ -4,13 +4,14 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/cors.php';
 
 header('Content-Type: application/json');
+$jwtSecret = config_jwt_secret();
 
 $token = $_COOKIE['token'] ?? '';
-$payload = verify_jwt($token, JWT_SECRET);
+$payload = verify_jwt($token, $jwtSecret);
 if (!$payload) {
     log_message('Users request unauthorized', 'ERROR');
     http_response_code(401);
-    echo json_encode(['error' => 'Neautorizováno']);
+    echo json_encode(['error' => 'NeautorizovĂˇno']);
     exit;
 }
 
@@ -22,7 +23,7 @@ $caller = $stmt->fetch();
 if (!$caller || !in_array(($caller['role'] ?? 'user'), ['admin','superadmin'], true)) {
     log_message('Users request forbidden for ' . ($caller['email'] ?? 'unknown'), 'ERROR');
     http_response_code(403);
-    echo json_encode(['error' => 'Zakázáno']);
+    echo json_encode(['error' => 'ZakĂˇzĂˇno']);
     exit;
 }
 

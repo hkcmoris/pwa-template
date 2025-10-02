@@ -4,18 +4,19 @@ require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/cors.php';
 
 header('Content-Type: application/json');
+$jwtSecret = config_jwt_secret();
 
 $refresh = $_COOKIE['refresh_token'] ?? '';
 if (!$refresh) {
     http_response_code(401);
-    echo json_encode(['error' => 'Chybí obnovovací token']);
+    echo json_encode(['error' => 'ChybĂ­ obnovovacĂ­ token']);
     exit;
 }
 
 $row = find_valid_refresh_token($refresh);
 if (!$row) {
     http_response_code(401);
-    echo json_encode(['error' => 'Neplatný obnovovací token']);
+    echo json_encode(['error' => 'NeplatnĂ˝ obnovovacĂ­ token']);
     exit;
 }
 
@@ -26,7 +27,7 @@ $stmt->execute([':id' => $userId]);
 $user = $stmt->fetch();
 if (!$user) {
     http_response_code(401);
-    echo json_encode(['error' => 'Neplatný uživatel']);
+    echo json_encode(['error' => 'NeplatnĂ˝ uĹľivatel']);
     exit;
 }
 
@@ -39,7 +40,7 @@ $cookiePath = '/' . trim($base, '/');
 $newRefresh = rotate_refresh_token($refresh, $userId, $refreshTtl);
 if (!$newRefresh) {
     http_response_code(401);
-    echo json_encode(['error' => 'Neplatný obnovovací token']);
+    echo json_encode(['error' => 'NeplatnĂ˝ obnovovacĂ­ token']);
     exit;
 }
 
@@ -53,7 +54,7 @@ setcookie('refresh_token', $newRefresh, [
 // Issue new access token (10 minutes)
 $access = generate_jwt(
     ['sub' => $userId, 'email' => $user['email'], 'role' => $user['role'] ?? 'user'],
-    JWT_SECRET,
+    $jwtSecret,
     600
 );
 setcookie('token', $access, [

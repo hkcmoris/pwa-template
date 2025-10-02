@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
+$jwtSecret = config_jwt_secret();
 $input = json_decode(file_get_contents('php://input'), true);
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
@@ -12,7 +13,7 @@ log_message("Login attempt for {$email}");
 if (!$email || !$password) {
     log_message('Login failed: missing email or password', 'ERROR');
     http_response_code(400);
-    echo json_encode(['error' => 'E‑mail a heslo jsou povinné']);
+    echo json_encode(['error' => 'Eâ€‘mail a heslo jsou povinnĂ©']);
     exit;
 }
 
@@ -23,14 +24,14 @@ $user = $stmt->fetch();
 if (!$user || !password_verify($password, $user['password'])) {
     log_message("Login failed: invalid credentials for {$email}", 'ERROR');
     http_response_code(401);
-    echo json_encode(['error' => 'Neplatné přihlašovací údaje']);
+    echo json_encode(['error' => 'NeplatnĂ© pĹ™ihlaĹˇovacĂ­ Ăşdaje']);
     exit;
 }
 
 $accessTtl = 600;
 $token = generate_jwt(
     ['sub' => $user['id'], 'email' => $email, 'role' => $user['role'] ?? 'user'],
-    JWT_SECRET,
+    $jwtSecret,
     $accessTtl
 );
 setcookie('token', $token, [
