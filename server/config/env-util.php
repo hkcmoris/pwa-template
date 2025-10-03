@@ -25,13 +25,22 @@ if (!function_exists('config_resolve_env')) {
 if (!function_exists('config_jwt_secret')) {
     function config_jwt_secret(): string
     {
-        if (defined('JWT_SECRET')) {
-            $secret = constant('JWT_SECRET');
-            if (is_string($secret) && $secret !== '') {
-                return $secret;
-            }
+        if (!defined('JWT_SECRET')) {
+            throw new RuntimeException('JWT_SECRET is not defined or not a non-empty string.');
         }
 
-        throw new RuntimeException('JWT_SECRET is not defined or not a non-empty string.');
+        /** @var mixed $secret */
+        $secret = constant('JWT_SECRET');
+        if (!is_string($secret)) {
+            throw new RuntimeException('JWT_SECRET must resolve to a string value.');
+        }
+
+        $normalizedSecret = trim($secret);
+        if ($normalizedSecret === '') {
+            throw new RuntimeException('JWT_SECRET must not be an empty string.');
+        }
+
+        return $normalizedSecret;
     }
 }
+
