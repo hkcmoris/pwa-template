@@ -8,7 +8,7 @@ $file = isset($_POST['file']) && is_string($_POST['file']) ? img_sanitize_rel($_
 $to   = isset($_POST['to']) && is_string($_POST['to']) ? img_sanitize_rel($_POST['to']) : '';
 $current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
 
-if ($file && is_string($to)) {
+if ($file !== '' && $to !== '') {
     @img_move($file, $to);
 }
 
