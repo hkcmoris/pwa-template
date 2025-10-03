@@ -16,6 +16,9 @@ function base64url_decode(string $data): string
     return base64_decode(strtr($data, '-_', '+/'));
 }
 
+/**
+ * @param array<string, mixed> $payload
+ */
 function generate_jwt(array $payload, string $secret, int $exp = 3600): string
 {
 
@@ -32,7 +35,7 @@ function generate_jwt(array $payload, string $secret, int $exp = 3600): string
 }
 
 /**
- * @return array|false Payload array on success, false on failure
+ * @return array<string, mixed>|false Payload array on success, false on failure
  */
 function verify_jwt(string $jwt, string $secret)
 {

@@ -108,6 +108,9 @@ if (!$applied) {
 
 exit;
 
+/**
+ * @return list<string>
+ */
 function extractStatements(string $sql): array
 {
     $normalized = str_replace(["\r\n", "\r"], "\n", $sql);

@@ -43,4 +43,3 @@ if (!function_exists('config_jwt_secret')) {
         return $normalizedSecret;
     }
 }
-

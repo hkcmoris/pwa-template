@@ -11,7 +11,9 @@ if (preg_match('/^\/sw(?:-[A-Za-z0-9]+)?\.js$/', $decoded)) {
 // Normalize and ensure the requested file stays under the server docroot
 $root = str_replace('\\', '/', realpath(__DIR__));
 $cand = str_replace('\\', '/', realpath($file) ?: $file);
-if ($decoded !== '/' && $cand && strpos($cand, $root) === 0 && is_file($cand)) {
+$rootLength = strlen($root);
+$inDocroot = $cand !== '' && $rootLength > 0 && strncmp($cand, $root, $rootLength) === 0;
+if ($decoded !== '/' && $inDocroot && is_file($cand)) {
 // Let PHP's built-in server serve the static file
     return false;
 }

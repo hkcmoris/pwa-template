@@ -4,11 +4,19 @@
 require_once __DIR__ . '/bootstrap.php';
 // Resolve route from query-string fallback or pretty URL path
 $qsRoute = isset($_GET['r']) ? trim((string)$_GET['r'], '/') : '';
-if (!$qsRoute || (defined('PRETTY_URLS') && PRETTY_URLS)) {
+
+/** @var string $basePath */
+$basePath = defined('BASE_PATH') ? (string) BASE_PATH : '';
+if ($basePath === '/') {
+    $basePath = '';
+}
+
+$prettyUrlsEnabled = defined('PRETTY_URLS') ? (bool) PRETTY_URLS : false;
+if ($qsRoute === '' || $prettyUrlsEnabled) {
 // Use path-based routing when pretty URLs are enabled (or no r= provided)
     $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
-    if (defined('BASE_PATH') && BASE_PATH !== '') {
-        $prefix = '#^' . preg_quote(BASE_PATH, '#') . '/?#';
+    if ($basePath !== '') {
+        $prefix = '#^' . preg_quote($basePath, '#') . '/?#';
         $uriPath = preg_replace($prefix, '/', $uriPath, 1);
     }
     $route = trim($uriPath, '/');
@@ -24,7 +32,7 @@ if ($route === '' || $route === 'index.php') {
 
 // Canonicalize editor root to definitions subroute
 if ($route === 'editor') {
-    $target = (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '') . '/editor/definitions';
+    $target = ($basePath !== '' ? $basePath : '') . '/editor/definitions';
 // If this is an htmx request, instruct client to redirect via HX-Redirect
     if (isset($_SERVER['HTTP_HX_REQUEST'])) {
         header('HX-Redirect: ' . $target);
