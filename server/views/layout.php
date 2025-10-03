@@ -4,26 +4,53 @@ require_once __DIR__ . '/../lib/auth.php';
 // Resolve current user for SSR gating and header state
 $currentUser = app_get_current_user();
 $role = $currentUser['role'] ?? 'guest';
-$username = $username ?? ($currentUser['email'] ?? 'Návštěvník');
-$title  = $title  ?? 'HAGEMANN konfigurátor';
-$route  = $route  ?? 'home';
+$email = $currentUser['email'] ?? null;
+$username = isset($username) && is_string($username) && $username !== ''
+    ? $username
+    : (is_string($email) && $email !== '' ? $email : 'Návštěvník');
+$title = isset($title) && is_string($title) && $title !== '' ? $title : 'HAGEMANN konfigurátor';
+$route = isset($route) && is_string($route) && $route !== '' ? $route : 'home';
 $theme  = $_COOKIE['theme'] ?? 'light';
 if ($theme !== 'dark' && $theme !== 'light') {
     $theme = 'light';
 }
 
 // Normalized base path for subfolder deployments ('' or '/subdir')
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
+$BASE = rtrim((defined('BASE_PATH') ? (string) BASE_PATH : ''), '/');
+$prettyUrlsEnabled = defined('PRETTY_URLS') ? (bool) PRETTY_URLS : false;
 
-function vite_asset(string $entry)
+$appEnvValue = getenv('APP_ENV');
+if (!is_string($appEnvValue) || $appEnvValue === '') {
+    $appEnvValue = defined('APP_ENV') ? (string) APP_ENV : 'dev';
+}
+$isDevEnv = ($appEnvValue === 'dev');
+
+$view = isset($view) && is_string($view) && $view !== '' ? $view : null;
+
+/** @var array<string, mixed>|null $main */
+$main = isset($main) && is_array($main) ? $main : null;
+/** @var array<string, mixed>|null $fontsCss */
+$fontsCss = isset($fontsCss) && is_array($fontsCss) ? $fontsCss : null;
+
+/** @return array<string, mixed>|null */
+function vite_asset(string $entry): ?array
 {
     static $m = null;
-  // Vite manifest location under outDir
+    // Vite manifest location under outDir
     $path = __DIR__ . '/../public/assets/.vite/manifest.json';
-    if ($m === null && is_file($path)) {
-        $m = json_decode(file_get_contents($path), true);
+
+    if ($m === null) {
+        if (is_file($path)) {
+            $decoded = json_decode(file_get_contents($path), true);
+            $m = is_array($decoded) ? $decoded : [];
+        } else {
+            $m = [];
+        }
     }
-    return $m[$entry] ?? null;
+
+    $value = $m[$entry] ?? null;
+
+    return is_array($value) ? $value : null;
 }
 ?>
 <!doctype html>
@@ -31,7 +58,7 @@ function vite_asset(string $entry)
     lang="cs"
     data-theme="<?= htmlspecialchars($theme) ?>"
     data-base="<?= htmlspecialchars($BASE) ?>"
-    data-pretty="<?= (defined('PRETTY_URLS') && PRETTY_URLS) ? '1' : '0' ?>"
+    data-pretty="<?= $prettyUrlsEnabled ? '1' : '0' ?>"
   >
   <head>
     <meta charset="UTF-8" />
@@ -342,7 +369,7 @@ function vite_asset(string $entry)
         letter-spacing: 0.04em;
       }
     </style>
-    <?php if (APP_ENV !== 'dev') :
+    <?php if (!$isDevEnv) :
         $main = vite_asset('src/main.ts');
         $fontsCss = vite_asset('src/styles/fonts.css');
         if ($main && !empty($main['css'])) :
@@ -371,7 +398,7 @@ function vite_asset(string $entry)
         endif;
     endif; ?>
   </head>
-    <body data-route="<?= htmlspecialchars($view) ?>">
+    <body data-route="<?= htmlspecialchars($view ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <header>
       <div class="logo">
         <svg
@@ -522,7 +549,7 @@ function vite_asset(string $entry)
         </div>
         <div class="nav-actions">
           <span id="username-right">
-            <?= htmlspecialchars($username ?? 'Návštěvník') ?>
+            <?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?>
           </span>
           <a
             id="login-link"
@@ -553,7 +580,7 @@ function vite_asset(string $entry)
       </header>
       <main id="content">
       <?php
-        if (!empty($view) && is_file(__DIR__ . "/{$view}.php")) {
+        if ($view !== null && $view !== '' && is_file(__DIR__ . "/{$view}.php")) {
             require __DIR__ . "/{$view}.php";
         } else {
             ?><h1>PWA Template</h1><?php
@@ -567,7 +594,7 @@ function vite_asset(string $entry)
       </span>
     </div>
       <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
-      <?php if (APP_ENV === 'dev') : ?>
+      <?php if ($isDevEnv) : ?>
         <script
           type="module"
           src="http://localhost:5173/@vite/client"
@@ -604,7 +631,7 @@ function vite_asset(string $entry)
       $swScopePath = ($swBasePath === '') ? '/' : $swBasePath . '/';
       $swPublicPath = $swBasePath . '/sw.js';
       $swHash = null;
-    if (APP_ENV !== 'dev') {
+    if (!$isDevEnv) {
         $main = $main ?? vite_asset('src/main.ts');
         if ($main && !empty($main['file'])) {
             if (preg_match('/main-([^.]+)\\.js$/', $main['file'], $m)) {
@@ -687,7 +714,7 @@ function vite_asset(string $entry)
       }
     </script>
     <?php endif; ?>
-    <?php if (defined('PRETTY_URLS') && !PRETTY_URLS) : ?>
+    <?php if (!$prettyUrlsEnabled) : ?>
     <script>
       // Fallback: rewrite in-app links to query-string routing when pretty URLs are blocked by parent .htaccess
       (function () {
@@ -741,3 +768,4 @@ function vite_asset(string $entry)
     <?php endif; ?>
   </body>
 </html>
+
