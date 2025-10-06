@@ -3,6 +3,9 @@ $tree = $componentsTree ?? [];
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
 if (!function_exists('render_component_nodes')) {
+    /**
+     * @param array<int, array<string, mixed>> $nodes
+     */
     function render_component_nodes(array $nodes, string $path = ''): void
     {
         if (empty($nodes)) {
@@ -18,9 +21,8 @@ if (!function_exists('render_component_nodes')) {
             $effectiveTitle = htmlspecialchars($rawEffectiveTitle, ENT_QUOTES, 'UTF-8');
             $definitionTitleRaw = (string) ($node['definition_title'] ?? '');
             $definitionTitle = htmlspecialchars($definitionTitleRaw, ENT_QUOTES, 'UTF-8');
-            $rawAlternateTitle = isset($node['alternate_title']) && $node['alternate_title'] !== null
-                ? (string) $node['alternate_title']
-                : '';
+            $alternateTitleValue = $node['alternate_title'] ?? null;
+            $rawAlternateTitle = is_string($alternateTitleValue) ? $alternateTitleValue : '';
             $alternateTitle = $rawAlternateTitle !== ''
                 ? htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8')
                 : '';

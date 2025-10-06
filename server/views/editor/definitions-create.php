@@ -25,7 +25,16 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 
 $pdo = get_db_connection();
 $title = isset($_POST['title']) ? trim((string) $_POST['title']) : '';
-$parentParam = $_POST['parent_id'] ?? '';
+$parentParam = null;
+if (isset($_POST['parent_id'])) {
+    $rawParentValue = $_POST['parent_id'];
+    if (is_scalar($rawParentValue)) {
+        $trimmedParent = trim((string) $rawParentValue);
+        if ($trimmedParent !== '') {
+            $parentParam = $trimmedParent;
+        }
+    }
+}
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
 $errors = [];
 $parentId = null;
@@ -37,7 +46,7 @@ if ($title === '') {
     $errors[] = 'Název může mít maximálně 191 znaků.';
 }
 
-if ($parentParam !== '' && $parentParam !== null) {
+if ($parentParam !== null) {
     if (!preg_match('/^\d+$/', (string) $parentParam)) {
         log_message('Parent ID is not a valid integer: ' . var_export($parentParam, true), 'ERROR');
         $errors[] = 'Vybraný rodič není platný.';

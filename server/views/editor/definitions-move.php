@@ -26,7 +26,16 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 
 $pdo = get_db_connection();
 $idParam = $_POST['id'] ?? '';
-$parentParam = $_POST['parent_id'] ?? '';
+$parentParam = null;
+if (isset($_POST['parent_id'])) {
+    $rawParentValue = $_POST['parent_id'];
+    if (is_scalar($rawParentValue)) {
+        $trimmedParent = trim((string) $rawParentValue);
+        if ($trimmedParent !== '') {
+            $parentParam = $trimmedParent;
+        }
+    }
+}
 $positionParam = $_POST['position'] ?? '';
 if (!preg_match('/^\d+$/', (string) $idParam)) {
     http_response_code(422);
@@ -39,7 +48,7 @@ if (!preg_match('/^\d+$/', (string) $idParam)) {
 
 $id = (int) $idParam;
 $parentId = null;
-if ($parentParam !== '' && $parentParam !== null) {
+if ($parentParam !== null) {
     if (!preg_match('/^\d+$/', (string) $parentParam)) {
         http_response_code(422);
         definitions_render_fragments($pdo, [

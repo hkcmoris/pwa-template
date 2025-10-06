@@ -3,6 +3,9 @@ $tree = $definitionsTree ?? [];
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
 if (!function_exists('render_definition_nodes')) {
+    /**
+     * @param array<int, array<string, mixed>> $nodes
+     */
     function render_definition_nodes(array $nodes, string $path = ''): void
     {
         if (empty($nodes)) {

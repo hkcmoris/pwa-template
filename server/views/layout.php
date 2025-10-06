@@ -580,7 +580,7 @@ function vite_asset(string $entry): ?array
       </header>
       <main id="content">
       <?php
-        if ($view !== null && $view !== '' && is_file(__DIR__ . "/{$view}.php")) {
+        if ($view !== null && is_file(__DIR__ . "/{$view}.php")) {
             require __DIR__ . "/{$view}.php";
         } else {
             ?><h1>PWA Template</h1><?php
