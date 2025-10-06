@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @return list<array<string, mixed>>
+ */
 function definitions_fetch_rows(?PDO $pdo = null): array
 {
 
@@ -8,12 +11,19 @@ function definitions_fetch_rows(?PDO $pdo = null): array
                           FROM definitions
                           ORDER BY (parent_id IS NULL) DESC, parent_id, position, id');
     log_message('Fetched ' . $stmt->rowCount() . ' definitions from database', 'DEBUG');
-    return $stmt->fetchAll();
+    /** @var list<array<string, mixed>> $rows */
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $rows;
 }
 
+/**
+ * @param list<array<string, mixed>> $rows
+ * @return list<array<string, mixed>>
+ */
 function definitions_build_tree(array $rows): array
 {
 
+    /** @var array<string, list<array<string, mixed>>> $grouped */
     $grouped = [];
     foreach ($rows as $row) {
         $key = $row['parent_id'] === null ? 'root' : (string) $row['parent_id'];
@@ -23,6 +33,10 @@ function definitions_build_tree(array $rows): array
     return definitions_build_branch($grouped, 'root');
 }
 
+/**
+ * @param array<string, list<array<string, mixed>>> $grouped
+ * @return list<array<string, mixed>>
+ */
 function definitions_build_branch(array $grouped, string $key): array
 {
 
@@ -32,12 +46,17 @@ function definitions_build_branch(array $grouped, string $key): array
     $branch = [];
     foreach ($grouped[$key] as $row) {
         $childKey = (string) $row['id'];
-        $row['children'] = definitions_build_branch($grouped, $childKey);
-        $branch[] = $row;
+        $node = $row;
+        $node['children'] = definitions_build_branch($grouped, $childKey);
+        $branch[] = $node;
     }
     return $branch;
 }
 
+/**
+ * @param list<array<string, mixed>> $tree
+ * @return list<array<string, mixed>>
+ */
 function definitions_flatten_tree(array $tree, int $depth = 0): array
 {
 
@@ -45,8 +64,8 @@ function definitions_flatten_tree(array $tree, int $depth = 0): array
     foreach ($tree as $node) {
         $children = $node['children'] ?? [];
         $copy = $node;
-        $copy['depth'] = $depth;
         unset($copy['children']);
+        $copy['depth'] = $depth;
         $flat[] = $copy;
         if (!empty($children)) {
             $flat = array_merge($flat, definitions_flatten_tree($children, $depth + 1));
@@ -55,6 +74,9 @@ function definitions_flatten_tree(array $tree, int $depth = 0): array
     return $flat;
 }
 
+/**
+ * @return list<array<string, mixed>>
+ */
 function definitions_fetch_tree(?PDO $pdo = null): array
 {
 
@@ -62,6 +84,9 @@ function definitions_fetch_tree(?PDO $pdo = null): array
     return definitions_build_tree($rows);
 }
 
+/**
+ * @return array<string, mixed>|null
+ */
 function definitions_find(PDO $pdo, int $id): ?array
 {
 
@@ -70,7 +95,8 @@ function definitions_find(PDO $pdo, int $id): ?array
     );
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
     $stmt->execute();
-    $row = $stmt->fetch();
+    /** @var array<string, mixed>|false $row */
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
     return $row ?: null;
 }
 
@@ -151,6 +177,9 @@ function definitions_reorder_positions(PDO $pdo, ?int $parentId): void
     }
 }
 
+/**
+ * @return array<string, mixed>
+ */
 function definitions_update_title(PDO $pdo, int $id, string $title): array
 {
 
@@ -165,6 +194,9 @@ function definitions_update_title(PDO $pdo, int $id, string $title): array
     return $row;
 }
 
+/**
+ * @return array<string, mixed>
+ */
 function definitions_create(PDO $pdo, string $title, ?int $parentId, int $position): array
 {
 
@@ -280,6 +312,9 @@ function definitions_children_count(PDO $pdo, ?int $parentId): int
     return (int) $stmt->fetchColumn();
 }
 
+/**
+ * @return list<array<string, mixed>>
+ */
 function definitions_fetch_children(PDO $pdo, int $parentId): array
 {
 
@@ -289,7 +324,9 @@ function definitions_fetch_children(PDO $pdo, int $parentId): array
           ORDER BY position, id');
     $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
     $stmt->execute();
-    return $stmt->fetchAll();
+    /** @var list<array<string, mixed>> $rows */
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $rows;
 }
 
 function definitions_move(PDO $pdo, int $id, ?int $newParentId, int $newPosition): void
