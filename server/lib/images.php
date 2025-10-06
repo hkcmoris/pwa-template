@@ -38,15 +38,23 @@ function img__parse_size(string $val): int
     return (int)round($num);
 }
 
-// Estimate whether GD can safely decode this image within memory limits
+/**
+ * Estimate whether GD can safely decode this image within memory limits.
+ *
+ * @param array{0?:int,1?:int,2?:int,3?:string,mime?:string,channels?:int,bits?:int} $info
+ */
 function img__gd_can_decode(array $info): bool
 {
-    $w = (int)($info[0] ?? 0);
-    $h = (int)($info[1] ?? 0);
+    if (!isset($info[0], $info[1], $info['mime'])) {
+        return false;
+    }
+
+    $w = (int)$info[0];
+    $h = (int)$info[1];
     if ($w <= 0 || $h <= 0) {
         return false;
     }
-    $mime = (string)($info['mime'] ?? '');
+    $mime = (string)$info['mime'];
   // Rough bytes-per-pixel estimates + overhead
     $bpp = 4; // default for truecolor
     if ($mime === 'image/png') {
@@ -113,14 +121,19 @@ function img_sanitize_rel(string $rel): string
         }
       // allow Unicode letters/numbers + space, underscore, dot, dash
         $seg = preg_replace('#[^\p{L}\p{N}._ -]#u', '_', $seg);
-        if ($seg !== '') {
-            $parts[] = $seg;
+        if ($seg === null) {
+            continue;
         }
+        $parts[] = (string)$seg;
     }
     return implode('/', $parts);
 }
 
-// Resolve a relative path to full path, ensuring it is under root
+/**
+ * Resolve a relative path to a full path while constraining it under the uploads root.
+ *
+ * @return array{0:string,1:string,2:string}
+ */
 function img_resolve(string $rel): array
 {
     $rel = img_sanitize_rel($rel);
@@ -146,10 +159,22 @@ function img_ensure_dir(string $dir): bool
     return @mkdir($dir, 0775, true);
 }
 
-// List a directory: returns [dirs => [name, rel, url], images => [name, rel, url, mtime, size]]
+/**
+ * List a directory relative to the uploads root with metadata for subdirectories and images.
+ *
+ * @return array{
+ *     root:string,
+ *     dir:string,
+ *     rel:string,
+ *     urlPrefix:string,
+ *     dirs:list<array{name:string,rel:string,url:string}>,
+ *     images:list<array{name:string,rel:string,url:string,thumbUrl:string,mtime:int,size:int}>
+ * }
+ */
 function img_list(string $rel, string $baseUrl): array
 {
     [$dir, $rel, $root] = img_resolve($rel);
+    $rel = (string)$rel;
     img_ensure_dir($dir);
     $baseUrl = rtrim($baseUrl, '/');
   // Build a URL-safe prefix by percent-encoding each segment of the relative path
@@ -235,9 +260,9 @@ function img_convert_to_webp(string $tmpFile, string $destPath): bool
     if (!$info) {
         return false;
     }
-    $mime = $info['mime'] ?? '';
-    $w = (int)($info[0] ?? 0);
-    $h = (int)($info[1] ?? 0);
+    $mime = (string)$info['mime'];
+    $w = (int)$info[0];
+    $h = (int)$info[1];
 
   // 1) Try Imagick if available
     if (class_exists('Imagick')) {
@@ -250,8 +275,10 @@ function img_convert_to_webp(string $tmpFile, string $destPath): bool
                     $im->thumbnailImage(4000, 4000, true, true);
                 }
                 $im->setImageFormat('webp');
-                if (method_exists($im, 'setImageCompressionQuality')) {
+                try {
                     $im->setImageCompressionQuality(85);
+                } catch (Throwable $e) {
+                    // Older Imagick builds may lack this method; ignore gracefully.
                 }
                 $ok = $im->writeImage($destPath);
                 $im->clear();
@@ -521,8 +548,10 @@ function img_generate_thumb(string $webpPath, int $size = 96): bool
             $im = new Imagick();
             if ($im->readImage($webpPath)) {
                 $im->setImageFormat('webp');
-                if (method_exists($im, 'setImageCompressionQuality')) {
+                try {
                     $im->setImageCompressionQuality(75);
+                } catch (Throwable $e) {
+                    // Older Imagick builds may lack this method; ignore gracefully.
                 }
                 $im->thumbnailImage($size, $size, true, true);
                 $ok = $im->writeImage($thumbPath);
