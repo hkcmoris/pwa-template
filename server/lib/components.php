@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * @return array<int, array<string, mixed>>
+ */
 function components_fetch_rows(?PDO $pdo = null): array
 {
 
@@ -40,6 +43,10 @@ function components_fetch_rows(?PDO $pdo = null): array
     return $normalised;
 }
 
+/**
+ * @param array<int, int|string> $componentIds
+ * @return array<int, array<int, array{amount: string, currency: string, created_at: string}>>
+ */
 function components_fetch_price_history(PDO $pdo, array $componentIds, int $limitPerComponent = 10): array
 {
 
@@ -81,7 +88,7 @@ function components_fetch_price_history(PDO $pdo, array $componentIds, int $limi
             continue;
         }
         $amount = isset($row['amount']) ? (string) $row['amount'] : '';
-        $currency = isset($row['currency']) && $row['currency'] !== null
+        $currency = array_key_exists('currency', $row) && $row['currency'] !== null
             ? strtoupper((string) $row['currency'])
             : 'CZK';
         $createdAt = isset($row['created_at']) ? (string) $row['created_at'] : '';
@@ -95,6 +102,9 @@ function components_fetch_price_history(PDO $pdo, array $componentIds, int $limi
     return $history;
 }
 
+/**
+ * @return array<string, mixed>|null
+ */
 function components_find(PDO $pdo, int $id): ?array
 {
 
@@ -194,6 +204,9 @@ function components_reorder_positions(PDO $pdo, ?int $parentId): void
     }
 }
 
+/**
+ * @return array{0: ?string, 1: ?string}
+ */
 function components_normalise_media_inputs(?string $image, ?string $color): array
 {
 
@@ -347,6 +360,9 @@ function components_insert_price_entry(PDO $pdo, int $componentId, string $amoun
     $stmt->execute();
 }
 
+/**
+ * @return array{0: ?string, 1: ?string}
+ */
 function components_normalise_price_input(?string $rawInput): array
 {
 
@@ -412,6 +428,9 @@ function components_seed_definition_children(PDO $pdo, int $componentId, int $de
     }
 }
 
+/**
+ * @return array<string, mixed>
+ */
 function components_create(
     PDO $pdo,
     int $definitionId,
@@ -459,6 +478,10 @@ function components_create(
     }
 }
 
+/**
+ * @param mixed $raw
+ * @return array<int, mixed>
+ */
 function components_normalise_dependency_tree($raw): array
 {
 
@@ -474,6 +497,9 @@ function components_normalise_dependency_tree($raw): array
     return [];
 }
 
+/**
+ * @param array<string, mixed> $row
+ */
 function components_effective_title(array $row): string
 {
 
@@ -484,6 +510,10 @@ function components_effective_title(array $row): string
     return isset($row['definition_title']) ? (string) $row['definition_title'] : '';
 }
 
+/**
+ * @param array<int, array<string, mixed>> $rows
+ * @return array<string, array<int, array<string, mixed>>>
+ */
 function components_group_by_parent(array $rows): array
 {
 
@@ -495,6 +525,10 @@ function components_group_by_parent(array $rows): array
     return $grouped;
 }
 
+/**
+ * @param array<string, array<int, array<string, mixed>>> $grouped
+ * @return array<int, array<string, mixed>>
+ */
 function components_build_branch(array $grouped, string $key): array
 {
 
@@ -510,6 +544,10 @@ function components_build_branch(array $grouped, string $key): array
     return $branch;
 }
 
+/**
+ * @param array<int, array<string, mixed>> $rows
+ * @return array<int, array<string, mixed>>
+ */
 function components_build_tree(array $rows): array
 {
 
@@ -519,6 +557,10 @@ function components_build_tree(array $rows): array
     return $tree;
 }
 
+/**
+ * @param array<int, array<string, mixed>> $tree
+ * @return array<int, array<string, mixed>>
+ */
 function components_flatten_tree(array $tree, int $depth = 0): array
 {
 
@@ -536,6 +578,9 @@ function components_flatten_tree(array $tree, int $depth = 0): array
     return $flat;
 }
 
+/**
+ * @return array<int, array<string, mixed>>
+ */
 function components_fetch_tree(?PDO $pdo = null): array
 {
 
@@ -553,7 +598,7 @@ function components_is_descendant(PDO $pdo, int $ancestorId, int $candidateId): 
     $stmt = $pdo->prepare('SELECT parent_id FROM components WHERE id = :id LIMIT 1');
     $current = $candidateId;
     $visited = [];
-    while ($current !== null) {
+    while (true) {
         if (isset($visited[$current])) {
             return false;
         }
@@ -574,10 +619,11 @@ function components_is_descendant(PDO $pdo, int $ancestorId, int $candidateId): 
 
         $current = $parentId;
     }
-
-    return false;
 }
 
+/**
+ * @return array<string, mixed>
+ */
 function components_update(
     PDO $pdo,
     int $componentId,
@@ -691,12 +737,12 @@ function components_update(
         } else {
             $update->bindValue(':description', $description, PDO::PARAM_STR);
         }
-        if ($image === null || $image === '') {
+        if ($image === null) {
             $update->bindValue(':image', null, PDO::PARAM_NULL);
         } else {
             $update->bindValue(':image', $image, PDO::PARAM_STR);
         }
-        if ($color === null || $color === '') {
+        if ($color === null) {
             $update->bindValue(':color', null, PDO::PARAM_NULL);
         } else {
             $update->bindValue(':color', $color, PDO::PARAM_STR);
