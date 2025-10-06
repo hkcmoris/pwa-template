@@ -35,6 +35,13 @@ $makeRow = static function (int $id, ?int $parentId, int $position, string $titl
     ];
 };
 
+/**
+ * @var array<string, array{
+ *     rows: list<array<string, mixed>>,
+ *     move?: array{id:int,parent:int|null,position:int,label?:non-empty-string},
+ *     moves?: list<array{id:int,parent:int|null,position:int,label?:non-empty-string}>
+ * }>
+ */
 $scenarios = [
     'move_to_new_parent' => [
         'rows' => [
@@ -125,8 +132,11 @@ $sortRows = static function (array $rows): array {
     });
     return $normalized;
 };
+/**
+ * @var list<array{id:int,parent:int|null,position:int,label?:non-empty-string}> $moves
+ */
 $moves = [];
-if (isset($scenarioData['moves']) && is_array($scenarioData['moves'])) {
+if (isset($scenarioData['moves'])) {
     $moves = $scenarioData['moves'];
 } elseif (isset($scenarioData['move'])) {
     $moves = [$scenarioData['move']];
@@ -137,17 +147,12 @@ $error = null;
 $snapshots = [];
 try {
     foreach ($moves as $move) {
-        if (!is_array($move)) {
-            continue;
-        }
-        $id = isset($move['id']) ? (int) $move['id'] : 0;
-        $parent = null;
-        if (array_key_exists('parent', $move) && $move['parent'] !== null) {
-            $parent = (int) $move['parent'];
-        }
-        $position = isset($move['position']) ? (int) $move['position'] : 0;
+        $id = (int) $move['id'];
+        $parentValue = $move['parent'] ?? null;
+        $parent = $parentValue === null ? null : (int) $parentValue;
+        $position = (int) $move['position'];
         definitions_move($pdo, $id, $parent, $position);
-        if (isset($move['label']) && $move['label'] !== '') {
+        if (isset($move['label'])) {
             $snapshots[(string) $move['label']] = $sortRows($pdo->rows);
         }
     }
