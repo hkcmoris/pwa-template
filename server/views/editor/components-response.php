@@ -7,6 +7,9 @@ use PDO;
 require_once __DIR__ . '/../../lib/components.php';
 require_once __DIR__ . '/../../lib/definitions.php';
 
+/**
+ * @param array{message?: string|null, message_type?: string} $options
+ */
 function components_render_fragments(\PDO $pdo, array $options = []): void
 {
 
