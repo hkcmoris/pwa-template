@@ -9,12 +9,17 @@ if (preg_match('/^\/sw(?:-[A-Za-z0-9]+)?\.js$/', $decoded)) {
 }
 
 // Normalize and ensure the requested file stays under the server docroot
-$root = str_replace('\\', '/', realpath(__DIR__));
-$cand = str_replace('\\', '/', realpath($file) ?: $file);
-$rootLength = strlen($root);
-$inDocroot = $cand !== '' && $rootLength > 0 && strncmp($cand, $root, $rootLength) === 0;
+$rootReal = realpath(__DIR__);
+$root = $rootReal === false ? '' : str_replace('\\', '/', $rootReal);
+$candReal = realpath($file);
+$candidatePath = $candReal === false ? $file : $candReal;
+$cand = str_replace('\\', '/', $candidatePath);
+$inDocroot = false;
+if ($root !== '') {
+    $inDocroot = strncmp($cand, $root, strlen($root)) === 0;
+}
 if ($decoded !== '/' && $inDocroot && is_file($cand)) {
-// Let PHP's built-in server serve the static file
+    // Let PHP's built-in server serve the static file
     return false;
 }
 
