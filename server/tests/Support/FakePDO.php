@@ -60,10 +60,15 @@ class FakePDO extends PDO
         return true;
     }
 
+    /**
+     * @param string $query
+     * @param array<int|string, mixed> $options
+     * @return \PDOStatement|false
+     */
     #[\ReturnTypeWillChange]
-    public function prepare(string $query, array $options = []): FakeStatement
+    public function prepare($query, $options = [])
     {
-        return new FakeStatement($this, $query);
+        return new FakeStatement($this, (string) $query);
     }
 
     /**
@@ -75,10 +80,11 @@ class FakePDO extends PDO
         $this->executions[] = ['sql' => $query, 'params' => $params];
         $normalizedQuery = trim(preg_replace('/\s+/', ' ', $query) ?? '');
         if (
-            str_starts_with(
+            strncmp(
                 $normalizedQuery,
-                'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id ='
-            )
+                'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id =',
+                strlen('SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id =')
+            ) === 0
         ) {
             $id = isset($params[':id']) ? (int) $params[':id'] : 0;
             $row = $this->rows[$id] ?? null;

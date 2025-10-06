@@ -40,6 +40,9 @@ class FakeStatement
         $this->placeholders = $this->extractPlaceholders($query);
     }
 
+    /**
+     * @param mixed $value
+     */
     public function bindValue(string $param, $value, int $type = PDO::PARAM_STR): bool
     {
         if ($type === PDO::PARAM_NULL) {
@@ -50,6 +53,9 @@ class FakeStatement
         return true;
     }
 
+    /**
+     * @param array<string, mixed>|null $params
+     */
     public function execute(?array $params = null): bool
     {
         if ($params !== null) {
@@ -94,7 +100,7 @@ class FakeStatement
      * @param int $mode
      * @return array<int,mixed>
      */
-    public function fetchAll(int $mode = PDO::FETCH_DEFAULT): array
+    public function fetchAll(int $mode = PDO::FETCH_BOTH): array
     {
         if ($mode === PDO::FETCH_COLUMN) {
             $values = [];
@@ -120,7 +126,7 @@ class FakeStatement
     {
         preg_match_all('/:([a-zA-Z_][a-zA-Z0-9_]*)/', $query, $matches);
         $placeholders = [];
-        foreach ($matches[0] ?? [] as $placeholder) {
+        foreach ($matches[0] as $placeholder) {
             if (!in_array($placeholder, $placeholders, true)) {
                 $placeholders[] = $placeholder;
             }

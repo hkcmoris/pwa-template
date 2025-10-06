@@ -82,7 +82,7 @@ if ($path !== '') {
       <img
         loading="lazy"
         decoding="async"
-        src="<?= htmlspecialchars($img['thumbUrl'] ?? $img['url']) ?>"
+        src="<?= htmlspecialchars($img['thumbUrl']) ?>"
         alt="<?= htmlspecialchars($img['name']) ?>"
       >
     </div>
