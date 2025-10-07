@@ -96,7 +96,10 @@ $controllerRoutes = [
 $key = $method . ' ' . $route;
 if (isset($controllerRoutes[$key])) {
     // Optional: enforce HTMX only
-    if (!$isHx) { http_response_code(400); exit; }
+    if (!$isHx) {
+        http_response_code(400);
+        exit;
+    }
     require $controllerRoutes[$key];
     exit;
 }

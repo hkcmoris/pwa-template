@@ -1,8 +1,7 @@
 import { isDescendantPath, setupDragAndDrop } from '../../../src/islands/definitions-tree';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-type AjaxFn = Parameters<typeof setupDragAndDrop>[2]['ajax'];
-type HtmxMock = { ajax: AjaxFn };
+type ApiClient = Parameters<typeof setupDragAndDrop>[1];
 
 describe('isDescendantPath', () => {
     it('detects descendants correctly', () => {
@@ -49,14 +48,21 @@ const createItem = (
 };
 
 describe('setupDragAndDrop', () => {
-    let ajaxMock: jest.MockedFunction<AjaxFn>;
-    let htmxMock: HtmxMock;
+    let renameMock: jest.MockedFunction<ApiClient['rename']>;
+    let deleteMock: jest.MockedFunction<ApiClient['delete']>;
+    let moveMock: jest.MockedFunction<ApiClient['move']>;
+    let apiMock: ApiClient;
 
     beforeEach(() => {
         document.body.innerHTML = '';
-        ajaxMock = jest.fn<AjaxFn>();
-        ajaxMock.mockImplementation(() => ({}) as XMLHttpRequest);
-        htmxMock = { ajax: ajaxMock };
+        renameMock = jest.fn();
+        deleteMock = jest.fn();
+        moveMock = jest.fn();
+        apiMock = {
+            rename: renameMock,
+            delete: deleteMock,
+            move: moveMock,
+        };
     });
 
     const dispatchDragStart = (node: HTMLElement) => {
@@ -117,7 +123,7 @@ describe('setupDragAndDrop', () => {
 
         document.body.appendChild(root);
 
-        setupDragAndDrop(root, '', htmxMock);
+        setupDragAndDrop(root, apiMock);
 
         dispatchDragStart(child.node);
 
@@ -139,15 +145,11 @@ describe('setupDragAndDrop', () => {
         const preventDrop = dispatchDrop(target.node);
         expect(preventDrop).toHaveBeenCalled();
 
-        expect(ajaxMock).toHaveBeenCalledTimes(1);
-        expect(ajaxMock.mock.calls[0][0]).toBe('POST');
-        expect(ajaxMock.mock.calls[0][1]).toBe('/editor/definitions-move');
-        expect(ajaxMock.mock.calls[0][2]).toEqual({
-            source: '#definitions-list',
-            values: { id: '2', parent_id: '3', position: '0' },
-            target: '#definitions-list',
-            swap: 'outerHTML',
-            select: '#definitions-list',
+        expect(moveMock).toHaveBeenCalledTimes(1);
+        expect(moveMock).toHaveBeenCalledWith({
+            id: '2',
+            parentId: '3',
+            position: 0,
         });
     });
 
@@ -165,7 +167,7 @@ describe('setupDragAndDrop', () => {
 
         document.body.appendChild(root);
 
-        setupDragAndDrop(root, '', htmxMock);
+        setupDragAndDrop(root, apiMock);
 
         dispatchDragStart(second.node);
 
@@ -184,6 +186,6 @@ describe('setupDragAndDrop', () => {
         dispatchDragOver(first.node, 55, bounding);
         dispatchDrop(first.node);
 
-        expect(ajaxMock).not.toHaveBeenCalled();
+        expect(moveMock).not.toHaveBeenCalled();
     });
 });
