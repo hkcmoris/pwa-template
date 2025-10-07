@@ -6,8 +6,8 @@ require_once __DIR__ . '/../../lib/db.php';
 require_once __DIR__ . '/../../lib/logger.php';
 require_once __DIR__ . '/../../lib/components.php';
 require_once __DIR__ . '/../../lib/definitions.php';
-require_once __DIR__ . '/components-response.php';
-log_message('Components update request received', 'INFO');
+require_once __DIR__ . '/../../views/editor/components-response.php';
+log_message('Components create request received', 'INFO');
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
@@ -25,7 +25,6 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
-$componentParam = $_POST['component_id'] ?? '';
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
 $alternateTitle = isset($_POST['alternate_title']) ? trim((string) $_POST['alternate_title']) : '';
@@ -37,26 +36,10 @@ $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) :
 $priceParam = isset($_POST['price']) ? trim((string) $_POST['price']) : '';
 $mediaType = $mediaType === 'color' ? 'color' : 'image';
 $errors = [];
-$componentId = null;
 $definitionId = null;
 $parentId = null;
 $position = null;
 $priceValue = null;
-if ($componentParam === '' || !preg_match('/^\d+$/', (string) $componentParam)) {
-    $errors[] = 'Vyberte prosím platnou komponentu.';
-} else {
-    $componentId = (int) $componentParam;
-    if (!components_find($pdo, $componentId)) {
-        http_response_code(404);
-        $message = 'Komponentu se nepodařilo najít.';
-        components_render_fragments($pdo, [
-            'message' => $message,
-            'message_type' => 'error',
-        ]);
-        return;
-    }
-}
-
 if ($definitionParam === '' || !preg_match('/^\d+$/', (string) $definitionParam)) {
     $errors[] = 'Vyberte prosím platnou definici.';
 } else {
@@ -96,16 +79,9 @@ if ($parentParam !== '') {
         $errors[] = 'Vybraný rodič není platný.';
     } else {
         $parentId = (int) $parentParam;
-    }
-}
-
-if ($componentId !== null && $parentId !== null) {
-    if ($componentId === $parentId) {
-        $errors[] = 'Komponenta nemůže být sama sobě rodičem.';
-    } elseif (!components_parent_exists($pdo, $parentId)) {
-        $errors[] = 'Zvolená rodičovská komponenta neexistuje.';
-    } elseif (components_is_descendant($pdo, $componentId, $parentId)) {
-        $errors[] = 'Nelze přesunout komponentu pod jejího potomka.';
+        if ($parentId <= 0 || !components_parent_exists($pdo, $parentId)) {
+            $errors[] = 'Zvolená rodičovská komponenta neexistuje.';
+        }
     }
 }
 
@@ -131,19 +107,22 @@ if (!empty($errors)) {
     return;
 }
 
-if ($componentId === null || $definitionId === null) {
+if ($definitionId === null) {
     http_response_code(422);
     components_render_fragments($pdo, [
-        'message' => 'Komponentu se nepodařilo zpracovat.',
+        'message' => 'Vyberte prosím definici.',
         'message_type' => 'error',
     ]);
     return;
 }
 
+if ($position === null) {
+    $position = components_next_position($pdo, $parentId);
+}
+
 try {
-    components_update(
+    components_create(
         $pdo,
-        $componentId,
         $definitionId,
         $parentId,
         $alternateTitle !== '' ? $alternateTitle : null,
@@ -154,15 +133,16 @@ try {
         $priceValue,
         'CZK'
     );
+    http_response_code(201);
     components_render_fragments($pdo, [
-        'message' => 'Komponenta byla aktualizována.',
+        'message' => 'Komponenta byla uložena.',
         'message_type' => 'success',
     ]);
 } catch (Throwable $e) {
-    log_message('Component update failed: ' . $e->getMessage(), 'ERROR');
+    log_message('Component creation failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
     components_render_fragments($pdo, [
-        'message' => 'Komponentu se nepodařilo aktualizovat.',
+        'message' => 'Komponentu se nepodařilo uložit.',
         'message_type' => 'error',
     ]);
 }
