@@ -7,7 +7,7 @@ A template project for basic pwa/spa.
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 18+ (for building assets)
-- PHP 8 with the `pdo_mysql` extension
+- PHP 7+ with the `pdo_mysql` extension
 - MySQL or MariaDB server
 
 ### Install PHP
