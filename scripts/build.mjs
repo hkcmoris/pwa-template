@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { execSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -26,7 +27,7 @@ function loadServerEnvForProductionBuild() {
             }
             if (!process.env[key]) process.env[key] = value;
         }
-    } catch {}
+    } catch { /* empty */ }
 }
 
 // Ensure Vite sees APP_BASE and VITE_API_BASE_URL from server/.env.production
@@ -39,7 +40,7 @@ execSync('tsc --noEmit', { stdio: 'inherit' });
 execSync('vite build', { stdio: 'inherit' });
 
 // After build, version the Service Worker by copying to sw-<BUILD_HASH>.js
-import { readdirSync, copyFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 try {
@@ -74,7 +75,7 @@ try {
                         ? `del /f /q "${join(serverDir, name)}"`
                         : `rm -f "${join(serverDir, name)}"`
                 );
-            } catch {}
+            } catch { /* empty */ }
         }
     }
 
