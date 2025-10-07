@@ -31,7 +31,7 @@ const SQLSTATE_DUPLICATE_ENTRY_ERROR =
 const runScenario = (scenario: string): MoveScenarioResult => {
     const output = execFileSync(
         'php',
-        ['server/tests/definitions_move_runner.php'],
+        ['tests/php/definitions_move_runner.php'],
         {
             input: JSON.stringify({ scenario }),
             encoding: 'utf-8',

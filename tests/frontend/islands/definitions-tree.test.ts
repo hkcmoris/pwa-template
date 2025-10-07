@@ -1,4 +1,4 @@
-import { isDescendantPath, setupDragAndDrop } from '../definitions-tree';
+import { isDescendantPath, setupDragAndDrop } from '../../../src/islands/definitions-tree';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 type AjaxFn = Parameters<typeof setupDragAndDrop>[2]['ajax'];

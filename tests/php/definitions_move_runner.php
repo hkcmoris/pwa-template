@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 use App\Tests\Support\FakePDO;
 
-require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/Support/FakePDO.php';
-require_once __DIR__ . '/Support/FakeStatement.php';
+// Load the app bootstrap from repo root
+$repoRoot = dirname(__DIR__, 2);
+require_once $repoRoot . '/server/bootstrap.php';
 
 $input = trim(stream_get_contents(STDIN));
 $data = $input !== '' ? json_decode($input, true) : null;
