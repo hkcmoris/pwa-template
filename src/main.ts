@@ -1,7 +1,7 @@
 import { API_BASE, apiFetch } from './utils/api';
 
 const HOME_BG_LIGHT = new URL('./assets/bg-light.webp', import.meta.url).href;
-const HOME_BG_DARK = new URL('./assets/bg-dark.png', import.meta.url).href;
+const HOME_BG_DARK = new URL('./assets/bg-dark.webp', import.meta.url).href;
 
 if (typeof document !== 'undefined') {
     document.documentElement.style.setProperty(
