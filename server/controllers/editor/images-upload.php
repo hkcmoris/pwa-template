@@ -51,4 +51,4 @@ if (!empty($errors)) {
 
 // Render the grid after upload at the same path
 $_GET['path'] = $path;
-require __DIR__ . '/partials/images-grid.php';
+require __DIR__ . '/../../views/editor/partials/images-grid.php';

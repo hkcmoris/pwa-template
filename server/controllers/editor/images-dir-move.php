@@ -14,4 +14,4 @@ if ($dir !== '' && $to !== '') {
 
 // Re-render current view
 $_GET['path'] = $current;
-require __DIR__ . '/partials/images-grid.php';
+require __DIR__ . '/../../views/editor/partials/images-grid.php';

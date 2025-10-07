@@ -4,13 +4,14 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../lib/images.php';
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
+$file = isset($_POST['file']) && is_string($_POST['file']) ? img_sanitize_rel($_POST['file']) : '';
+$to   = isset($_POST['to']) && is_string($_POST['to']) ? img_sanitize_rel($_POST['to']) : '';
 $current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
-$name    = isset($_POST['name']) && is_string($_POST['name']) ? $_POST['name'] : '';
 
-if ($name !== '') {
-    @img_create_dir($current, $name);
+if ($file !== '' && $to !== '') {
+    @img_move($file, $to);
 }
 
 // Re-render current view
 $_GET['path'] = $current;
-require __DIR__ . '/partials/images-grid.php';
+require __DIR__ . '/../../views/editor/partials/images-grid.php';

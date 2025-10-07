@@ -44,21 +44,9 @@ if ($route === 'editor') {
 }
 
 $viewPath = __DIR__ . "/views/{$route}.php";
-if (isset($_SERVER['HTTP_HX_REQUEST']) && strpos($route, 'editor/definitions-') === 0) {
-    if (is_file($viewPath)) {
-        require $viewPath;
-    } else {
-        http_response_code(404);
-    }
-    exit;
-}
-
-if (isset($_SERVER['HTTP_HX_REQUEST']) && strpos($route, 'editor/components-') === 0) {
-    if (is_file($viewPath)) {
-        require $viewPath;
-    } else {
-        http_response_code(404);
-    }
+$controllerPath = __DIR__ . '/controllers/' . $route . '.php';
+if ($route !== '' && strpos($route, '..') === false && is_file($controllerPath)) {
+    require $controllerPath;
     exit;
 }
 
