@@ -43,33 +43,81 @@ if ($route === 'editor') {
     exit;
 }
 
-$viewPath = __DIR__ . "/views/{$route}.php";
-$controllerPath = __DIR__ . '/controllers/' . $route . '.php';
-if ($route !== '' && strpos($route, '..') === false && is_file($controllerPath)) {
-    require $controllerPath;
+// --- Normalize route & derive flags ---
+$route = trim($route, '/');
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$isHx = isset($_SERVER['HTTP_HX_REQUEST']);
+
+// Optional: allow only safe characters in route
+if ($route !== '' && !preg_match('~^[a-z0-9/_-]+$~i', $route)) {
+    http_response_code(400);
+    $route = '404';
+}
+
+// --- Auth (check FIRST, before executing any controller) ---
+$current = app_get_current_user();
+$role    = $current['role'] ?? 'guest';
+$requiresAdmin = (strpos($route, 'editor/') === 0);
+
+// For controller calls (usually POST HTMX), deny early if not admin
+if ($requiresAdmin && !in_array($role, ['admin','superadmin'], true) && $method !== 'GET') {
+    if ($isHx) {
+        http_response_code(401);
+        header('HX-Redirect: ' . (($basePath !== '' ? $basePath : '') . '/login'));
+        exit;
+    }
+    // non-HTMX POST fallback
+    http_response_code(403);
     exit;
 }
 
+// --- Controller dispatch (explicit map; no path-built includes) ---
+$controllerRoutes = [
+    // METHOD  PATH                              => file
+    'POST editor/components-create'              => __DIR__ . '/controllers/editor/components-create.php',
+    'POST editor/components-delete'              => __DIR__ . '/controllers/editor/components-delete.php',
+    'POST editor/components-update'              => __DIR__ . '/controllers/editor/components-update.php',
+
+    'POST editor/definitions-create'             => __DIR__ . '/controllers/editor/definitions-create.php',
+    'POST editor/definitions-delete'             => __DIR__ . '/controllers/editor/definitions-delete.php',
+    'POST editor/definitions-move'               => __DIR__ . '/controllers/editor/definitions-move.php',
+    'POST editor/definitions-rename'             => __DIR__ . '/controllers/editor/definitions-rename.php',
+
+    'POST editor/images-delete'                  => __DIR__ . '/controllers/editor/images-delete.php',
+    'POST editor/images-dir-delete'              => __DIR__ . '/controllers/editor/images-dir-delete.php',
+    'POST editor/images-dir-move'                => __DIR__ . '/controllers/editor/images-dir-move.php',
+    'POST editor/images-dir-rename'              => __DIR__ . '/controllers/editor/images-dir-rename.php',
+    'POST editor/images-mkdir'                   => __DIR__ . '/controllers/editor/images-mkdir.php',
+    'POST editor/images-move'                    => __DIR__ . '/controllers/editor/images-move.php',
+    'POST editor/images-rename'                  => __DIR__ . '/controllers/editor/images-rename.php',
+    'POST editor/images-upload'                  => __DIR__ . '/controllers/editor/images-upload.php',
+];
+
+$key = $method . ' ' . $route;
+if (isset($controllerRoutes[$key])) {
+    // Optional: enforce HTMX only
+    if (!$isHx) { http_response_code(400); exit; }
+    require $controllerRoutes[$key];
+    exit;
+}
+
+// --- View resolution ---
+$viewPath = __DIR__ . "/views/{$route}.php";
 if (is_file($viewPath)) {
-    http_response_code(200);
+    // Apply view-level gates (GET requests)
+    if (
+        ($requiresAdmin && !in_array($role, ['admin','superadmin'], true)) ||
+        ($route === 'konfigurator' && $role === 'guest') ||
+        ($route === 'users' && !in_array($role, ['admin','superadmin'], true))
+    ) {
+        http_response_code(403);
+    } else {
+        http_response_code(200);
+    }
     $view = $route;
 } else {
     http_response_code(404);
     $view = '404';
-}
-
-$current = app_get_current_user();
-$role = $current['role'] ?? 'guest';
-// Gate protected routes before output to avoid header warnings
-// Protect any editor subroute (editor/*)
-if ((strpos($view, 'editor') === 0) && !in_array($role, ['admin','superadmin'], true)) {
-    http_response_code(403);
-}
-if ($view === 'konfigurator' && $role === 'guest') {
-    http_response_code(403);
-}
-if ($view === 'users' && !in_array($role, ['admin','superadmin'], true)) {
-    http_response_code(403);
 }
 
 $titleMap = [
