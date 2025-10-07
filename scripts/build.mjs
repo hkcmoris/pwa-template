@@ -27,7 +27,9 @@ function loadServerEnvForProductionBuild() {
             }
             if (!process.env[key]) process.env[key] = value;
         }
-    } catch { /* empty */ }
+    } catch {
+        /* empty */
+    }
 }
 
 // Ensure Vite sees APP_BASE and VITE_API_BASE_URL from server/.env.production
@@ -63,19 +65,22 @@ try {
 
     const serverDir = resolve(process.cwd(), 'server');
     const swSource = resolve(serverDir, 'sw.js');
+    const serverDest = resolve(serverDir, 'public', 'sw');
     const destName = `sw-${buildHash}.js`;
-    const swDest = resolve(serverDir, destName);
+    const swDest = resolve(serverDest, destName);
 
     // Remove old versioned SW files to keep the directory clean
-    for (const name of readdirSync(serverDir)) {
+    for (const name of readdirSync(serverDest)) {
         if (name.startsWith('sw-') && name.endsWith('.js')) {
             try {
                 execSync(
                     process.platform === 'win32'
-                        ? `del /f /q "${join(serverDir, name)}"`
-                        : `rm -f "${join(serverDir, name)}"`
+                        ? `del /f /q "${join(serverDest, name)}"`
+                        : `rm -f "${join(serverDest, name)}"`
                 );
-            } catch { /* empty */ }
+            } catch {
+                /* empty */
+            }
         }
     }
 
@@ -87,7 +92,19 @@ try {
     );
     writeFileSync(swDest, swCode, 'utf8');
 
-    console.log(`[build] Service Worker written: ${destName}`);
+    // Write a tiny loader at the PUBLIC ROOT: /sw.js
+    const publicRoot = resolve(serverDir, 'public');
+    const swLoaderPath = resolve(publicRoot, 'sw.js');
+    // Use location-aware URL so subfolder deploys (APP_BASE) still work
+    const loader = `
+        self.__BUILD_HASH__ = '${buildHash}';
+        // Use SW's own URL as base to resolve the versioned script
+        importScripts(new URL('sw/sw-${buildHash}.js', self.location).toString());
+    `.trim();
+    writeFileSync(swLoaderPath, loader, 'utf-8');
+
+    console.log(`[build] Service Worker written: ${swDest}`);
+    console.log(`[build] SW loader written: ${swLoaderPath}`);
 } catch (e) {
     console.warn('[build] Skipped SW versioning:', e?.message || e);
 }

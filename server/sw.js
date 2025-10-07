@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 const CACHE_NAME = 'runtime';
 
 // Derive base path from SW registration scope ('' or '/subdir')
@@ -6,7 +7,7 @@ const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
     event.waitUntil(
-        (async() => {
+        (async () => {
             const names = await caches.keys();
             await Promise.all(
                 names
@@ -24,15 +25,11 @@ self.addEventListener('fetch', (event) => {
     }
     const url = new URL(event.request.url);
     event.respondWith(
-        caches.open(CACHE_NAME).then(async(cache) => {
+        caches.open(CACHE_NAME).then(async (cache) => {
             try {
                 const response = await fetch(event.request);
                 // Cache built assets (respect subfolder deployments)
-                if (
-                    url.pathname.startsWith(
-                        `${SCOPE_PATH} / public / assets / `
-                    )
-                ) {
+                if (url.pathname.startsWith(`${SCOPE_PATH}/public/assets/`)) {
                     cache.put(event.request, response.clone());
                 }
                 return response;

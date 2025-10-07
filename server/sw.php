@@ -14,28 +14,32 @@ $requested = ltrim($requested, '/');
 if (!defined('SW_ENABLED') || !SW_ENABLED) {
     http_response_code(200);
     header('Cache-Control: no-store');
-    echo "self.addEventListener('install', (event) => {\n";
-    echo "  event.waitUntil(self.skipWaiting());\n";
-    echo "});\n";
-    echo "self.addEventListener('activate', (event) => {\n";
-    echo "  event.waitUntil((async () => {\n";
-    echo "    const cacheNames = await caches.keys();\n";
-    echo "    await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));\n";
-    echo "    await self.clients.claim();\n";
-    echo "    await self.registration.unregister();\n";
-    echo "  })());\n";
-    echo "});\n";
-    echo "self.addEventListener('fetch', (event) => {\n";
-    echo "  event.respondWith(fetch(event.request));\n";
-    echo "});\n";
+    echo <<<JS
+    self.addEventListener('install', (event) => {
+        event.waitUntil(self.skipWaiting());
+    });
+    self.addEventListener('activate', (event) => {
+        event.waitUntil((async () => {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map((cacheName) => caches.delete(cacheName)));
+            await self.clients.claim();
+            await self.registration.unregister();
+        })());
+    });
+    self.addEventListener('fetch', (event) => {
+        event.respondWith(fetch(event.request));
+    });
+    JS;
     exit;
 }
 
+$public = __DIR__ . '/public';
+$swDir  = $public . '/sw';
 $relative = $requested === '' ? 'sw.js' : $requested;
 if ($relative === 'sw.js') {
-    $file = __DIR__ . '/sw.js';
+    $file = $public . '/sw.js';
 } elseif (preg_match('/^sw-([A-Za-z0-9]+)\\.js$/', $relative)) {
-    $file = __DIR__ . '/' . $relative;
+    $file = $swDir . '/' . $relative;
 } else {
     http_response_code(404);
     header('Cache-Control: no-store');
