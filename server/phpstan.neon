@@ -1,7 +1,9 @@
 parameters:
   phpVersion: 70400
   level: 6
-  paths: [ . ]
+  paths:
+    - .                 # /server
+    - ../tests/php      # PHP tests
   excludePaths:
     - vendor
     - var
@@ -9,6 +11,7 @@ parameters:
   tmpDir: var/phpstan
   ignoreErrors:
     - message: '#Method App\\Tests\\Support\\FakePDO::prepare\(\) should return PDOStatement\|false but returns App\\Tests\\Support\\FakeStatement#'
-      path: tests/Support/FakePDO.php
+      path: ../tests/php/Support/FakePDO.php
   bootstrapFiles:
     - phpstan-bootstrap.php
+    - ../tests/php/bootstrap.php
