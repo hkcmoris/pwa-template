@@ -1,6 +1,7 @@
 <div data-island="register">
     <h1>Registrace</h1>
     <form id="register-form" class="auth-form">
+        <?= csrf_field(); ?>
         <label class="auth-form-field">
             Uživatelské jméno
             <input

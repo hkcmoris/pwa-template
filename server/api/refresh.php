@@ -6,6 +6,8 @@ require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
 $jwtSecret = config_jwt_secret();
 
+csrf_require_valid(null, 'json');
+
 $refresh = $_COOKIE['refresh_token'] ?? '';
 if (!$refresh) {
     http_response_code(401);
@@ -49,6 +51,7 @@ setcookie('refresh_token', $newRefresh, [
     'samesite' => 'Lax',
     'expires' => time() + $refreshTtl,
     'path' => $cookiePath,
+    'secure' => !app_is_dev(),
 ]);
 
 // Issue new access token (10 minutes)
@@ -61,6 +64,7 @@ setcookie('token', $access, [
     'httponly' => true,
     'samesite' => 'Lax',
     'path' => $cookiePath,
+    'secure' => !app_is_dev(),
 ]);
 
 echo json_encode(['token' => $access, 'expires_in' => 600]);

@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch } from './utils/api';
+import { API_BASE, apiFetch, getCsrfToken } from './utils/api';
 
 const HOME_BG_LIGHT = new URL('./assets/bg-light.webp', import.meta.url).href;
 const HOME_BG_DARK = new URL('./assets/bg-dark.webp', import.meta.url).href;
@@ -357,9 +357,11 @@ document.addEventListener('auth-changed', (event) => {
 
 logoutBtn?.addEventListener('click', async () => {
     stopTokenRefresh();
+    const csrfToken = getCsrfToken();
     await fetch(`${API_BASE}/logout.php`, {
         method: 'POST',
         credentials: 'include',
+        ...(csrfToken ? { headers: { 'X-CSRF-Token': csrfToken } } : {}),
     });
     document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
     const pretty = (document.documentElement.dataset.pretty ?? '1') !== '0';

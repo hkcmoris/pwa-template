@@ -1,4 +1,4 @@
-import { API_BASE } from '../utils/api';
+import { API_BASE, getCsrfToken } from '../utils/api';
 
 const BASE =
     (typeof document !== 'undefined' &&
@@ -20,15 +20,27 @@ export default function init(el: HTMLElement) {
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
+        const csrfValue = formData.get('_csrf');
+        const payload: Record<string, unknown> = {
+            email: formData.get('email'),
+            password: formData.get('password'),
+        };
+        if (typeof csrfValue === 'string' && csrfValue) {
+            payload._csrf = csrfValue;
+        }
+        const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+        };
+        const headerToken = getCsrfToken();
+        if (headerToken) {
+            headers['X-CSRF-Token'] = headerToken;
+        }
         try {
             const response = await fetch(`${API_BASE}/login.php`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers,
                 credentials: 'include',
-                body: JSON.stringify({
-                    email: formData.get('email'),
-                    password: formData.get('password'),
-                }),
+                body: JSON.stringify(payload),
             });
             const data = (await response
                 .json()

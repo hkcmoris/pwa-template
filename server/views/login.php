@@ -1,6 +1,7 @@
 <div data-island="login">
     <h1>Přihlášení</h1>
     <form id="login-form" class="auth-form">
+        <?= csrf_field(); ?>
         <label class="auth-form-field">
             E‑mail
             <input

@@ -4,6 +4,8 @@ use Images\Repository;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 
+csrf_require_valid($_POST, 'html');
+
 $repository = new Repository();
 $dir = isset($_POST['dir']) && is_string($_POST['dir'])
     ? $repository->sanitizeRelative($_POST['dir'])
