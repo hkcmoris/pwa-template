@@ -1,11 +1,9 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/logger.php';
-require_once __DIR__ . '/../../../lib/components.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+use Components\Formatter;
+use Components\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
 log_message('Components create request received', 'INFO');
 if (!headers_sent()) {
@@ -25,6 +23,8 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
+$formatter = new Formatter();
+$repository = new Repository($pdo, $formatter);
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
 $alternateTitle = isset($_POST['alternate_title']) ? trim((string) $_POST['alternate_title']) : '';
@@ -79,7 +79,7 @@ if ($parentParam !== '') {
         $errors[] = 'Vybraný rodič není platný.';
     } else {
         $parentId = (int) $parentParam;
-        if ($parentId <= 0 || !components_parent_exists($pdo, $parentId)) {
+        if ($parentId <= 0 || !$repository->parentExists($parentId)) {
             $errors[] = 'Zvolená rodičovská komponenta neexistuje.';
         }
     }
@@ -93,7 +93,7 @@ if ($positionParam !== '') {
     }
 }
 
-[$priceValue, $priceError] = components_normalise_price_input($priceParam);
+[$priceValue, $priceError] = $formatter->normalisePriceInput($priceParam);
 if ($priceError !== null) {
     $errors[] = $priceError;
 }
@@ -117,12 +117,11 @@ if ($definitionId === null) {
 }
 
 if ($position === null) {
-    $position = components_next_position($pdo, $parentId);
+    $position = $repository->nextPosition($parentId);
 }
 
 try {
-    components_create(
-        $pdo,
+    $repository->create(
         $definitionId,
         $parentId,
         $alternateTitle !== '' ? $alternateTitle : null,
