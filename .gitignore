@@ -142,3 +142,4 @@ vite.config.ts.timestamp-*
 
 server/public/assets/*
 server/public/sw/*
+server/public/sw.js
