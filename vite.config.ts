@@ -22,6 +22,7 @@ export default defineConfig(({ mode }) => {
             rollupOptions: {
                 input: {
                     main: resolve(__dirname, 'src/main.ts'),
+                    layout: resolve(__dirname, 'src/styles/layout.css'),
                     fonts: resolve(__dirname, 'src/styles/fonts.css'),
                 },
                 output: {
