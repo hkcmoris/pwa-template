@@ -1,15 +1,16 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/images.php';
+use Images\Repository;
 
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-$file = isset($_POST['file']) && is_string($_POST['file']) ? img_sanitize_rel($_POST['file']) : '';
-$new  = isset($_POST['newName']) && is_string($_POST['newName']) ? $_POST['newName'] : '';
-$current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
+require_once __DIR__ . '/../../../bootstrap.php';
 
-if ($file && $new) {
-    @img_rename($file, $new);
+$repository = new Repository();
+$file = isset($_POST['file']) && is_string($_POST['file']) ? $repository->sanitizeRelative($_POST['file']) : '';
+$new = isset($_POST['newName']) && is_string($_POST['newName']) ? (string) $_POST['newName'] : '';
+$current = isset($_POST['current']) && is_string($_POST['current']) ? $repository->sanitizeRelative($_POST['current']) : '';
+
+if ($file !== '' && $new !== '') {
+    $repository->rename($file, $new);
 }
 
 // Use provided current path or derive from file

@@ -1,5 +1,8 @@
 <?php
-require_once __DIR__ . '/../../../lib/images.php';
+
+declare(strict_types=1);
+
+use Images\Repository;
 
 if (!headers_sent()) {
     header('Cache-Control: no-store, no-cache, must-revalidate, private');
@@ -8,9 +11,11 @@ if (!headers_sent()) {
 }
 
 $BASE = $BASE ?? (defined('BASE_PATH') ? rtrim(BASE_PATH, '/') : '');
-$path = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GET['path']) : '';
-[$dir, $path] = img_resolve($path);
-$list = img_list($path, img_root_url($BASE));
+$repository = new Repository();
+$pathInput = isset($_GET['path']) && is_string($_GET['path']) ? $_GET['path'] : '';
+$sanitizedPath = $repository->sanitizeRelative((string) $pathInput);
+[, $path] = $repository->resolve($sanitizedPath);
+$list = $repository->listDirectory($path, $repository->getRootUrl($BASE));
 
 $beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status'
     . ' && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';

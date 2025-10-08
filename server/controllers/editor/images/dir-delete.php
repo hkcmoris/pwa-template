@@ -1,16 +1,17 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/images.php';
+use Images\Repository;
 
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-$dir = isset($_POST['dir']) && is_string($_POST['dir']) ? img_sanitize_rel($_POST['dir']) : '';
-$current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
+require_once __DIR__ . '/../../../bootstrap.php';
+
+$repository = new Repository();
+$dir = isset($_POST['dir']) && is_string($_POST['dir']) ? $repository->sanitizeRelative($_POST['dir']) : '';
+$current = isset($_POST['current']) && is_string($_POST['current']) ? $repository->sanitizeRelative($_POST['current']) : '';
 $recursive = isset($_POST['recursive'])
     && in_array($_POST['recursive'], ['1', 'true', 'on'], true);
 
-if ($dir) {
-    @img_delete_dir($dir, $recursive);
+if ($dir !== '') {
+    $repository->deleteDir($dir, $recursive);
 }
 
 // Re-render current view

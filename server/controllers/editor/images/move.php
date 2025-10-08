@@ -1,15 +1,16 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/images.php';
+use Images\Repository;
 
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-$file = isset($_POST['file']) && is_string($_POST['file']) ? img_sanitize_rel($_POST['file']) : '';
-$to   = isset($_POST['to']) && is_string($_POST['to']) ? img_sanitize_rel($_POST['to']) : '';
-$current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
+require_once __DIR__ . '/../../../bootstrap.php';
+
+$repository = new Repository();
+$file = isset($_POST['file']) && is_string($_POST['file']) ? $repository->sanitizeRelative($_POST['file']) : '';
+$to = isset($_POST['to']) && is_string($_POST['to']) ? $repository->sanitizeRelative($_POST['to']) : '';
+$current = isset($_POST['current']) && is_string($_POST['current']) ? $repository->sanitizeRelative($_POST['current']) : '';
 
 if ($file !== '' && $to !== '') {
-    @img_move($file, $to);
+    $repository->move($file, $to);
 }
 
 // Re-render current view

@@ -1,11 +1,15 @@
 <?php
 require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+
+use Definitions\Formatter;
+use Definitions\Repository;
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 $pdo = get_db_connection();
-$definitionsTree = definitions_fetch_tree($pdo);
-$definitionsFlat = definitions_flatten_tree($definitionsTree);
+$definitionsRepository = new Repository($pdo);
+$definitionsFormatter = new Formatter();
+$definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
+$definitionsFlat = $definitionsFormatter->flattenTree($definitionsTree);
 ?>
 
 <h2>Definice</h2>

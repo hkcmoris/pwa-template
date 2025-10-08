@@ -2,6 +2,7 @@
 
 use Components\Formatter;
 use Components\Repository;
+use Definitions\Repository as DefinitionsRepository;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
@@ -24,7 +25,8 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 
 $pdo = get_db_connection();
 $formatter = new Formatter();
-$repository = new Repository($pdo, $formatter);
+$definitionsRepository = new DefinitionsRepository($pdo);
+$repository = new Repository($pdo, $formatter, $definitionsRepository);
 $componentParam = $_POST['component_id'] ?? '';
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
@@ -61,7 +63,7 @@ if ($definitionParam === '' || !preg_match('/^\d+$/', (string) $definitionParam)
     $errors[] = 'Vyberte prosím platnou definici.';
 } else {
     $definitionId = (int) $definitionParam;
-    if (!definitions_find($pdo, $definitionId)) {
+    if (!$definitionsRepository->find($definitionId)) {
         $errors[] = 'Zvolená definice neexistuje.';
     }
 }

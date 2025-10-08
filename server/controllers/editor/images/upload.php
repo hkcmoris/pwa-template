@@ -1,13 +1,14 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/images.php';
+use Images\Repository;
 
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
+require_once __DIR__ . '/../../../bootstrap.php';
+
+$repository = new Repository();
 $pathParam = $_POST['path'] ?? $_GET['path'] ?? '';
-$path = is_string($pathParam) ? img_sanitize_rel($pathParam) : '';
-[$dir, $path] = img_resolve($path);
-img_ensure_dir($dir);
+$path = is_string($pathParam) ? $repository->sanitizeRelative($pathParam) : '';
+[$dir, $path] = $repository->resolve($path);
+$repository->ensureDir($dir);
 
 $errors = [];
 if (!empty($_FILES['images']) && is_array($_FILES['images']['name'])) {
@@ -21,15 +22,15 @@ if (!empty($_FILES['images']) && is_array($_FILES['images']['name'])) {
             continue;
         }
         $tmp = $tmps[$i];
-        $safe = img_safe_name($names[$i], $dir);
+        $safe = $repository->safeName($names[$i], $dir);
         $dest = $dir . '/' . $safe;
-        $ok = img_convert_to_webp($tmp, $dest);
+        $ok = $repository->convertToWebp($tmp, $dest);
         if ($ok) {
           // Generate a small preview thumbnail (e.g., 96x96)
-            @img_generate_thumb($dest, 96);
+            $repository->generateThumb($dest, 96);
         }
         if (!$ok) {
-            $msg = img_last_error();
+            $msg = $repository->getLastError();
             if ($msg === '') {
                 $msg = 'konverze se nezdařila';
             }

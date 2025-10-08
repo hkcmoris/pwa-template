@@ -1,9 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+use Definitions\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/definitions-response.php';
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
@@ -25,6 +24,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
+$repository = new Repository($pdo);
 $idParam = $_POST['id'] ?? '';
 $parentParam = null;
 if (isset($_POST['parent_id'])) {
@@ -71,7 +71,7 @@ if (!preg_match('/^\d+$/', (string) $positionParam)) {
 
 $position = (int) $positionParam;
 try {
-    definitions_move($pdo, $id, $parentId, $position);
+    $repository->move($id, $parentId, $position);
     print($id . ': [' . $parentId . ', ' . $position . ']');
     definitions_render_fragments($pdo, [
         'message' => 'Definice byla přesunuta.',

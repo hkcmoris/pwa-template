@@ -1,9 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+use Definitions\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/definitions-response.php';
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
@@ -25,6 +24,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
+$repository = new Repository($pdo);
 $idParam = $_POST['id'] ?? '';
 $newTitle = isset($_POST['title']) ? trim((string) $_POST['title']) : '';
 if (!preg_match('/^\d+$/', (string) $idParam)) {
@@ -56,7 +56,7 @@ if (mb_strlen($newTitle, 'UTF-8') > 191) {
 }
 
 try {
-    definitions_update_title($pdo, $id, $newTitle);
+    $repository->updateTitle($id, $newTitle);
     definitions_render_fragments($pdo, [
         'message' => 'Definice byla přejmenována.',
         'message_type' => 'success',
