@@ -162,4 +162,12 @@ $viewStylesMap = [
 ];
 
 $viewStyles = $viewStylesMap[$view] ?? [];
+
+$viewsRequiringCsrf = ['login', 'register'];
+if (in_array($view, $viewsRequiringCsrf, true)) {
+    // Ensure the CSRF token is generated before any output so session cookies
+    // can be sent without triggering "headers already sent" warnings.
+    csrf_token();
+}
+
 require __DIR__ . '/views/layout.php';
