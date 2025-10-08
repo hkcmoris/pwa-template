@@ -149,7 +149,7 @@ nav {
 }
 
 @media (width <= 600px) {
-  nav {
+  #nav-menu {
     display: none;
     flex-direction: column;
     position: absolute;
@@ -181,6 +181,12 @@ nav {
 
   #menu-toggle {
     display: block;
+  }
+}
+
+@media (width <= 1100px) {
+  .nav-actions {
+    display: none;
   }
 }
 
