@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../lib/images.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../lib/images.php';
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 $dir = isset($_POST['dir']) && is_string($_POST['dir']) ? img_sanitize_rel($_POST['dir']) : '';
@@ -14,4 +14,4 @@ if ($dir !== '' && $to !== '') {
 
 // Re-render current view
 $_GET['path'] = $current;
-require __DIR__ . '/../../views/editor/partials/images-grid.php';
+require __DIR__ . '/../../../views/editor/partials/images-grid.php';

@@ -112,7 +112,7 @@ function mount(el: HTMLElement) {
                     const fd = new FormData(form);
                     const name = (fd.get('name') as string).trim();
                     if (name) {
-                        await postAndSwap(`${BASE}/editor/images-mkdir`, {
+                        await postAndSwap(`${BASE}/editor/images/mkdir`, {
                             current: el.dataset.currentPath || '',
                             name,
                         });
@@ -259,7 +259,7 @@ function mount(el: HTMLElement) {
                                 const nn = (fd.get('newName') as string).trim();
                                 if (nn) {
                                     await postAndSwap(
-                                        `${BASE}/editor/images-dir-rename`,
+                                        `${BASE}/editor/images/dir-rename`,
                                         {
                                             dir: rel,
                                             newName: nn,
@@ -310,7 +310,7 @@ function mount(el: HTMLElement) {
                                 const nn = (fd.get('newName') as string).trim();
                                 if (nn) {
                                     await postAndSwap(
-                                        `${BASE}/editor/images-rename`,
+                                        `${BASE}/editor/images/rename`,
                                         {
                                             file: rel,
                                             newName: nn,
@@ -358,7 +358,7 @@ function mount(el: HTMLElement) {
                                 const fd = new FormData(form);
                                 if (fd.get('confirm')) {
                                     await postAndSwap(
-                                        `${BASE}/editor/images-dir-delete`,
+                                        `${BASE}/editor/images/dir-delete`,
                                         {
                                             dir: rel,
                                             recursive: '1',
@@ -397,7 +397,7 @@ function mount(el: HTMLElement) {
                             form.addEventListener('submit', async (ev) => {
                                 ev.preventDefault();
                                 await postAndSwap(
-                                    `${BASE}/editor/images-delete`,
+                                    `${BASE}/editor/images/delete`,
                                     {
                                         file: rel,
                                         current: el.dataset.currentPath || '',
@@ -524,7 +524,7 @@ function mount(el: HTMLElement) {
                     endDrag();
                     return;
                 }
-                await postAndSwap(`${BASE}/editor/images-move`, {
+                await postAndSwap(`${BASE}/editor/images/move`, {
                     file: dragRel,
                     to,
                     current: currentPath,
@@ -536,7 +536,7 @@ function mount(el: HTMLElement) {
                     endDrag();
                     return;
                 }
-                await postAndSwap(`${BASE}/editor/images-dir-move`, {
+                await postAndSwap(`${BASE}/editor/images/dir-move`, {
                     dir: dragRel,
                     to,
                     current: el.dataset.currentPath || '',

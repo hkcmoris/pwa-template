@@ -99,9 +99,9 @@ export default function init(root: HTMLElement) {
     );
     const htmx = getHtmx();
     const basePath = root.dataset.base || '';
-    const createUrl = `${basePath}/editor/components-create`;
-    const updateUrl = `${basePath}/editor/components-update`;
-    const deleteUrl = `${basePath}/editor/components-delete`;
+    const createUrl = `${basePath}/editor/components/create`;
+    const updateUrl = `${basePath}/editor/components/update`;
+    const deleteUrl = `${basePath}/editor/components/delete`;
 
     if (!modalRoot || !createTemplate) {
         return;

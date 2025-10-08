@@ -10,8 +10,8 @@ $parentPlaceholder = 'Kořenová komponenta';
 ?>
 <form
   class="component-form component-form--modal"
-  hx-post="<?= htmlspecialchars($BASE) ?>/editor/components-create"
-  action="<?= htmlspecialchars($BASE) ?>/editor/components-create"
+  hx-post="<?= htmlspecialchars($BASE) ?>/editor/components/create"
+  action="<?= htmlspecialchars($BASE) ?>/editor/components/create"
   method="post"
   hx-target="#components-list"
   hx-select="#components-list"

@@ -74,23 +74,23 @@ if ($requiresAdmin && !in_array($role, ['admin','superadmin'], true) && $method 
 // --- Controller dispatch (explicit map; no path-built includes) ---
 $controllerRoutes = [
     // METHOD  PATH                              => file
-    'POST editor/components-create'              => __DIR__ . '/controllers/editor/components-create.php',
-    'POST editor/components-delete'              => __DIR__ . '/controllers/editor/components-delete.php',
-    'POST editor/components-update'              => __DIR__ . '/controllers/editor/components-update.php',
+    'POST editor/components/create'              => __DIR__ . '/controllers/editor/components/create.php',
+    'POST editor/components/delete'              => __DIR__ . '/controllers/editor/components/delete.php',
+    'POST editor/components/update'              => __DIR__ . '/controllers/editor/components/update.php',
 
-    'POST editor/definitions-create'             => __DIR__ . '/controllers/editor/definitions-create.php',
-    'POST editor/definitions-delete'             => __DIR__ . '/controllers/editor/definitions-delete.php',
-    'POST editor/definitions-move'               => __DIR__ . '/controllers/editor/definitions-move.php',
-    'POST editor/definitions-rename'             => __DIR__ . '/controllers/editor/definitions-rename.php',
+    'POST editor/definitions/create'             => __DIR__ . '/controllers/editor/definitions/create.php',
+    'POST editor/definitions/delete'             => __DIR__ . '/controllers/editor/definitions/delete.php',
+    'POST editor/definitions/move'               => __DIR__ . '/controllers/editor/definitions/move.php',
+    'POST editor/definitions/rename'             => __DIR__ . '/controllers/editor/definitions/rename.php',
 
-    'POST editor/images-delete'                  => __DIR__ . '/controllers/editor/images-delete.php',
-    'POST editor/images-dir-delete'              => __DIR__ . '/controllers/editor/images-dir-delete.php',
-    'POST editor/images-dir-move'                => __DIR__ . '/controllers/editor/images-dir-move.php',
-    'POST editor/images-dir-rename'              => __DIR__ . '/controllers/editor/images-dir-rename.php',
-    'POST editor/images-mkdir'                   => __DIR__ . '/controllers/editor/images-mkdir.php',
-    'POST editor/images-move'                    => __DIR__ . '/controllers/editor/images-move.php',
-    'POST editor/images-rename'                  => __DIR__ . '/controllers/editor/images-rename.php',
-    'POST editor/images-upload'                  => __DIR__ . '/controllers/editor/images-upload.php',
+    'POST editor/images/delete'                  => __DIR__ . '/controllers/editor/images/delete.php',
+    'POST editor/images/dir-delete'              => __DIR__ . '/controllers/editor/images/dir-delete.php',
+    'POST editor/images/dir-move'                => __DIR__ . '/controllers/editor/images/dir-move.php',
+    'POST editor/images/dir-rename'              => __DIR__ . '/controllers/editor/images/dir-rename.php',
+    'POST editor/images/mkdir'                   => __DIR__ . '/controllers/editor/images/mkdir.php',
+    'POST editor/images/move'                    => __DIR__ . '/controllers/editor/images/move.php',
+    'POST editor/images/rename'                  => __DIR__ . '/controllers/editor/images/rename.php',
+    'POST editor/images/upload'                  => __DIR__ . '/controllers/editor/images/upload.php',
 ];
 
 $key = $method . ' ' . $route;

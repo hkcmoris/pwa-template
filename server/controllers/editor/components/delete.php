@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../lib/auth.php';
-require_once __DIR__ . '/../../lib/db.php';
-require_once __DIR__ . '/../../lib/logger.php';
-require_once __DIR__ . '/../../lib/components.php';
-require_once __DIR__ . '/../../views/editor/components-response.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../lib/auth.php';
+require_once __DIR__ . '/../../../lib/db.php';
+require_once __DIR__ . '/../../../lib/logger.php';
+require_once __DIR__ . '/../../../lib/components.php';
+require_once __DIR__ . '/../../../views/editor/components-response.php';
 
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');

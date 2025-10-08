@@ -34,7 +34,7 @@ $initialGridUrl = htmlspecialchars(
         id="upload-form"
         class="upload"
         enctype="multipart/form-data"
-        hx-post="<?= htmlspecialchars($BASE) ?>/editor/images-upload"
+        hx-post="<?= htmlspecialchars($BASE) ?>/editor/images/upload"
         hx-vals="<?= htmlspecialchars($uploadHxVals, ENT_QUOTES, 'UTF-8') ?>"
         hx-target="#image-grid"
         hx-select="#image-grid"

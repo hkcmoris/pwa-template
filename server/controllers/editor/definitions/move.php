@@ -1,10 +1,10 @@
 <?php
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../lib/auth.php';
-require_once __DIR__ . '/../../lib/db.php';
-require_once __DIR__ . '/../../lib/definitions.php';
-require_once __DIR__ . '/../../views/editor/definitions-response.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../lib/auth.php';
+require_once __DIR__ . '/../../../lib/db.php';
+require_once __DIR__ . '/../../../lib/definitions.php';
+require_once __DIR__ . '/../../../views/editor/definitions-response.php';
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');

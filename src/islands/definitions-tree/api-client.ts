@@ -22,7 +22,7 @@ export const createDefinitionsApiClient = (
         if (!id || !title.trim()) {
             return;
         }
-        sendRequest(htmx, `${base}/editor/definitions-rename`, {
+        sendRequest(htmx, `${base}/editor/definitions/rename`, {
             id,
             title,
         });
@@ -31,7 +31,7 @@ export const createDefinitionsApiClient = (
         if (!id) {
             return;
         }
-        sendRequest(htmx, `${base}/editor/definitions-delete`, { id });
+        sendRequest(htmx, `${base}/editor/definitions/delete`, { id });
     },
     move({ id, parentId, position }) {
         if (!id) {
@@ -42,6 +42,6 @@ export const createDefinitionsApiClient = (
             parent_id: parentId ?? '',
             position: String(Math.max(0, Math.floor(position))),
         };
-        sendRequest(htmx, `${base}/editor/definitions-move`, payload);
+        sendRequest(htmx, `${base}/editor/definitions/move`, payload);
     },
 });

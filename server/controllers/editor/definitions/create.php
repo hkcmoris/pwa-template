@@ -1,11 +1,11 @@
 <?php
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../lib/auth.php';
-require_once __DIR__ . '/../../lib/db.php';
-require_once __DIR__ . '/../../lib/logger.php';
-require_once __DIR__ . '/../../lib/definitions.php';
-require_once __DIR__ . '/../../views/editor/definitions-response.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../lib/auth.php';
+require_once __DIR__ . '/../../../lib/db.php';
+require_once __DIR__ . '/../../../lib/logger.php';
+require_once __DIR__ . '/../../../lib/definitions.php';
+require_once __DIR__ . '/../../../views/editor/definitions-response.php';
 log_message('Definitions create request received', 'INFO');
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');

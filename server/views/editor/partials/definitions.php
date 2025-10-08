@@ -38,8 +38,8 @@ $definitionsFlat = definitions_flatten_tree($definitionsTree);
 <template id="definition-create-template">
   <form
     class="definition-form definition-form--modal"
-    hx-post="<?= htmlspecialchars($BASE) ?>/editor/definitions-create"
-    action="<?= htmlspecialchars($BASE) ?>/editor/definitions-create"
+    hx-post="<?= htmlspecialchars($BASE) ?>/editor/definitions/create"
+    action="<?= htmlspecialchars($BASE) ?>/editor/definitions/create"
     method="post"
     hx-target="#definitions-list"
     hx-select="#definitions-list"

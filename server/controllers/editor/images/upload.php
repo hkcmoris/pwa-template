@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../../lib/images.php';
+require_once __DIR__ . '/../../../config/config.php';
+require_once __DIR__ . '/../../../lib/images.php';
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 $pathParam = $_POST['path'] ?? $_GET['path'] ?? '';
@@ -51,4 +51,4 @@ if (!empty($errors)) {
 
 // Render the grid after upload at the same path
 $_GET['path'] = $path;
-require __DIR__ . '/../../views/editor/partials/images-grid.php';
+require __DIR__ . '/../../../views/editor/partials/images-grid.php';
