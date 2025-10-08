@@ -46,19 +46,19 @@ function csrf_ensure_session(): void
     if (session_status() === PHP_SESSION_ACTIVE) {
         return;
     }
+    /**
+     * @var array{lifetime: int<0, max>, path: non-falsy-string, domain: string, secure: bool, httponly: bool, samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'} $params
+     */
     $params = session_get_cookie_params();
-    $base = defined('BASE_PATH') ? (string) BASE_PATH : '';
-    $path = $params['path'] ?? '/';
-    if ($path === '' || $path === '/') {
-        $path = '/' . ltrim(trim($base, '/'), '/');
-        if ($path === '' || $path === '//') {
-            $path = '/';
-        }
+    $base = defined('BASE_PATH') ? trim((string) BASE_PATH, '/') : '';
+    $path = $params['path'];
+    if ($path === '/' && $base !== '') {
+        $path = '/' . $base;
     }
     session_set_cookie_params([
-        'lifetime' => $params['lifetime'] ?? 0,
+        'lifetime' => $params['lifetime'],
         'path' => $path,
-        'domain' => $params['domain'] ?? '',
+        'domain' => $params['domain'],
         'secure' => csrf_secure_cookies(),
         'httponly' => true,
         'samesite' => 'Lax',
@@ -90,7 +90,7 @@ function csrf_token_if_active(): string
     }
 
     $sessionName = session_name();
-    if ($sessionName === '') {
+    if (!is_string($sessionName)) {
         return '';
     }
 
@@ -108,6 +108,9 @@ function csrf_field(): string
     return '<input type="hidden" name="_csrf" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
 }
 
+/**
+ * @param array<string, mixed>|null $body
+ */
 function csrf_extract_from_request(?array $body = null): string
 {
     $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
@@ -140,6 +143,9 @@ function csrf_verify(?string $token, bool $regenerate = false): bool
     return $valid;
 }
 
+/**
+ * @param array<string, mixed>|null $body
+ */
 function csrf_validate_request(?array $body = null, bool $regenerate = false): bool
 {
     $token = csrf_extract_from_request($body);
@@ -149,6 +155,9 @@ function csrf_validate_request(?array $body = null, bool $regenerate = false): b
     return csrf_verify($token, $regenerate);
 }
 
+/**
+ * @param array<string, mixed>|null $body
+ */
 function csrf_require_valid(?array $body = null, string $responseType = 'json'): void
 {
     if (csrf_validate_request($body)) {
