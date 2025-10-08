@@ -580,4 +580,3 @@ function vite_asset(string $entry): ?array
     <?php endif; ?>
   </body>
 </html>
-
