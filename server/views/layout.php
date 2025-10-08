@@ -34,26 +34,14 @@ $view = isset($view) && is_string($view) && $view !== '' ? $view : null;
 $main = isset($main) && is_array($main) ? $main : null;
 /** @var array<string, mixed>|null $fontsCss */
 $fontsCss = isset($fontsCss) && is_array($fontsCss) ? $fontsCss : null;
-
-/** @return array<string, mixed>|null */
-function vite_asset(string $entry): ?array
-{
-    static $m = null;
-    // Vite manifest location under outDir
-    $path = __DIR__ . '/../public/assets/.vite/manifest.json';
-
-    if ($m === null) {
-        if (is_file($path)) {
-            $decoded = json_decode(file_get_contents($path), true);
-            $m = is_array($decoded) ? $decoded : [];
-        } else {
-            $m = [];
-        }
+/** @var array<string, string> $viewStyles */
+$viewStyles = isset($viewStyles) && is_array($viewStyles) ? $viewStyles : [];
+$resolvedViewStyles = [];
+foreach ($viewStyles as $styleId => $entry) {
+    $href = vite_asset_href($entry, $isDevEnv, $BASE);
+    if ($href !== null) {
+        $resolvedViewStyles[(string) $styleId] = $href;
     }
-
-    $value = $m[$entry] ?? null;
-
-    return is_array($value) ? $value : null;
 }
 ?>
 <!doctype html>
@@ -211,6 +199,13 @@ function vite_asset(string $entry): ?array
       </noscript>
             <?php
         endif;
+        foreach ($resolvedViewStyles as $styleId => $href) : ?>
+      <link
+        rel="stylesheet"
+        id="<?= htmlspecialchars($styleId) ?>"
+        href="<?= htmlspecialchars($href) ?>"
+      >
+        <?php endforeach;
     endif; ?>
   </head>
     <body data-route="<?= htmlspecialchars($view ?? '', ENT_QUOTES, 'UTF-8') ?>">
@@ -434,6 +429,13 @@ function vite_asset(string $entry): ?array
             href="http://localhost:5173/src/styles/fonts.css"
           >
         </noscript>
+            <?php foreach ($resolvedViewStyles as $styleId => $href) : ?>
+        <link
+          rel="stylesheet"
+          id="<?= htmlspecialchars($styleId) ?>"
+          href="<?= htmlspecialchars($href) ?>"
+        >
+            <?php endforeach; ?>
       <?php else : ?>
           <?php if (!empty($main['file'])) : ?>
           <script

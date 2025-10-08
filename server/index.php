@@ -154,4 +154,12 @@ $descMap = [
   '404' => 'Požadovaná stránka nebyla nalezena.'
 ];
 $description = $descMap[$view] ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.';
+
+$viewStylesMap = [
+    'editor/definitions' => ['editor-partial-style' => 'src/styles/editor/definitions.css'],
+    'editor/components' => ['editor-partial-style' => 'src/styles/editor/components.css'],
+    'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
+];
+
+$viewStyles = $viewStylesMap[$view] ?? [];
 require __DIR__ . '/views/layout.php';

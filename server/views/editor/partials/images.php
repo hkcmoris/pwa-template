@@ -24,6 +24,23 @@ $initialGridUrl = htmlspecialchars(
 );
 ?>
 
+<?php
+$imagesStyleEntry = 'src/styles/editor/images.css';
+if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+    $imagesCssHref = vite_asset_href($imagesStyleEntry, $isDevEnv ?? false, $BASE);
+    if ($imagesCssHref !== null) {
+        ?>
+<link
+  rel="stylesheet"
+  id="editor-partial-style"
+  href="<?= htmlspecialchars($imagesCssHref, ENT_QUOTES, 'UTF-8') ?>"
+  hx-swap-oob="true"
+>
+        <?php
+    }
+}
+?>
+
 <h2>Správce galerie</h2>
 
 <div
@@ -57,7 +74,7 @@ $initialGridUrl = htmlspecialchars(
 
     <div
         id="image-grid"
-        style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem"
+        class="grid"
         hx-get="<?= $initialGridUrl ?>"
         hx-select="#image-grid"
         hx-trigger="load"
@@ -71,98 +88,4 @@ $initialGridUrl = htmlspecialchars(
     <div id="img-modal" class="hidden" aria-hidden="true"></div>
 </div>
 
-<style>
-    /* Minimal critical styles for layout; island loads detailed CSS lazily */
-    #images-root .upload {
-        display: flex;
-        gap: .5rem;
-        align-items: center;
-        margin: .5rem 0;
-        flex-wrap: wrap;
-    }
 
-    #images-root .upload input[type="file"] {
-        border: 1px solid var(--fg);
-        padding: .25rem;
-        border-radius: .25rem;
-        background: transparent;
-        color: inherit;
-    }
-
-    #image-grid {
-        min-height: 120px;
-    }
-
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: .5rem;
-    }
-
-    .tile {
-        border: 1px solid var(--fg);
-        border-radius: .25rem;
-        padding: .25rem;
-        display: flex;
-        flex-direction: column;
-        gap: .25rem;
-        cursor: default;
-        background: transparent;
-    }
-
-    .tile:hover {
-        outline: 2px solid var(--primary);
-        outline-offset: 0;
-    }
-
-    .tile .thumb {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        aspect-ratio: 1/1;
-        background: rgb(0 0 0 / 4%);
-        overflow: hidden;
-    }
-
-    .tile .thumb img {
-        max-width: 100%;
-        max-height: 100%;
-        display: block;
-    }
-
-    .tile .thumb svg {
-        display: block;
-        width: 48px;
-        height: 48px;
-        max-width: 100%;
-        max-height: 100%;
-    }
-
-    .tile .label {
-        font-size: .85rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .tile.folder .thumb svg {
-        color: var(--primary);
-    }
-
-    .droptarget {
-        outline: 2px dashed var(--primary) !important;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .upload-errors {
-        margin: .25rem 0;
-        padding: .5rem;
-        border: 1px solid #dc2626;
-        color: #dc2626;
-        border-radius: .25rem;
-        background: rgb(220 38 38 / 8%);
-    }
-</style>
