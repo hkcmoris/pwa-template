@@ -9,5 +9,4 @@ if (file_exists($envFile)) {
 }
 
 define('DB_A_USER', config_resolve_env($env, 'DB_A_USER', 'root'));
-
 define('DB_A_PASS', config_resolve_env($env, 'DB_A_PASS', ''));

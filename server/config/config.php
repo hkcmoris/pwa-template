@@ -9,16 +9,12 @@ if (file_exists($envFile)) {
 }
 
 define('DB_HOST', config_resolve_env($env, 'DB_HOST', 'localhost'));
-
 define('DB_NAME', config_resolve_env($env, 'DB_NAME', 'app'));
-
 define('DB_USER', config_resolve_env($env, 'DB_USER', 'root'));
-
 define('DB_PASS', config_resolve_env($env, 'DB_PASS', ''));
-
 define('JWT_SECRET', config_resolve_env($env, 'JWT_SECRET', 'change_me'));
-
 define('APP_ENV', config_resolve_env($env, 'APP_ENV', 'dev'));
+
 // Detect base path for subfolder deployments; can be overridden via env APP_BASE
 $envBase = config_resolve_env($env, 'APP_BASE');
 if (!defined('BASE_PATH')) {
