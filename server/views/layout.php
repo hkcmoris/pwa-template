@@ -401,7 +401,7 @@ function vite_asset(string $entry): ?array
         Verze <strong>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, 'UTF-8') ?></strong>
       </span>
     </div>
-      <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+      <script src="<?= htmlspecialchars($BASE) ?>/public/vendor/htmx-2.0.7.min.js" defer></script>
       <?php if ($isDevEnv) : ?>
         <script
           type="module"
