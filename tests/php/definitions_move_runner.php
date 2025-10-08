@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/bootstrap.php';
 use App\Tests\Support\FakePDO;
+use Definitions\Repository;
 
 // Load the app bootstrap from repo root
 $repoRoot = dirname(__DIR__, 2);
@@ -145,13 +146,14 @@ if (isset($scenarioData['moves'])) {
 $status = 'ok';
 $error = null;
 $snapshots = [];
+$repository = new Repository($pdo);
 try {
     foreach ($moves as $move) {
         $id = (int) $move['id'];
         $parentValue = $move['parent'] ?? null;
         $parent = $parentValue === null ? null : (int) $parentValue;
         $position = (int) $move['position'];
-        definitions_move($pdo, $id, $parent, $position);
+        $repository->move($id, $parent, $position);
         if (isset($move['label'])) {
             $snapshots[(string) $move['label']] = $sortRows($pdo->rows);
         }

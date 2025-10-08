@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Components;
 
+use Definitions\Repository as DefinitionsRepository;
 use PDO;
 use RuntimeException;
 use Throwable;
 
-use function definitions_fetch_children;
-use function definitions_find;
 use function log_message;
 
 final class Repository
@@ -18,10 +17,13 @@ final class Repository
 
     private Formatter $formatter;
 
-    public function __construct(PDO $pdo, ?Formatter $formatter = null)
+    private DefinitionsRepository $definitions;
+
+    public function __construct(PDO $pdo, ?Formatter $formatter = null, ?DefinitionsRepository $definitions = null)
     {
         $this->pdo = $pdo;
         $this->formatter = $formatter ?? new Formatter();
+        $this->definitions = $definitions ?? new DefinitionsRepository($pdo);
     }
 
     /**
@@ -412,7 +414,7 @@ final class Repository
 
     public function seedDefinitionChildren(int $componentId, int $definitionId): void
     {
-        $children = definitions_fetch_children($this->pdo, $definitionId);
+        $children = $this->definitions->fetchChildren($definitionId);
 
         if (empty($children)) {
             return;
@@ -463,7 +465,7 @@ final class Repository
         $this->pdo->beginTransaction();
 
         try {
-            if (!definitions_find($this->pdo, $definitionId)) {
+            if (!$this->definitions->find($definitionId)) {
                 throw new RuntimeException('Vybraná definice neexistuje.');
             }
 
@@ -570,7 +572,7 @@ final class Repository
                 throw new RuntimeException('Komponentu se nepodařilo najít.');
             }
 
-            if (!definitions_find($this->pdo, $definitionId)) {
+            if (!$this->definitions->find($definitionId)) {
                 throw new RuntimeException('Vybraná definice neexistuje.');
             }
 

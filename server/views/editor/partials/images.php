@@ -1,12 +1,17 @@
 <?php
-require_once __DIR__ . '/../../../lib/images.php';
+
+declare(strict_types=1);
+
+use Images\Repository;
 // Normalize base path for view usage.
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
 
-$currentPath = isset($_GET['path']) && is_string($_GET['path']) ? img_sanitize_rel($_GET['path']) : '';
-[$curDir, $currentPath] = img_resolve($currentPath);
+$repository = new Repository();
+$pathInput = isset($_GET['path']) && is_string($_GET['path']) ? $_GET['path'] : '';
+$sanitizedPath = $repository->sanitizeRelative((string) $pathInput);
+[, $currentPath] = $repository->resolve($sanitizedPath);
 $beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status'
     . ' && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
 $uploadHxVals = 'js:{ path: document.getElementById("images-root")?.dataset.currentPath'

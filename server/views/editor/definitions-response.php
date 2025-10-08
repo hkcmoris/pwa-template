@@ -1,12 +1,17 @@
 <?php
 
-require_once __DIR__ . '/../../lib/definitions.php';
+declare(strict_types=1);
+
+use Definitions\Formatter;
+use Definitions\Repository;
 
 /** @param array<string, mixed> $options */
 function definitions_render_fragments(PDO $pdo, array $options = []): void
 {
-    $definitionsTree = definitions_fetch_tree($pdo);
-    $definitionsFlat = definitions_flatten_tree($definitionsTree);
+    $repository = new Repository($pdo);
+    $formatter = new Formatter();
+    $definitionsTree = $repository->fetchTree($formatter);
+    $definitionsFlat = $formatter->flattenTree($definitionsTree);
     $selectedParent = $options['selected_parent'] ?? null;
     $message = $options['message'] ?? null;
     $messageType = $options['message_type'] ?? 'success';

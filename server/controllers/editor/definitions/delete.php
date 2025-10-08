@@ -1,9 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+use Definitions\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/definitions-response.php';
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
@@ -25,6 +24,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
+$repository = new Repository($pdo);
 $idParam = $_POST['id'] ?? '';
 if (!preg_match('/^\d+$/', (string) $idParam)) {
     http_response_code(422);
@@ -37,7 +37,7 @@ if (!preg_match('/^\d+$/', (string) $idParam)) {
 
 $id = (int) $idParam;
 try {
-    definitions_delete($pdo, $id);
+    $repository->delete($id);
     definitions_render_fragments($pdo, [
         'message' => 'Definice byla odstraněna.',
         'message_type' => 'success',

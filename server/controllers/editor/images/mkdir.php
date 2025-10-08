@@ -1,14 +1,15 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/images.php';
+use Images\Repository;
 
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-$current = isset($_POST['current']) && is_string($_POST['current']) ? img_sanitize_rel($_POST['current']) : '';
-$name    = isset($_POST['name']) && is_string($_POST['name']) ? $_POST['name'] : '';
+require_once __DIR__ . '/../../../bootstrap.php';
+
+$repository = new Repository();
+$current = isset($_POST['current']) && is_string($_POST['current']) ? $repository->sanitizeRelative($_POST['current']) : '';
+$name = isset($_POST['name']) && is_string($_POST['name']) ? (string) $_POST['name'] : '';
 
 if ($name !== '') {
-    @img_create_dir($current, $name);
+    $repository->createDir($current, $name);
 }
 
 // Re-render current view

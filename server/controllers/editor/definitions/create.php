@@ -1,10 +1,8 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/logger.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+use Definitions\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/definitions-response.php';
 log_message('Definitions create request received', 'INFO');
 if (!headers_sent()) {
@@ -24,6 +22,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
+$repository = new Repository($pdo);
 $title = isset($_POST['title']) ? trim((string) $_POST['title']) : '';
 $parentParam = null;
 if (isset($_POST['parent_id'])) {
@@ -52,7 +51,7 @@ if ($parentParam !== null) {
         $errors[] = 'Vybraný rodič není platný.';
     } else {
         $parentId = (int) $parentParam;
-        if ($parentId <= 0 || !definitions_parent_exists($pdo, $parentId)) {
+        if ($parentId <= 0 || !$repository->parentExists($parentId)) {
             log_message('Parent ID does not exist: ' . $parentId, 'ERROR');
             $errors[] = 'Vybraná rodičovská definice neexistuje.';
         }
@@ -71,9 +70,9 @@ if ($positionParam !== '') {
 
 if (empty($errors)) {
     if ($position === null) {
-        $position = definitions_next_position($pdo, $parentId);
+        $position = $repository->nextPosition($parentId);
     }
-    definitions_create($pdo, $title, $parentId, $position);
+    $repository->create($title, $parentId, $position);
     http_response_code(201);
     log_message(
         'Definition created successfully with title=' . $title .

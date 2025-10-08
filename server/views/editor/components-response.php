@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use Components\Formatter;
 use Components\Repository;
+use Definitions\Formatter as DefinitionsFormatter;
+use Definitions\Repository as DefinitionsRepository;
 use PDO;
 
 /**
@@ -15,8 +17,10 @@ function components_render_fragments(\PDO $pdo, array $options = []): void
     $repository = new Repository($pdo, $formatter);
     $componentsTree = $repository->fetchTree();
     $componentsFlat = $formatter->flattenTree($componentsTree);
-    $definitionsTree = definitions_fetch_tree($pdo);
-    $definitionsFlat = definitions_flatten_tree($definitionsTree);
+    $definitionsFormatter = new DefinitionsFormatter();
+    $definitionsRepository = new DefinitionsRepository($pdo);
+    $definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
+    $definitionsFlat = $definitionsFormatter->flattenTree($definitionsTree);
 
     $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
     $message = $options['message'] ?? null;

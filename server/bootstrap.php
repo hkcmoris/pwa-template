@@ -6,22 +6,27 @@ require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/lib/logger.php';
 require_once __DIR__ . '/lib/db.php';
 require_once __DIR__ . '/lib/jwt.php';
-require_once __DIR__ . '/lib/definitions.php';
 require_once __DIR__ . '/lib/auth.php';
-require_once __DIR__ . '/lib/images.php';
 
-spl_autoload_register(static function (string $class): void {
-    $prefix = 'Components\\';
-    $baseDir = __DIR__ . '/lib/Components/';
+$namespaces = [
+    'Components\\' => __DIR__ . '/lib/Components/',
+    'Definitions\\' => __DIR__ . '/lib/Definitions/',
+    'Images\\' => __DIR__ . '/lib/Images/',
+];
 
-    if (strncmp($class, $prefix, strlen($prefix)) !== 0) {
+spl_autoload_register(static function (string $class) use ($namespaces): void {
+    foreach ($namespaces as $prefix => $baseDir) {
+        if (strncmp($class, $prefix, strlen($prefix)) !== 0) {
+            continue;
+        }
+
+        $relativeClass = substr($class, strlen($prefix));
+        $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
+
+        if (file_exists($file)) {
+            require_once $file;
+        }
+
         return;
-    }
-
-    $relativeClass = substr($class, strlen($prefix));
-    $file = $baseDir . str_replace('\\', '/', $relativeClass) . '.php';
-
-    if (file_exists($file)) {
-        require_once $file;
     }
 });
