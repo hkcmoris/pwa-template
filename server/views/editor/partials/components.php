@@ -1,12 +1,16 @@
 <?php
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/components.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+
+use Components\Formatter;
+use Components\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 $pdo = get_db_connection();
-$componentsTree = components_fetch_tree($pdo);
-$componentsFlat = components_flatten_tree($componentsTree);
+$formatter = new Formatter();
+$repository = new Repository($pdo, $formatter);
+$componentsTree = $repository->fetchTree();
+$componentsFlat = $formatter->flattenTree($componentsTree);
 $definitionsTree = definitions_fetch_tree($pdo);
 $definitionsFlat = definitions_flatten_tree($definitionsTree);
 ?>

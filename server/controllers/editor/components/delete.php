@@ -1,10 +1,9 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/logger.php';
-require_once __DIR__ . '/../../../lib/components.php';
+use Components\Formatter;
+use Components\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
 
 if (!headers_sent()) {
@@ -36,9 +35,11 @@ if (!preg_match('/^\d+$/', (string) $componentParam)) {
 
 $componentId = (int) $componentParam;
 $pdo = get_db_connection();
+$formatter = new Formatter();
+$repository = new Repository($pdo, $formatter);
 
 try {
-    components_delete($pdo, $componentId);
+    $repository->delete($componentId);
     components_render_fragments($pdo, [
         'message' => 'Komponenta byla odstranena.',
         'message_type' => 'success',

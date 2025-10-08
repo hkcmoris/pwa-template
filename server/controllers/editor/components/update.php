@@ -1,11 +1,9 @@
 <?php
 
-require_once __DIR__ . '/../../../config/config.php';
-require_once __DIR__ . '/../../../lib/auth.php';
-require_once __DIR__ . '/../../../lib/db.php';
-require_once __DIR__ . '/../../../lib/logger.php';
-require_once __DIR__ . '/../../../lib/components.php';
-require_once __DIR__ . '/../../../lib/definitions.php';
+use Components\Formatter;
+use Components\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
 log_message('Components update request received', 'INFO');
 if (!headers_sent()) {
@@ -25,6 +23,8 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 }
 
 $pdo = get_db_connection();
+$formatter = new Formatter();
+$repository = new Repository($pdo, $formatter);
 $componentParam = $_POST['component_id'] ?? '';
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
@@ -46,7 +46,7 @@ if ($componentParam === '' || !preg_match('/^\d+$/', (string) $componentParam)) 
     $errors[] = 'Vyberte prosím platnou komponentu.';
 } else {
     $componentId = (int) $componentParam;
-    if (!components_find($pdo, $componentId)) {
+    if (!$repository->find($componentId)) {
         http_response_code(404);
         $message = 'Komponentu se nepodařilo najít.';
         components_render_fragments($pdo, [
@@ -102,9 +102,9 @@ if ($parentParam !== '') {
 if ($componentId !== null && $parentId !== null) {
     if ($componentId === $parentId) {
         $errors[] = 'Komponenta nemůže být sama sobě rodičem.';
-    } elseif (!components_parent_exists($pdo, $parentId)) {
+    } elseif (!$repository->parentExists($parentId)) {
         $errors[] = 'Zvolená rodičovská komponenta neexistuje.';
-    } elseif (components_is_descendant($pdo, $componentId, $parentId)) {
+    } elseif ($repository->isDescendant($componentId, $parentId)) {
         $errors[] = 'Nelze přesunout komponentu pod jejího potomka.';
     }
 }
@@ -117,7 +117,7 @@ if ($positionParam !== '') {
     }
 }
 
-[$priceValue, $priceError] = components_normalise_price_input($priceParam);
+[$priceValue, $priceError] = $formatter->normalisePriceInput($priceParam);
 if ($priceError !== null) {
     $errors[] = $priceError;
 }
@@ -141,8 +141,7 @@ if ($componentId === null || $definitionId === null) {
 }
 
 try {
-    components_update(
-        $pdo,
+    $repository->update(
         $componentId,
         $definitionId,
         $parentId,
