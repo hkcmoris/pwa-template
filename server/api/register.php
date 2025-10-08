@@ -5,6 +5,8 @@ require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
 $jwtSecret = config_jwt_secret();
 $input = json_decode(file_get_contents('php://input'), true);
+$body = is_array($input) ? $input : null;
+csrf_require_valid($body, 'json');
 $username = $input['username'] ?? '';
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
@@ -49,6 +51,7 @@ setcookie('token', $token, [
     'samesite' => 'Lax',
     'expires' => time() + $accessTtl,
     'path' => $cookiePath,
+    'secure' => !app_is_dev(),
 ]);
 // Issue refresh token (14 days)
 $refreshTtl = 14 * 24 * 3600;
@@ -58,6 +61,7 @@ setcookie('refresh_token', $refresh, [
     'samesite' => 'Lax',
     'expires' => time() + $refreshTtl,
     'path' => $cookiePath,
+    'secure' => !app_is_dev(),
 ]);
 http_response_code(201);
 echo json_encode(['token' => $token, 'user' => [

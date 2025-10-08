@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../lib/auth.php';
+require_once __DIR__ . '/../lib/csrf.php';
 // Resolve current user for SSR gating and header state
 $currentUser = app_get_current_user();
 $role = $currentUser['role'] ?? 'guest';
@@ -14,6 +15,8 @@ $theme  = $_COOKIE['theme'] ?? 'light';
 if ($theme !== 'dark' && $theme !== 'light') {
     $theme = 'light';
 }
+
+$csrfToken = csrf_token();
 
 // Normalized base path for subfolder deployments ('' or '/subdir')
 $BASE = rtrim((defined('BASE_PATH') ? (string) BASE_PATH : ''), '/');
@@ -59,6 +62,7 @@ function vite_asset(string $entry): ?array
     data-theme="<?= htmlspecialchars($theme) ?>"
     data-base="<?= htmlspecialchars($BASE) ?>"
     data-pretty="<?= $prettyUrlsEnabled ? '1' : '0' ?>"
+    data-csrf="<?= htmlspecialchars($csrfToken) ?>"
   >
   <head>
     <meta charset="UTF-8" />
@@ -68,6 +72,7 @@ function vite_asset(string $entry): ?array
       name="description"
       content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.') ?>"
     />
+    <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
     <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
     <style>
       :root {

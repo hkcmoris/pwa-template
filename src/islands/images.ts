@@ -1,6 +1,7 @@
 // Island for Images: modal preview, context menu (files + folders), drag & drop move
 
 import './images.css';
+import { getCsrfToken } from '../utils/api';
 
 // Minimal query root to avoid referencing global DOM typings like ParentNode
 type QueryRoot = {
@@ -52,10 +53,16 @@ const swapGridFromHTML = (html: string) => {
 async function postAndSwap(url: string, data: Record<string, string>) {
     const fd = new FormData();
     Object.entries(data).forEach(([k, v]) => fd.append(k, v));
+    const token = getCsrfToken();
+    if (token) {
+        fd.append('_csrf', token);
+    }
+    const headers = token ? { 'X-CSRF-Token': token } : undefined;
     const res = await fetch(url, {
         method: 'POST',
         body: fd,
         credentials: 'same-origin',
+        headers,
     });
     const text = await res.text();
     swapGridFromHTML(text);
