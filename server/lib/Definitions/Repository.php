@@ -332,7 +332,9 @@ final class Repository
                 $lockParent($this->pdo, $newParentId);
             }
 
-            $maxStmt = $this->pdo->prepare('SELECT COALESCE(MAX(position), -1) FROM definitions WHERE parent_id <=> :parent');
+            $maxStmt = $this->pdo->prepare(
+                'SELECT COALESCE(MAX(position), -1) FROM definitions WHERE parent_id <=> :parent'
+            );
             $maxStmt->bindValue(':parent', $oldParentId, $oldParentId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
             $maxStmt->execute();
             $parking = ((int) $maxStmt->fetchColumn()) + 1000 + $id;
@@ -380,7 +382,9 @@ final class Repository
             $shift->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
             $shift->bindValue(':position', $newPosition, PDO::PARAM_INT);
             $shift->execute();
-            $update = $this->pdo->prepare('UPDATE definitions SET parent_id = :parent, position = :position WHERE id = :id');
+            $update = $this->pdo->prepare(
+                'UPDATE definitions SET parent_id = :parent, position = :position WHERE id = :id'
+            );
             $update->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
             $update->bindValue(':position', $newPosition, PDO::PARAM_INT);
             $update->bindValue(':id', $id, PDO::PARAM_INT);

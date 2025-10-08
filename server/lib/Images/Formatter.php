@@ -60,8 +60,14 @@ final class Formatter
     /**
      * @return array{name:string,rel:string,url:string,thumbUrl:string,mtime:int,size:int}
      */
-    public function formatImageEntry(string $name, string $relative, string $url, string $thumbUrl, int $mtime, int $size): array
-    {
+    public function formatImageEntry(
+        string $name,
+        string $relative,
+        string $url,
+        string $thumbUrl,
+        int $mtime,
+        int $size
+    ): array {
         return [
             'name' => $name,
             'rel' => $relative,

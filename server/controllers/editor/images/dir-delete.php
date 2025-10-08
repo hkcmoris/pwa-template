@@ -5,8 +5,12 @@ use Images\Repository;
 require_once __DIR__ . '/../../../bootstrap.php';
 
 $repository = new Repository();
-$dir = isset($_POST['dir']) && is_string($_POST['dir']) ? $repository->sanitizeRelative($_POST['dir']) : '';
-$current = isset($_POST['current']) && is_string($_POST['current']) ? $repository->sanitizeRelative($_POST['current']) : '';
+$dir = isset($_POST['dir']) && is_string($_POST['dir'])
+    ? $repository->sanitizeRelative($_POST['dir'])
+    : '';
+$current = isset($_POST['current']) && is_string($_POST['current'])
+    ? $repository->sanitizeRelative($_POST['current'])
+    : '';
 $recursive = isset($_POST['recursive'])
     && in_array($_POST['recursive'], ['1', 'true', 'on'], true);
 

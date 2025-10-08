@@ -88,7 +88,8 @@ final class Repository
             return false;
         }
         $quality = max(10, min(100, $quality));
-        $command = 'cwebp -quiet -q ' . (int) $quality . ' ' . escapeshellarg($source) . ' -o ' . escapeshellarg($destination) . ' 2>&1';
+        $command = 'cwebp -quiet -q ' . (int) $quality . ' ' . escapeshellarg($source) .
+            ' -o ' . escapeshellarg($destination) . ' 2>&1';
         @shell_exec($command);
         return is_file($destination) && @filesize($destination) > 0;
     }
@@ -273,7 +274,9 @@ final class Repository
             if ($this->tryCwebp($temporaryFile, $destinationPath, 85)) {
                 return true;
             }
-            $this->setError('Obrázek je příliš velký pro zpracování na tomto serveru. Před nahráním jej prosím zmenšete.');
+            $this->setError(
+                'Obrázek je příliš velký pro zpracování na tomto serveru. Před nahráním jej prosím zmenšete.'
+            );
             return false;
         }
 
@@ -303,7 +306,9 @@ final class Repository
                 if (function_exists('imagecreatefromwebp')) {
                     $image = @imagecreatefromwebp($temporaryFile);
                 } else {
-                    return @move_uploaded_file($temporaryFile, $destinationPath) || @copy($temporaryFile, $destinationPath);
+                    return
+                        @move_uploaded_file($temporaryFile, $destinationPath) ||
+                        @copy($temporaryFile, $destinationPath);
                 }
                 break;
             default:
