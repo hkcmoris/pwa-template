@@ -51,5 +51,8 @@
         ">0.2%",
         "not dead",
         "not op_mini all"
-    ]
+    ],
+    "dependencies": {
+        "htmx.org": "^2.0.7"
+    }
 }
