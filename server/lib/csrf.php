@@ -83,6 +83,25 @@ function csrf_token(): string
     return $existing;
 }
 
+function csrf_token_if_active(): string
+{
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        return csrf_token();
+    }
+
+    $sessionName = session_name();
+    if ($sessionName === '') {
+        return '';
+    }
+
+    $sessionId = $_COOKIE[$sessionName] ?? '';
+    if (!is_string($sessionId) || $sessionId === '') {
+        return '';
+    }
+
+    return csrf_token();
+}
+
 function csrf_field(): string
 {
     $token = csrf_token();

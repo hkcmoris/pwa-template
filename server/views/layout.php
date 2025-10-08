@@ -16,7 +16,7 @@ if ($theme !== 'dark' && $theme !== 'light') {
     $theme = 'light';
 }
 
-$csrfToken = csrf_token();
+$csrfToken = csrf_token_if_active();
 
 // Normalized base path for subfolder deployments ('' or '/subdir')
 $BASE = rtrim((defined('BASE_PATH') ? (string) BASE_PATH : ''), '/');
@@ -72,7 +72,9 @@ function vite_asset(string $entry): ?array
       name="description"
       content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.') ?>"
     />
+    <?php if ($csrfToken !== '') : ?>
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
+    <?php endif; ?>
     <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
     <style>
       :root {
