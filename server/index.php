@@ -155,6 +155,14 @@ $descMap = [
 ];
 $description = $descMap[$view] ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.';
 
+$viewStylesMap = [
+    'editor/definitions' => ['editor-partial-style' => 'src/styles/editor/definitions.css'],
+    'editor/components' => ['editor-partial-style' => 'src/styles/editor/components.css'],
+    'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
+];
+
+$viewStyles = $viewStylesMap[$view] ?? [];
+
 $viewsRequiringCsrf = ['login', 'register'];
 if (in_array($view, $viewsRequiringCsrf, true)) {
     // Ensure the CSRF token is generated before any output so session cookies
