@@ -15,7 +15,7 @@ This document explains how to deploy the application to a production hosting acc
 
 1. Ensure dependencies are installed: `npm install`.
 2. Run the production build: `npm run build`.
-3. Verify the `server/`, `public/`, and any other PHP-facing directories contain the generated assets required for deployment.
+3. Verify the `server/` directory contains the generated assets required for deployment, including the nested `server/public/` folder with hashed files under `server/public/assets/`.
 4. Review the build output (e.g., `public/assets/`) for hashed filenames and confirm only necessary files will be uploaded.
 
 ---
@@ -47,11 +47,10 @@ This document explains how to deploy the application to a production hosting acc
 1. In FileZilla, browse the **Local site** pane to the project directory containing the built artifacts (typically the repository root).
 2. In the **Remote site** pane, navigate to the public web root on the server (often named `public_html`, `www`, or the document root provided by the host).
 3. Before uploading, remove any existing outdated files on the server that should be replaced. Maintain backups when necessary.
-4. Upload the following directories/files:
-   - `/server` (PHP application code).
-   - `/public` (static assets, service worker, manifest, etc.).
-   - `/install.php` (installer script, if it is not already on the server).
-   - Any supporting directories like `/storage`, `/config`, or `/vendor` depending on your project layout.
+4. Upload the PHP application code so that the host serves `index.php` from the document root:
+   - Open the local `server/` directory, select its contents (not the folder itself), and upload them directly into the remote web root. This keeps the bundled `public/` directory at `public_html/public/` (or equivalent) and ensures `index.php` is available at the top level.
+   - **Alternative:** If the hosting control panel allows changing the document root, you may upload the entire `server/` directory and then point the site’s document root to that folder.
+   - Confirm that `install.php`, `router.php`, and any supporting directories such as `config`, `storage`, or `vendor` are transferred according to your project layout.
 5. Ensure `.htaccess` (if used) is transferred; enable FileZilla’s option **Server → Force showing hidden files** to view dotfiles.
 6. Wait until FileZilla completes all transfers with zero failed files. Retry any failed transfers.
 
@@ -63,7 +62,7 @@ This document explains how to deploy the application to a production hosting acc
 
 After uploading, correct permissions to meet the host’s security requirements:
 
-1. In FileZilla, right-click the `public` directory and select **File permissions…**.
+1. In FileZilla, right-click the `public` directory inside the document root (uploaded from `server/public`) and select **File permissions…**.
 2. Set directories to `755` (read/execute for everyone, write for owner).
 3. Set PHP files to `644` (read for everyone, write for owner).
 4. For any directory that must be writable by PHP (e.g., `storage`, `cache`, or `uploads`), set permissions to `775` or `755` depending on the host. Avoid `777` unless the host explicitly requires it.
@@ -72,6 +71,7 @@ After uploading, correct permissions to meet the host’s security requirements:
 If you have SSH access, you can alternatively run commands such as:
 
 ```bash
+# Run from the document root on the server (the directory containing index.php)
 find public -type d -exec chmod 755 {} \;
 find public -type f -exec chmod 644 {} \;
 ```
