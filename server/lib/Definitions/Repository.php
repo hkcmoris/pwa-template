@@ -25,10 +25,10 @@ final class Repository
      */
     public function fetchRows(?int $limit = null, int $offset = 0): array
     {
-        $sql = <<<'SQL'
+        $sql = <<<SQL
         SELECT id, parent_id, title, position, meta, created_at, updated_at
-          FROM definitions
-      ORDER BY (parent_id IS NULL) DESC, parent_id, position, id
+        FROM definitions
+        ORDER BY (parent_id IS NULL) DESC, parent_id, position, id
         SQL;
 
         if ($limit !== null) {

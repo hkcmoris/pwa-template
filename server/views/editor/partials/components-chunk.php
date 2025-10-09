@@ -129,7 +129,13 @@ foreach ($items as $node) {
               <div><dt>Obrázek</dt><dd><?= $image ?></dd></div>
             <?php endif; ?>
             <?php if ($color !== '') : ?>
-              <div><dt>Barva</dt><dd><span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span><?= $color ?></dd></div>
+              <div>
+                <dt>Barva</dt>
+                <dd>
+                  <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
+                  <?= $color ?>
+                </dd>
+              </div>
             <?php endif; ?>
             <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
           </dl>

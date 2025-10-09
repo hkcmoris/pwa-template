@@ -176,7 +176,10 @@ final class Repository
         }
 
         $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
-        $sql = 'SELECT parent_id, COUNT(*) AS total FROM components WHERE parent_id IN (' . $placeholders . ') GROUP BY parent_id';
+        $sql = 'SELECT parent_id, COUNT(*) AS total ' .
+               'FROM components ' .
+               'WHERE parent_id IN (' . $placeholders . ') ' .
+               'GROUP BY parent_id';
         $stmt = $this->pdo->prepare($sql);
 
         foreach ($uniqueIds as $index => $componentId) {
