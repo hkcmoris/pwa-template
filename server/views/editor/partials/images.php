@@ -62,6 +62,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
         hx-target="#image-grid"
         hx-select="#image-grid"
         hx-swap="outerHTML">
+        <?= csrf_field() ?>
         <label>
             <span>Nahrát obrázky</span>
             <input type="file" name="images[]" accept="image/*" multiple required>
