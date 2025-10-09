@@ -9,8 +9,6 @@ use PDO;
 use RuntimeException;
 use Throwable;
 
-use function log_message;
-
 final class Repository
 {
     private PDO $pdo;
@@ -19,11 +17,26 @@ final class Repository
 
     private DefinitionsRepository $definitions;
 
-    public function __construct(PDO $pdo, ?Formatter $formatter = null, ?DefinitionsRepository $definitions = null)
-    {
+    private QueryService $queries;
+
+    private TreeBuilder $treeBuilder;
+
+    private Validator $validator;
+
+    public function __construct(
+        PDO $pdo,
+        ?Formatter $formatter = null,
+        ?DefinitionsRepository $definitions = null,
+        ?QueryService $queries = null,
+        ?TreeBuilder $treeBuilder = null,
+        ?Validator $validator = null
+    ) {
         $this->pdo = $pdo;
         $this->formatter = $formatter ?? new Formatter();
         $this->definitions = $definitions ?? new DefinitionsRepository($pdo);
+        $this->queries = $queries ?? new QueryService($pdo, $this->formatter);
+        $this->treeBuilder = $treeBuilder ?? new TreeBuilder($this->queries, $this->formatter);
+        $this->validator = $validator ?? new Validator($this->definitions, $this->queries);
     }
 
     /**
@@ -31,68 +44,7 @@ final class Repository
      */
     public function fetchRows(?int $limit = null, int $offset = 0): array
     {
-        $sql = <<<'SQL'
-        SELECT
-            c.id,
-            c.definition_id,
-            c.parent_id,
-            c.alternate_title,
-            c.description,
-            c.image,
-            c.color,
-            c.dependency_tree,
-            c.position,
-            c.created_at,
-            c.updated_at,
-            d.title AS definition_title
-        FROM components c
-        INNER JOIN definitions d ON d.id = c.definition_id
-        ORDER BY (c.parent_id IS NULL) DESC, c.parent_id, c.position, c.id
-        SQL;
-
-        if ($limit !== null) {
-            if ($limit <= 0) {
-                $limit = 1;
-            }
-
-            if ($offset < 0) {
-                $offset = 0;
-            }
-
-            $sql .= ' LIMIT :limit OFFSET :offset';
-        }
-
-        $stmt = $this->pdo->prepare($sql);
-
-        if ($limit !== null) {
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        }
-
-        $stmt->execute();
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $componentIds = array_map(static fn($row) => isset($row['id']) ? (int) $row['id'] : 0, $rows);
-        $priceHistoryMap = $this->fetchPriceHistory($componentIds);
-        $needsMetadata = $limit !== null;
-        $childrenCountMap = $needsMetadata ? $this->fetchChildrenCounts($componentIds) : [];
-        $depthMap = $needsMetadata ? $this->computeDepthMap($componentIds) : [];
-        $normalised = [];
-
-        foreach ($rows as $row) {
-            $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
-            $row['effective_title'] = $this->formatter->effectiveTitle($row);
-            $rowId = isset($row['id']) ? (int) $row['id'] : 0;
-            $history = $priceHistoryMap[$rowId] ?? [];
-            $row['price_history'] = $history;
-            $row['latest_price'] = $history[0] ?? null;
-            $row['children_count'] = $childrenCountMap[$rowId] ?? 0;
-            $row['depth'] = $depthMap[$rowId] ?? 0;
-            $normalised[] = $row;
-        }
-
-        log_message('Fetched ' . count($normalised) . ' components from database', 'DEBUG');
-
-        return $normalised;
+        return $this->queries->fetchRows($limit, $offset);
     }
 
     /**
@@ -101,154 +53,7 @@ final class Repository
      */
     public function fetchPriceHistory(array $componentIds, int $limitPerComponent = 10): array
     {
-        $mappedIds = array_map(static fn($id) => (int) $id, $componentIds);
-        $uniqueIds = array_values(
-            array_filter(
-                array_unique($mappedIds),
-                static fn($id) => $id > 0
-            )
-        );
-
-        if (empty($uniqueIds)) {
-            return [];
-        }
-
-        $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
-        $sql = 'SELECT component_id, amount, currency, created_at'
-            . ' FROM prices'
-            . ' WHERE component_id IN (' . $placeholders . ')'
-            . ' ORDER BY component_id, created_at DESC';
-        $stmt = $this->pdo->prepare($sql);
-
-        foreach ($uniqueIds as $index => $componentId) {
-            $stmt->bindValue($index + 1, $componentId, PDO::PARAM_INT);
-        }
-
-        $stmt->execute();
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $history = [];
-
-        foreach ($rows as $row) {
-            $componentId = isset($row['component_id']) ? (int) $row['component_id'] : 0;
-            if ($componentId <= 0) {
-                continue;
-            }
-
-            if (!isset($history[$componentId])) {
-                $history[$componentId] = [];
-            }
-
-            if (count($history[$componentId]) >= $limitPerComponent) {
-                continue;
-            }
-
-            $amount = isset($row['amount']) ? (string) $row['amount'] : '';
-            $currency = array_key_exists('currency', $row) && $row['currency'] !== null
-                ? strtoupper((string) $row['currency'])
-                : 'CZK';
-            $createdAt = isset($row['created_at']) ? (string) $row['created_at'] : '';
-
-            $history[$componentId][] = [
-                'amount' => $amount,
-                'currency' => $currency,
-                'created_at' => $createdAt,
-            ];
-        }
-
-        return $history;
-    }
-
-    /**
-     * @param array<int, int> $componentIds
-     * @return array<int, int>
-     */
-    private function fetchChildrenCounts(array $componentIds): array
-    {
-        $uniqueIds = array_values(
-            array_filter(
-                array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
-                static fn($id) => $id > 0
-            )
-        );
-
-        if ($uniqueIds === []) {
-            return [];
-        }
-
-        $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
-        $sql = 'SELECT parent_id, COUNT(*) AS total ' .
-               'FROM components ' .
-               'WHERE parent_id IN (' . $placeholders . ') ' .
-               'GROUP BY parent_id';
-        $stmt = $this->pdo->prepare($sql);
-
-        foreach ($uniqueIds as $index => $componentId) {
-            $stmt->bindValue($index + 1, $componentId, PDO::PARAM_INT);
-        }
-
-        $stmt->execute();
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $counts = [];
-
-        foreach ($rows as $row) {
-            if (!isset($row['parent_id'])) {
-                continue;
-            }
-
-            $key = (int) $row['parent_id'];
-            $counts[$key] = isset($row['total']) ? (int) $row['total'] : 0;
-        }
-
-        return $counts;
-    }
-
-    /**
-     * @param array<int, int> $componentIds
-     * @return array<int, int>
-     */
-    private function computeDepthMap(array $componentIds): array
-    {
-        $ids = array_values(
-            array_filter(
-                array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
-                static fn($id) => $id > 0
-            )
-        );
-
-        if ($ids === []) {
-            return [];
-        }
-
-        $depths = [];
-        $stmt = $this->pdo->prepare('SELECT parent_id FROM components WHERE id = :id LIMIT 1');
-
-        $computeDepth = function (int $id) use (&$depths, $stmt, &$computeDepth): int {
-            if (isset($depths[$id])) {
-                return $depths[$id];
-            }
-
-            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmt->execute();
-            $parent = $stmt->fetchColumn();
-            $stmt->closeCursor();
-
-            if ($parent === false || $parent === null) {
-                $depths[$id] = 0;
-
-                return 0;
-            }
-
-            $depth = $computeDepth((int) $parent) + 1;
-            $depths[$id] = $depth;
-
-            return $depth;
-        };
-
-        foreach ($ids as $id) {
-            $computeDepth($id);
-        }
-
-        return $depths;
+        return $this->queries->fetchPriceHistory($componentIds, $limitPerComponent);
     }
 
     /**
@@ -256,82 +61,66 @@ final class Repository
      */
     public function find(int $id): ?array
     {
-        $sql = <<<'SQL'
-        SELECT
-            c.id,
-            c.definition_id,
-            c.parent_id,
-            c.alternate_title,
-            c.description,
-            c.image,
-            c.color,
-            c.dependency_tree,
-            c.position,
-            c.created_at,
-            c.updated_at,
-            d.title AS definition_title
-        FROM components c
-        INNER JOIN definitions d ON d.id = c.definition_id
-        WHERE c.id = :id
-        SQL;
-
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if (!$row) {
-            return null;
-        }
-
-        $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
-        $row['effective_title'] = $this->formatter->effectiveTitle($row);
-        $priceHistory = $this->fetchPriceHistory([$id]);
-        $history = $priceHistory[$id] ?? [];
-        $row['price_history'] = $history;
-        $row['latest_price'] = $history[0] ?? null;
-
-        return $row;
+        return $this->queries->find($id);
     }
 
     public function parentExists(int $parentId): bool
     {
-        $stmt = $this->pdo->prepare('SELECT 1 FROM components WHERE id = :id LIMIT 1');
-        $stmt->bindValue(':id', $parentId, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return (bool) $stmt->fetchColumn();
+        return $this->queries->parentExists($parentId);
     }
 
     public function childrenCount(?int $parentId): int
     {
-        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM components WHERE parent_id <=> :parent');
-
-        if ($parentId === null) {
-            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-
-        $stmt->execute();
-
-        return (int) $stmt->fetchColumn();
+        return $this->queries->childrenCount($parentId);
     }
 
     public function nextPosition(?int $parentId): int
     {
-        $stmt = $this->pdo->prepare('SELECT COALESCE(MAX(position), -1) FROM components WHERE parent_id <=> :parent');
+        return $this->queries->nextPosition($parentId);
+    }
 
-        if ($parentId === null) {
-            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function fetchTree(): array
+    {
+        return $this->treeBuilder->fetchTree();
+    }
+
+    public function countAll(): int
+    {
+        return $this->queries->countAll();
+    }
+
+    public function isDescendant(int $ancestorId, int $candidateId): bool
+    {
+        return $this->validator->isDescendant($ancestorId, $candidateId);
+    }
+
+    /**
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function normaliseMediaInputs(?string $image, ?string $color): array
+    {
+        if ($image !== null) {
+            $image = trim((string) $image);
+            if ($image === '') {
+                $image = null;
+            }
         }
 
-        $stmt->execute();
-        $max = (int) $stmt->fetchColumn();
+        if ($color !== null) {
+            $color = trim((string) $color);
+            if ($color === '') {
+                $color = null;
+            }
+        }
 
-        return $max + 1;
+        if ($image !== null && $color !== null) {
+            $color = null;
+        }
+
+        return [$image, $color];
     }
 
     public function reorderPositions(?int $parentId): void
@@ -365,32 +154,6 @@ final class Repository
         }
     }
 
-    /**
-     * @return array{0: ?string, 1: ?string}
-     */
-    private function normaliseMediaInputs(?string $image, ?string $color): array
-    {
-        if ($image !== null) {
-            $image = trim((string) $image);
-            if ($image === '') {
-                $image = null;
-            }
-        }
-
-        if ($color !== null) {
-            $color = trim((string) $color);
-            if ($color === '') {
-                $color = null;
-            }
-        }
-
-        if ($image !== null && $color !== null) {
-            $color = null;
-        }
-
-        return [$image, $color];
-    }
-
     public function insertComponentRow(
         int $definitionId,
         ?int $parentId,
@@ -405,7 +168,7 @@ final class Repository
         }
 
         $this->reorderPositions($parentId);
-        $count = $this->childrenCount($parentId);
+        $count = $this->queries->childrenCount($parentId);
 
         if ($position > $count) {
             $position = $count;
@@ -537,7 +300,7 @@ final class Repository
             return;
         }
 
-        $position = $this->childrenCount($componentId);
+        $position = $this->queries->childrenCount($componentId);
 
         foreach ($children as $child) {
             if (!isset($child['id'])) {
@@ -582,13 +345,8 @@ final class Repository
         $this->pdo->beginTransaction();
 
         try {
-            if (!$this->definitions->find($definitionId)) {
-                throw new RuntimeException('Vybraná definice neexistuje.');
-            }
-
-            if ($parentId !== null && !$this->parentExists($parentId)) {
-                throw new RuntimeException('Vybraný rodič neexistuje.');
-            }
+            $this->validator->assertDefinitionExists($definitionId);
+            $this->validator->assertParentExists($parentId, 'Vybraný rodič neexistuje.');
 
             $componentId = $this->insertComponentRow(
                 $definitionId,
@@ -621,58 +379,6 @@ final class Repository
     }
 
     /**
-     * @return array<int, array<string, mixed>>
-     */
-    public function fetchTree(): array
-    {
-        $rows = $this->fetchRows();
-
-        return $this->formatter->buildTree($rows);
-    }
-
-    public function countAll(): int
-    {
-        $stmt = $this->pdo->query('SELECT COUNT(*) FROM components');
-
-        return (int) $stmt->fetchColumn();
-    }
-
-    public function isDescendant(int $ancestorId, int $candidateId): bool
-    {
-        if ($ancestorId === $candidateId) {
-            return true;
-        }
-
-        $stmt = $this->pdo->prepare('SELECT parent_id FROM components WHERE id = :id LIMIT 1');
-        $current = $candidateId;
-        $visited = [];
-
-        while (true) {
-            if (isset($visited[$current])) {
-                return false;
-            }
-
-            $visited[$current] = true;
-            $stmt->bindValue(':id', $current, PDO::PARAM_INT);
-            $stmt->execute();
-            $parent = $stmt->fetchColumn();
-            $stmt->closeCursor();
-
-            if ($parent === false || $parent === null) {
-                return false;
-            }
-
-            $parentId = (int) $parent;
-
-            if ($parentId === $ancestorId) {
-                return true;
-            }
-
-            $current = $parentId;
-        }
-    }
-
-    /**
      * @return array<string, mixed>
      */
     public function update(
@@ -690,29 +396,9 @@ final class Repository
         $this->pdo->beginTransaction();
 
         try {
-            $current = $this->find($componentId);
-
-            if (!$current) {
-                throw new RuntimeException('Komponentu se nepodařilo najít.');
-            }
-
-            if (!$this->definitions->find($definitionId)) {
-                throw new RuntimeException('Vybraná definice neexistuje.');
-            }
-
-            if ($parentId !== null) {
-                if ($parentId === $componentId) {
-                    throw new RuntimeException('Komponenta nemůže být sama sobě rodičem.');
-                }
-
-                if (!$this->parentExists($parentId)) {
-                    throw new RuntimeException('Vybraný rodičovský prvek neexistuje.');
-                }
-
-                if ($this->isDescendant($componentId, $parentId)) {
-                    throw new RuntimeException('Nelze přesunout komponentu pod jejího potomka.');
-                }
-            }
+            $current = $this->validator->findComponentOrFail($componentId, 'Komponentu se nepodařilo najít.');
+            $this->validator->assertDefinitionExists($definitionId);
+            $this->validator->assertParentChangeIsValid($componentId, $parentId);
 
             $oldParentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
             $detach = $this->pdo->prepare('UPDATE components SET parent_id = NULL WHERE id = :id');
@@ -726,7 +412,7 @@ final class Repository
                 $this->reorderPositions(null);
             }
 
-            $childCount = $this->childrenCount($parentId);
+            $childCount = $this->queries->childrenCount($parentId);
 
             if ($position === null || $position < 0) {
                 $position = $childCount;
@@ -841,11 +527,7 @@ final class Repository
         $this->pdo->beginTransaction();
 
         try {
-            $current = $this->find($componentId);
-
-            if (!$current) {
-                throw new RuntimeException('Komponenta nebyla nalezena.');
-            }
+            $current = $this->validator->findComponentOrFail($componentId, 'Komponenta nebyla nalezena.');
 
             $stmt = $this->pdo->prepare('DELETE FROM components WHERE id = :id');
             $stmt->bindValue(':id', $componentId, PDO::PARAM_INT);
