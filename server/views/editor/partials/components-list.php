@@ -4,14 +4,17 @@
  * @var int $componentPageSize
  * @var int $totalComponents
  */
-$items = $componentsPage ?? [];
+$items = $componentsPage;
 $pageCount = count($items);
 $nextOffset = isset($nextOffset) ? (int) $nextOffset : $pageCount;
 $hasMore = isset($hasMore)
     ? (bool) $hasMore
-    : ($nextOffset < ($totalComponents ?? 0));
+    : ($nextOffset < $totalComponents);
 $isHx = isset($_SERVER['HTTP_HX_REQUEST']);
-$sentinelAttrs = $isHx ? ' hx-swap-oob="true"' : '';
+$hxTarget = isset($_SERVER['HTTP_HX_TARGET']) ? (string) $_SERVER['HTTP_HX_TARGET'] : '';
+$normalizedHxTarget = strtolower(ltrim($hxTarget, '#'));
+$shouldUseOob = $isHx && $normalizedHxTarget !== '' && $normalizedHxTarget !== 'editor-root';
+$sentinelAttrs = $shouldUseOob ? ' hx-swap-oob="true"' : '';
 ?>
 <div class="components-list-wrapper" id="components-list-wrapper">
   <?php if (empty($items)) : ?>

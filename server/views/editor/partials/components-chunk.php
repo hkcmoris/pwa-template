@@ -2,7 +2,7 @@
 /**
  * @var array<int, array<string, mixed>> $componentsPage
  */
-$items = $componentsPage ?? [];
+$items = $componentsPage;
 
 foreach ($items as $node) {
     $id = isset($node['id']) ? (int) $node['id'] : 0;
