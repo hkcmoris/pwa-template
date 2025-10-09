@@ -2,10 +2,13 @@
 
 use Components\Formatter;
 use Components\Repository;
+use Definitions\Formatter as DefinitionsFormatter;
 use Definitions\Repository as DefinitionsRepository;
+use Editor\ComponentPresenter;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
+
 log_message('Components update request received', 'INFO');
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
@@ -25,8 +28,11 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 
 $pdo = get_db_connection();
 $formatter = new Formatter();
+$definitionsFormatter = new DefinitionsFormatter();
 $definitionsRepository = new DefinitionsRepository($pdo);
 $repository = new Repository($pdo, $formatter, $definitionsRepository);
+$presenter = new ComponentPresenter($repository, $formatter, $definitionsRepository, $definitionsFormatter);
+
 $componentParam = $_POST['component_id'] ?? '';
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
@@ -44,17 +50,18 @@ $definitionId = null;
 $parentId = null;
 $position = null;
 $priceValue = null;
+
 if ($componentParam === '' || !preg_match('/^\d+$/', (string) $componentParam)) {
     $errors[] = 'Vyberte prosím platnou komponentu.';
 } else {
     $componentId = (int) $componentParam;
     if (!$repository->find($componentId)) {
         http_response_code(404);
-        $message = 'Komponentu se nepodařilo najít.';
-        components_render_fragments($pdo, [
-            'message' => $message,
+        $viewModel = $presenter->presentInitial([
+            'message' => 'Komponentu se nepodařilo najít.',
             'message_type' => 'error',
         ]);
+        components_render_fragments($viewModel);
         return;
     }
 }
@@ -126,19 +133,21 @@ if ($priceError !== null) {
 
 if (!empty($errors)) {
     http_response_code(422);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => implode(' ', $errors),
         'message_type' => 'error',
     ]);
+    components_render_fragments($viewModel);
     return;
 }
 
 if ($componentId === null || $definitionId === null) {
     http_response_code(422);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => 'Komponentu se nepodařilo zpracovat.',
         'message_type' => 'error',
     ]);
+    components_render_fragments($viewModel);
     return;
 }
 
@@ -155,15 +164,17 @@ try {
         $priceValue,
         'CZK'
     );
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => 'Komponenta byla aktualizována.',
         'message_type' => 'success',
     ]);
+    components_render_fragments($viewModel);
 } catch (Throwable $e) {
     log_message('Component update failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => 'Komponentu se nepodařilo aktualizovat.',
         'message_type' => 'error',
     ]);
+    components_render_fragments($viewModel);
 }

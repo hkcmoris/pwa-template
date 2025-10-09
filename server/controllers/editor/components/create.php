@@ -2,10 +2,13 @@
 
 use Components\Formatter;
 use Components\Repository;
+use Definitions\Formatter as DefinitionsFormatter;
 use Definitions\Repository as DefinitionsRepository;
+use Editor\ComponentPresenter;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
+
 log_message('Components create request received', 'INFO');
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
@@ -25,8 +28,11 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 
 $pdo = get_db_connection();
 $formatter = new Formatter();
+$definitionsFormatter = new DefinitionsFormatter();
 $definitionsRepository = new DefinitionsRepository($pdo);
 $repository = new Repository($pdo, $formatter, $definitionsRepository);
+$presenter = new ComponentPresenter($repository, $formatter, $definitionsRepository, $definitionsFormatter);
+
 $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
 $alternateTitle = isset($_POST['alternate_title']) ? trim((string) $_POST['alternate_title']) : '';
@@ -42,6 +48,7 @@ $definitionId = null;
 $parentId = null;
 $position = null;
 $priceValue = null;
+
 if ($definitionParam === '' || !preg_match('/^\d+$/', (string) $definitionParam)) {
     $errors[] = 'Vyberte prosím platnou definici.';
 } else {
@@ -102,19 +109,21 @@ if ($priceError !== null) {
 
 if (!empty($errors)) {
     http_response_code(422);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => implode(' ', $errors),
         'message_type' => 'error',
     ]);
+    components_render_fragments($viewModel);
     return;
 }
 
 if ($definitionId === null) {
     http_response_code(422);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => 'Vyberte prosím definici.',
         'message_type' => 'error',
     ]);
+    components_render_fragments($viewModel);
     return;
 }
 
@@ -135,15 +144,17 @@ try {
         'CZK'
     );
     http_response_code(201);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => 'Komponenta byla uložena.',
         'message_type' => 'success',
     ]);
+    components_render_fragments($viewModel);
 } catch (Throwable $e) {
     log_message('Component creation failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
-    components_render_fragments($pdo, [
+    $viewModel = $presenter->presentInitial([
         'message' => 'Komponentu se nepodařilo uložit.',
         'message_type' => 'error',
     ]);
+    components_render_fragments($viewModel);
 }

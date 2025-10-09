@@ -14,6 +14,7 @@ $namespaces = [
     'Components\\' => __DIR__ . '/lib/Components/',
     'Definitions\\' => __DIR__ . '/lib/Definitions/',
     'Images\\' => __DIR__ . '/lib/Images/',
+    'Editor\\' => __DIR__ . '/lib/Editor/',
 ];
 
 spl_autoload_register(static function (string $class) use ($namespaces): void {
