@@ -57,7 +57,10 @@ async function postAndSwap(url: string, data: Record<string, string>) {
     if (token) {
         fd.append('_csrf', token);
     }
-    const headers = token ? { 'X-CSRF-Token': token } : undefined;
+    const headers: Record<string, string> = { 'HX-Request': 'true' };
+    if (token) {
+        headers['X-CSRF-Token'] = token;
+    }
     const res = await fetch(url, {
         method: 'POST',
         body: fd,
