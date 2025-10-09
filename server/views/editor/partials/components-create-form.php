@@ -13,8 +13,8 @@ $parentPlaceholder = 'Kořenová komponenta';
   hx-post="<?= htmlspecialchars($BASE) ?>/editor/components/create"
   action="<?= htmlspecialchars($BASE) ?>/editor/components/create"
   method="post"
-  hx-target="#components-list"
-  hx-select="#components-list"
+  hx-target="#components-list-wrapper"
+  hx-select="#components-list-wrapper"
   hx-swap="outerHTML"
 >
   <input type="hidden" id="component-modal-id" name="component_id" value="">

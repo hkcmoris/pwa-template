@@ -140,9 +140,10 @@ final class Formatter
         $flat = [];
 
         foreach ($tree as $node) {
-            $children = $node['children'] ?? [];
+            $children = isset($node['children']) && is_array($node['children']) ? $node['children'] : [];
             $copy = $node;
             $copy['depth'] = $depth;
+            $copy['children_count'] = count($children);
             unset($copy['children']);
             $flat[] = $copy;
 

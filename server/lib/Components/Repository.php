@@ -29,7 +29,7 @@ final class Repository
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function fetchRows(): array
+    public function fetchRows(?int $limit = null, int $offset = 0): array
     {
         $sql = <<<'SQL'
         SELECT
@@ -50,10 +50,32 @@ final class Repository
         ORDER BY (c.parent_id IS NULL) DESC, c.parent_id, c.position, c.id
         SQL;
 
-        $stmt = $this->pdo->query($sql);
+        if ($limit !== null) {
+            if ($limit <= 0) {
+                $limit = 1;
+            }
+
+            if ($offset < 0) {
+                $offset = 0;
+            }
+
+            $sql .= ' LIMIT :limit OFFSET :offset';
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $componentIds = array_map(static fn($row) => isset($row['id']) ? (int) $row['id'] : 0, $rows);
         $priceHistoryMap = $this->fetchPriceHistory($componentIds);
+        $needsMetadata = $limit !== null;
+        $childrenCountMap = $needsMetadata ? $this->fetchChildrenCounts($componentIds) : [];
+        $depthMap = $needsMetadata ? $this->computeDepthMap($componentIds) : [];
         $normalised = [];
 
         foreach ($rows as $row) {
@@ -63,6 +85,8 @@ final class Repository
             $history = $priceHistoryMap[$rowId] ?? [];
             $row['price_history'] = $history;
             $row['latest_price'] = $history[0] ?? null;
+            $row['children_count'] = $childrenCountMap[$rowId] ?? 0;
+            $row['depth'] = $depthMap[$rowId] ?? 0;
             $normalised[] = $row;
         }
 
@@ -132,6 +156,96 @@ final class Repository
         }
 
         return $history;
+    }
+
+    /**
+     * @param array<int, int> $componentIds
+     * @return array<int, int>
+     */
+    private function fetchChildrenCounts(array $componentIds): array
+    {
+        $uniqueIds = array_values(
+            array_filter(
+                array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
+                static fn($id) => $id > 0
+            )
+        );
+
+        if ($uniqueIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
+        $sql = 'SELECT parent_id, COUNT(*) AS total FROM components WHERE parent_id IN (' . $placeholders . ') GROUP BY parent_id';
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($uniqueIds as $index => $componentId) {
+            $stmt->bindValue($index + 1, $componentId, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $counts = [];
+
+        foreach ($rows as $row) {
+            if (!isset($row['parent_id'])) {
+                continue;
+            }
+
+            $key = (int) $row['parent_id'];
+            $counts[$key] = isset($row['total']) ? (int) $row['total'] : 0;
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @param array<int, int> $componentIds
+     * @return array<int, int>
+     */
+    private function computeDepthMap(array $componentIds): array
+    {
+        $ids = array_values(
+            array_filter(
+                array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
+                static fn($id) => $id > 0
+            )
+        );
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $depths = [];
+        $stmt = $this->pdo->prepare('SELECT parent_id FROM components WHERE id = :id LIMIT 1');
+
+        $computeDepth = function (int $id) use (&$depths, $stmt, &$computeDepth): int {
+            if (isset($depths[$id])) {
+                return $depths[$id];
+            }
+
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+            $parent = $stmt->fetchColumn();
+            $stmt->closeCursor();
+
+            if ($parent === false || $parent === null) {
+                $depths[$id] = 0;
+
+                return 0;
+            }
+
+            $depth = $computeDepth((int) $parent) + 1;
+            $depths[$id] = $depth;
+
+            return $depth;
+        };
+
+        foreach ($ids as $id) {
+            $computeDepth($id);
+        }
+
+        return $depths;
     }
 
     /**
@@ -511,6 +625,13 @@ final class Repository
         $rows = $this->fetchRows();
 
         return $this->formatter->buildTree($rows);
+    }
+
+    public function countAll(): int
+    {
+        $stmt = $this->pdo->query('SELECT COUNT(*) FROM components');
+
+        return (int) $stmt->fetchColumn();
     }
 
     public function isDescendant(int $ancestorId, int $candidateId): bool

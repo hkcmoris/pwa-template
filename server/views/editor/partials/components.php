@@ -11,8 +11,11 @@ $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 $pdo = get_db_connection();
 $formatter = new Formatter();
 $repository = new Repository($pdo, $formatter);
+$componentPageSize = 50;
 $componentsTree = $repository->fetchTree();
 $componentsFlat = $formatter->flattenTree($componentsTree);
+$totalComponents = count($componentsFlat);
+$componentsPage = array_slice($componentsFlat, 0, $componentPageSize);
 $definitionsFormatter = new DefinitionsFormatter();
 $definitionsRepository = new DefinitionsRepository($pdo);
 $definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
@@ -52,12 +55,15 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
   </div>
   <div id="component-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
   <div id="component-summary" class="component-summary">
-    <p><strong>Celkem komponent:</strong> <?= count($componentsFlat) ?></p>
+    <p><strong>Celkem komponent:</strong> <?= $totalComponents ?></p>
   </div>
   <template id="component-create-template">
     <?php include __DIR__ . '/components-create-form.php'; ?>
   </template>
   <div id="components-modal" class="components-modal hidden" aria-hidden="true"></div>
-  <?php include __DIR__ . '/components-tree.php'; ?>
+  <?php
+    $componentsPage = $componentsPage ?? [];
+    include __DIR__ . '/components-list.php';
+  ?>
 </div>
 
