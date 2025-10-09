@@ -46,7 +46,13 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     id="definition-parent-select"
     class="definition-parent-select"
     data-island="select"
-    hx-on="select:change: const hidden=this.querySelector('#definition-parent-value'); if (hidden) { const raw = (event.detail && event.detail.value) || ''; hidden.value = raw; }"
+    hx-on:select:change="
+      const hidden=this.querySelector('#definition-parent-value');
+      if (hidden) {
+        const raw = (event.detail && event.detail.value) || ''; 
+        hidden.value = raw;
+      }
+    "
     style="display: none"
   >
     <?php $definitionsParentSwap = false;
