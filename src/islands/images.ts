@@ -29,8 +29,6 @@ type QueryRoot = {
     querySelector<E extends Element = Element>(selectors: string): E | null;
 };
 
-ensureRouteCss();
-
 const BASE =
     (typeof document !== 'undefined' &&
         document.documentElement?.dataset?.base) ||
@@ -95,6 +93,7 @@ async function postAndSwap(url: string, data: Record<string, string>) {
 }
 
 function mount(el: HTMLElement) {
+    ensureRouteCss();
     const grid = () =>
         document.getElementById('image-grid') as HTMLElement | null;
     const modal = qs<HTMLElement>(el, '#img-modal')!;
