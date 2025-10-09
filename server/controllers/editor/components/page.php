@@ -32,9 +32,12 @@ $componentPageSize = 50;
 $pdo = get_db_connection();
 $formatter = new Formatter();
 $repository = new Repository($pdo, $formatter);
-$total = $repository->countAll();
-$offset = max(0, min($offset, max(0, $total - 1)));
-$componentsPage = $repository->fetchRows($componentPageSize, $offset);
+$componentsTree = $repository->fetchTree();
+$componentsFlat = $formatter->flattenTree($componentsTree);
+$total = count($componentsFlat);
+$maxOffset = $total > 0 ? max(0, $total - 1) : 0;
+$offset = max(0, min($offset, $maxOffset));
+$componentsPage = array_slice($componentsFlat, $offset, $componentPageSize);
 
 ob_start();
 include __DIR__ . '/../../../views/editor/partials/components-chunk.php';
