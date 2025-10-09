@@ -2,6 +2,37 @@
 
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/config/config-root.php';
+
+function columnExists(PDO $pdo, string $table, string $column): bool
+{
+    $sql = <<<'SQL'
+SELECT COUNT(*)
+FROM information_schema.COLUMNS
+WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = :table
+  AND COLUMN_NAME = :column
+SQL;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['table' => $table, 'column' => $column]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
+function constraintExists(PDO $pdo, string $table, string $constraintName): bool
+{
+    $sql = <<<'SQL'
+SELECT COUNT(*)
+FROM information_schema.TABLE_CONSTRAINTS
+WHERE TABLE_SCHEMA = DATABASE()
+  AND TABLE_NAME = :table
+  AND CONSTRAINT_NAME = :constraint
+SQL;
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['table' => $table, 'constraint' => $constraintName]);
+
+    return (bool) $stmt->fetchColumn();
+}
+
 try {
     $dsn = 'mysql:host=' . DB_HOST . ';charset=utf8mb4';
     $options = [
@@ -10,6 +41,7 @@ try {
     $pdo = new PDO($dsn, DB_A_USER, DB_A_PASS, $options);
     $pdo->exec('CREATE DATABASE IF NOT EXISTS `' . DB_NAME . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
     $pdo->exec('USE `' . DB_NAME . '`');
+
     $pdo->exec('CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL,
@@ -18,12 +50,17 @@ try {
         role VARCHAR(20) NOT NULL DEFAULT "user",
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
-// Best-effort migration for existing installs lacking the role column
-    try {
+
+    if (!columnExists($pdo, 'users', 'role')) {
         $pdo->exec('ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT "user"');
-    } catch (PDOException $e) {
-    // Ignore if column already exists
     }
+
+    if (!columnExists($pdo, 'users', 'username')) {
+        $pdo->exec("ALTER TABLE users ADD COLUMN username VARCHAR(255) NOT NULL DEFAULT '' AFTER id");
+    }
+
+    $pdo->exec('UPDATE users SET username = email WHERE username IS NULL OR username = ""');
+    $pdo->exec('ALTER TABLE users MODIFY COLUMN username VARCHAR(255) NOT NULL');
 
     $pdo->exec('CREATE TABLE IF NOT EXISTS refresh_tokens (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -36,6 +73,7 @@ try {
         INDEX (user_id),
         CONSTRAINT fk_refresh_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+
     $definitionsTableSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS definitions (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -53,6 +91,7 @@ CREATE TABLE IF NOT EXISTS definitions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($definitionsTableSql);
+
     $definitionComponentsSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS definition_components (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -67,6 +106,7 @@ CREATE TABLE IF NOT EXISTS definition_components (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($definitionComponentsSql);
+
     $componentsSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS components (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -75,6 +115,7 @@ CREATE TABLE IF NOT EXISTS components (
   alternate_title VARCHAR(191) DEFAULT NULL,
   description TEXT NULL,
   image VARCHAR(191) DEFAULT NULL,
+  color VARCHAR(21) DEFAULT NULL,
   dependency_tree JSON NOT NULL,
   position INT UNSIGNED NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -88,12 +129,29 @@ CREATE TABLE IF NOT EXISTS components (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($componentsSql);
+
+    if (!columnExists($pdo, 'components', 'color')) {
+        $pdo->exec('ALTER TABLE components ADD COLUMN color VARCHAR(21) DEFAULT NULL AFTER image');
+    }
+
+    $pdo->exec('ALTER TABLE components MODIFY description TEXT NULL');
+
+    if (constraintExists($pdo, 'components', 'fk_components_parent')) {
+        $pdo->exec('ALTER TABLE components DROP FOREIGN KEY fk_components_parent');
+    }
+
+    $pdo->exec('ALTER TABLE components
+        ADD CONSTRAINT fk_components_parent
+            FOREIGN KEY (parent_id)
+            REFERENCES components(id)
+            ON DELETE CASCADE');
+
     $pricesSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS prices (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   component_id BIGINT UNSIGNED NOT NULL,
   amount DECIMAL(12, 2) NOT NULL,
-  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+  currency CHAR(3) NOT NULL DEFAULT 'CZK',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   CONSTRAINT fk_prices_component FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE,
@@ -102,6 +160,8 @@ CREATE TABLE IF NOT EXISTS prices (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($pricesSql);
+    $pdo->exec('ALTER TABLE prices MODIFY currency CHAR(3) NOT NULL DEFAULT "CZK"');
+
     $definitionTreeViewSql = <<<'SQL'
 CREATE OR REPLACE VIEW definition_tree AS
 WITH RECURSIVE tree AS (
@@ -147,6 +207,7 @@ SELECT
 FROM tree;
 SQL;
     $pdo->exec($definitionTreeViewSql);
+
     echo "Database setup complete\n";
 } catch (PDOException $e) {
     fwrite(STDERR, 'Error: ' . $e->getMessage() . "\n");
