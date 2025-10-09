@@ -1,28 +1,30 @@
 <?php
 
-use Components\Formatter;
-use Components\Repository;
-use Definitions\Formatter as DefinitionsFormatter;
-use Definitions\Repository as DefinitionsRepository;
+// Normalize base path for view usage.
+$baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
+$BASE = rtrim($BASE, '/');
 
-require_once __DIR__ . '/../../../bootstrap.php';
+$componentSummaryData = $componentSummaryData ?? [];
+$componentCreateData = $componentCreateData ?? [];
+$componentListData = $componentListData ?? [];
 
-$BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-$pdo = get_db_connection();
-$formatter = new Formatter();
-$repository = new Repository($pdo, $formatter);
-$componentPageSize = 50;
-$componentsTree = $repository->fetchTree();
-$componentsFlat = $formatter->flattenTree($componentsTree);
-$totalComponents = count($componentsFlat);
-$componentsPage = array_slice($componentsFlat, 0, $componentPageSize);
-$definitionsFormatter = new DefinitionsFormatter();
-$definitionsRepository = new DefinitionsRepository($pdo);
-$definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
-$definitionsFlat = $definitionsFormatter->flattenTree($definitionsTree);
-?>
+$definitionsFlat = $componentCreateData['definitionsFlat'] ?? [];
+$componentsFlat = $componentCreateData['componentsFlat'] ?? [];
+$componentsPage = $componentListData['componentsPage'] ?? [];
+$componentPageSize = isset($componentListData['componentPageSize'])
+    ? (int) $componentListData['componentPageSize']
+    : 50;
+$totalComponents = isset($componentSummaryData['totalComponents'])
+    ? (int) $componentSummaryData['totalComponents']
+    : (int) ($componentListData['totalComponents'] ?? count($componentsPage));
+$nextOffset = isset($componentListData['nextOffset'])
+    ? (int) $componentListData['nextOffset']
+    : count($componentsPage);
+$hasMore = isset($componentListData['hasMore'])
+    ? (bool) $componentListData['hasMore']
+    : ($nextOffset < $totalComponents);
 
-<?php
 $componentStyleEntry = 'src/styles/editor/components.css';
 if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     $componentCssHref = vite_asset_href($componentStyleEntry, $isDevEnv ?? false, $BASE);
@@ -60,7 +62,6 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     </template>
     <div id="components-modal" class="components-modal hidden" aria-hidden="true"></div>
     <?php
-    $componentsPage = $componentsPage ?? [];
     include __DIR__ . '/components-list.php';
     ?>
 </div>

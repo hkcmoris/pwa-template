@@ -6,8 +6,10 @@
  */
 $items = $componentsPage ?? [];
 $pageCount = count($items);
-$nextOffset = $pageCount;
-$hasMore = $nextOffset < ($totalComponents ?? 0);
+$nextOffset = isset($nextOffset) ? (int) $nextOffset : $pageCount;
+$hasMore = isset($hasMore)
+    ? (bool) $hasMore
+    : ($nextOffset < ($totalComponents ?? 0));
 $isHx = isset($_SERVER['HTTP_HX_REQUEST']);
 $sentinelAttrs = $isHx ? ' hx-swap-oob="true"' : '';
 ?>

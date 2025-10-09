@@ -2,32 +2,44 @@
 
 declare(strict_types=1);
 
-use Components\Formatter;
-use Components\Repository;
-use Definitions\Formatter as DefinitionsFormatter;
-use Definitions\Repository as DefinitionsRepository;
-use PDO;
-
 /**
- * @param array{message?: string|null, message_type?: string} $options
+ * @param array{
+ *     summary?: array{totalComponents?: int},
+ *     createForm?: array{
+ *         definitionsFlat?: array<int, array<string, mixed>>,
+ *         componentsFlat?: array<int, array<string, mixed>>
+ *     },
+ *     listHtml?: array{
+ *         componentsPage?: array<int, array<string, mixed>>,
+ *         componentPageSize?: int,
+ *         totalComponents?: int,
+ *         nextOffset?: int,
+ *         hasMore?: bool
+ *     },
+ *     message?: array{content?: string|null, type?: string}
+ * } $viewModel
  */
-function components_render_fragments(\PDO $pdo, array $options = []): void
+function components_render_fragments(array $viewModel): void
 {
-    $formatter = new Formatter();
-    $repository = new Repository($pdo, $formatter);
-    $componentPageSize = 50;
-    $componentsTree = $repository->fetchTree();
-    $componentsFlat = $formatter->flattenTree($componentsTree);
-    $totalComponents = count($componentsFlat);
-    $componentsPage = array_slice($componentsFlat, 0, $componentPageSize);
-    $definitionsFormatter = new DefinitionsFormatter();
-    $definitionsRepository = new DefinitionsRepository($pdo);
-    $definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
-    $definitionsFlat = $definitionsFormatter->flattenTree($definitionsTree);
+    $summary = $viewModel['summary'] ?? [];
+    $createForm = $viewModel['createForm'] ?? [];
+    $list = $viewModel['listHtml'] ?? [];
+    $message = $viewModel['message'] ?? [];
 
     $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
-    $message = $options['message'] ?? null;
-    $messageType = $options['message_type'] ?? 'success';
+
+    $definitionsFlat = $createForm['definitionsFlat'] ?? [];
+    $componentsFlat = $createForm['componentsFlat'] ?? [];
+    $componentsPage = $list['componentsPage'] ?? [];
+    $componentPageSize = isset($list['componentPageSize']) ? (int) $list['componentPageSize'] : 50;
+    $totalComponents = isset($summary['totalComponents'])
+        ? (int) $summary['totalComponents']
+        : (int) ($list['totalComponents'] ?? 0);
+    $nextOffset = isset($list['nextOffset']) ? (int) $list['nextOffset'] : count($componentsPage);
+    $hasMore = isset($list['hasMore']) ? (bool) $list['hasMore'] : ($nextOffset < $totalComponents);
+
+    $messageContent = $message['content'] ?? null;
+    $messageType = $message['type'] ?? 'success';
 
     include __DIR__ . '/partials/components-list.php';
 
@@ -35,16 +47,21 @@ function components_render_fragments(\PDO $pdo, array $options = []): void
     include __DIR__ . '/partials/components-create-form.php';
     $formMarkup = ob_get_clean();
 
+    if ($formMarkup === false) {
+        $formMarkup = '';
+    }
+
     echo '<template id="component-create-template" hx-swap-oob="true">' . $formMarkup . '</template>';
     echo '<div id="component-summary" hx-swap-oob="true" class="component-summary">' .
         '<p><strong>Celkem komponent:</strong> ' . $totalComponents . '</p></div>';
+
     $class = 'form-feedback';
-    if ($message) {
+    if ($messageContent) {
         $class .= $messageType === 'error' ? ' form-feedback--error' : ' form-feedback--success';
     } else {
         $class .= ' hidden';
     }
-    $safeMessage = $message ? htmlspecialchars($message, ENT_QUOTES, 'UTF-8') : '';
+    $safeMessage = $messageContent ? htmlspecialchars($messageContent, ENT_QUOTES, 'UTF-8') : '';
     echo '<div id="component-form-errors" hx-swap-oob="true" class="' . $class .
         '" role="status" aria-live="polite">' . $safeMessage . '</div>';
 }
