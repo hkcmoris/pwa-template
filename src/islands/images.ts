@@ -3,6 +3,27 @@
 import './images.css';
 import { getCsrfToken } from '../utils/api';
 
+const ensureRouteCss = () => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const cssHref = new URL('../styles/editor/images.css', import.meta.url).href;
+    const existing = document.getElementById(
+        'editor-partial-style'
+    ) as HTMLLinkElement | null;
+    if (existing) {
+        if (existing.href !== cssHref) {
+            existing.href = cssHref;
+        }
+        return;
+    }
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.id = 'editor-partial-style';
+    link.href = cssHref;
+    document.head.appendChild(link);
+};
+
 // Minimal query root to avoid referencing global DOM typings like ParentNode
 type QueryRoot = {
     querySelector<E extends Element = Element>(selectors: string): E | null;
@@ -72,6 +93,7 @@ async function postAndSwap(url: string, data: Record<string, string>) {
 }
 
 function mount(el: HTMLElement) {
+    ensureRouteCss();
     const grid = () =>
         document.getElementById('image-grid') as HTMLElement | null;
     const modal = qs<HTMLElement>(el, '#img-modal')!;
