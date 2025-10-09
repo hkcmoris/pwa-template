@@ -15,6 +15,110 @@ import type {
 import { escapeHtml, focusFirstField, getHtmx } from './utils';
 
 const listTarget = '#components-list';
+const listWrapperTarget = '#components-list-wrapper';
+
+type PageResponse = {
+    html: string;
+    nextOffset: number;
+    hasMore: boolean;
+};
+
+const parseNumber = (value: string | undefined): number => {
+    if (!value) {
+        return 0;
+    }
+
+    const parsed = Number.parseInt(value, 10);
+    return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
+    const sentinel = root.querySelector<HTMLElement>('[data-component-sentinel]');
+    const list = root.querySelector<HTMLElement>(listTarget);
+
+    if (!sentinel || !list) {
+        return;
+    }
+
+    let nextOffset = parseNumber(sentinel.dataset.nextOffset);
+    let loading = false;
+    const total = parseNumber(sentinel.dataset.total);
+
+    const hasMore = () => sentinel.dataset.hasMore !== '0';
+
+    if (sentinel.dataset.bound === '1') {
+        return;
+    }
+
+    sentinel.dataset.bound = '1';
+
+    if (!hasMore()) {
+        sentinel.remove();
+        return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+        if (!hasMore()) {
+            observer.disconnect();
+            return;
+        }
+
+        if (entries.some((entry) => entry.isIntersecting)) {
+            void fetchNext();
+        }
+    }, { rootMargin: '200px' });
+
+    observer.observe(sentinel);
+
+    async function fetchNext() {
+        if (loading || !hasMore()) {
+            return;
+        }
+
+        loading = true;
+        sentinel.dataset.loading = '1';
+
+        try {
+            const url = `${basePath}/editor/components/page?offset=${nextOffset}`;
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'HX-Request': 'true',
+                },
+            });
+
+            if (!response.ok) {
+                observer.disconnect();
+                return;
+            }
+
+            const payload = (await response.json()) as PageResponse;
+            const markup = (payload.html ?? '').trim();
+
+            if (markup && list) {
+                const fragment = document
+                    .createRange()
+                    .createContextualFragment(markup);
+                list.appendChild(fragment);
+            }
+
+            nextOffset = payload.nextOffset ?? nextOffset;
+            sentinel.dataset.nextOffset = String(nextOffset);
+            sentinel.dataset.hasMore = payload.hasMore ? '1' : '0';
+
+            if (!payload.hasMore || nextOffset >= total) {
+                observer.disconnect();
+                sentinel.remove();
+            }
+        } catch (error) {
+            console.error('Failed to fetch component page', error);
+            observer.disconnect();
+        } finally {
+            loading = false;
+            delete sentinel.dataset.loading;
+        }
+    }
+};
 
 const normaliseColorValue = (raw: string | undefined): string => {
     const value = raw?.trim() ?? '';
@@ -114,8 +218,19 @@ export default function init(root: HTMLElement) {
     const modal = createComponentModalManager(modalRoot, htmx, errorBox);
     const api = createComponentApiClient({
         deleteUrl,
-        listTarget,
+        listTarget: listWrapperTarget,
         htmx,
+    });
+
+    setupInfiniteScroll(root, basePath);
+
+    root.addEventListener('htmx:afterSwap', (event) => {
+        const detail = (event as CustomEvent<{ target: HTMLElement | null }>).detail;
+        const target = detail?.target;
+
+        if (target && (target.matches(listTarget) || target.matches(listWrapperTarget))) {
+            setupInfiniteScroll(root, basePath);
+        }
     });
 
     const openComponentModal = (options: ComponentModalOptions = {}) => {

@@ -15,7 +15,7 @@ $user = app_get_current_user();
 $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
-    echo '<div id="components-list"></div>';
+    echo '<div id="components-list-wrapper"></div>';
     echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
         'Nemate opravneni spravovat komponenty.' .
         '</div>';

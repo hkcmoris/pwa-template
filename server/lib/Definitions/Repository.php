@@ -23,13 +23,34 @@ final class Repository
     /**
      * @return list<array<string, mixed>>
      */
-    public function fetchRows(): array
+    public function fetchRows(?int $limit = null, int $offset = 0): array
     {
-        $stmt = $this->pdo->query(
-            'SELECT id, parent_id, title, position, meta, created_at, updated_at
-               FROM definitions
-           ORDER BY (parent_id IS NULL) DESC, parent_id, position, id'
-        );
+        $sql = <<<'SQL'
+        SELECT id, parent_id, title, position, meta, created_at, updated_at
+          FROM definitions
+      ORDER BY (parent_id IS NULL) DESC, parent_id, position, id
+        SQL;
+
+        if ($limit !== null) {
+            if ($limit <= 0) {
+                $limit = 1;
+            }
+
+            if ($offset < 0) {
+                $offset = 0;
+            }
+
+            $sql .= ' LIMIT :limit OFFSET :offset';
+        }
+
+        $stmt = $this->pdo->prepare($sql);
+
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
         log_message('Fetched ' . $stmt->rowCount() . ' definitions from database', 'DEBUG');
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -43,6 +64,13 @@ final class Repository
     {
         $formatter = $formatter ?? new Formatter();
         return $formatter->buildTree($this->fetchRows());
+    }
+
+    public function countAll(): int
+    {
+        $stmt = $this->pdo->query('SELECT COUNT(*) FROM definitions');
+
+        return (int) $stmt->fetchColumn();
     }
 
     /**
