@@ -19,6 +19,7 @@
     <rule ref="PHPCompatibility"/>
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>config/*</exclude-pattern>
+        <exclude-pattern>install.php</exclude-pattern>
         <exclude-pattern>migrate.php</exclude-pattern>
         <exclude-pattern>views/*</exclude-pattern>
     </rule>
