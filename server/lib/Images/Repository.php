@@ -96,7 +96,7 @@ final class Repository
 
     public function getRootDir(): string
     {
-        $root = dirname(__DIR__) . '/public/assets/images/upload';
+        $root = dirname(__DIR__) . '/../public/assets/images/upload';
         if (!is_dir($root)) {
             @mkdir($root, 0775, true);
         }
