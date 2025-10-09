@@ -40,20 +40,23 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         return;
     }
 
-    let nextOffset = parseNumber(sentinel.dataset.nextOffset);
+    const sentinelElement = sentinel;
+    const listElement = list;
+
+    let nextOffset = parseNumber(sentinelElement.dataset.nextOffset);
     let loading = false;
-    const total = parseNumber(sentinel.dataset.total);
+    const total = parseNumber(sentinelElement.dataset.total);
 
-    const hasMore = () => sentinel.dataset.hasMore !== '0';
+    const hasMore = () => sentinelElement.dataset.hasMore !== '0';
 
-    if (sentinel.dataset.bound === '1') {
+    if (sentinelElement.dataset.bound === '1') {
         return;
     }
 
-    sentinel.dataset.bound = '1';
+    sentinelElement.dataset.bound = '1';
 
     if (!hasMore()) {
-        sentinel.remove();
+        sentinelElement.remove();
         return;
     }
 
@@ -68,7 +71,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         }
     }, { rootMargin: '200px' });
 
-    observer.observe(sentinel);
+    observer.observe(sentinelElement);
 
     async function fetchNext() {
         if (loading || !hasMore()) {
@@ -76,7 +79,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         }
 
         loading = true;
-        sentinel.dataset.loading = '1';
+        sentinelElement.dataset.loading = '1';
 
         try {
             const url = `${basePath}/editor/components/page?offset=${nextOffset}`;
@@ -95,27 +98,27 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             const payload = (await response.json()) as PageResponse;
             const markup = (payload.html ?? '').trim();
 
-            if (markup && list) {
+            if (markup) {
                 const fragment = document
                     .createRange()
                     .createContextualFragment(markup);
-                list.appendChild(fragment);
+                listElement.appendChild(fragment);
             }
 
             nextOffset = payload.nextOffset ?? nextOffset;
-            sentinel.dataset.nextOffset = String(nextOffset);
-            sentinel.dataset.hasMore = payload.hasMore ? '1' : '0';
+            sentinelElement.dataset.nextOffset = String(nextOffset);
+            sentinelElement.dataset.hasMore = payload.hasMore ? '1' : '0';
 
             if (!payload.hasMore || nextOffset >= total) {
                 observer.disconnect();
-                sentinel.remove();
+                sentinelElement.remove();
             }
         } catch (error) {
             console.error('Failed to fetch component page', error);
             observer.disconnect();
         } finally {
             loading = false;
-            delete sentinel.dataset.loading;
+            delete sentinelElement.dataset.loading;
         }
     }
 };
