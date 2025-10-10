@@ -141,41 +141,41 @@ Large image uploads and server‑side conversion to WebP require a couple of PHP
 
 1. Locate your php.ini
 
-- Run `php --ini` and note the “Loaded Configuration File”.
-- Examples:
-    - Windows (winget PHP): typically `C:\Program Files\PHP\8.x\php.ini`
-    - macOS (Homebrew): `/opt/homebrew/etc/php/8.x/php.ini`
-    - Ubuntu/Debian: `/etc/php/8.x/cli/php.ini` (CLI/built‑in server) and `/etc/php/8.x/fpm/php.ini` (FPM)
+   - Run `php --ini` and note the “Loaded Configuration File”.
+   - Examples:
+     - Windows (winget PHP): typically `C:\Program Files\PHP\8.x\php.ini`
+     - macOS (Homebrew): `/opt/homebrew/etc/php/8.x/php.ini`
+     - Ubuntu/Debian: `/etc/php/8.x/cli/php.ini` (CLI/built‑in server) and `/etc/php/8.x/fpm/php.ini` (FPM)
 
 2. Enable an image library (pick one)
 
-- GD (recommended, lightweight): ensure this line is present/uncommented in php.ini:
-    - `extension=gd`
-- Imagick (optional alternative): if installed, enable:
-    - `extension=imagick`
+   - GD (recommended, lightweight): ensure this line is present/uncommented in php.ini:
+     - `extension=gd`
+   - Imagick (optional alternative): if installed, enable:
+     - `extension=imagick`
 
 3. Verify WebP support
 
-- Restart your PHP server, then check:
-    - Cross‑platform: `php -i | findstr /I "gd\|webp"` (Windows PowerShell/CMD)
-    - Linux/macOS: `php -i | grep -iE "gd|webp"`
-- You should see `GD Support => enabled` and `WebP Support => enabled` or Imagick installed.
+   - Restart your PHP server, then check:
+     - Cross‑platform: `php -i | findstr /I "gd\|webp"` (Windows PowerShell/CMD)
+     - Linux/macOS: `php -i | grep -iE "gd|webp"`
+   - You should see `GD Support => enabled` and `WebP Support => enabled` or Imagick installed.
 
 4. Allow larger uploads (e.g., 32 MB)
 
-- Edit php.ini and set:
-    - `upload_max_filesize = 32M`
-    - `post_max_size = 32M` (must be ≥ upload_max_filesize)
-    - Optionally, increase `memory_limit` (e.g., `256M`) for processing large images.
-- Restart your PHP server after saving changes.
+   - Edit php.ini and set:
+     - `upload_max_filesize = 32M`
+     - `post_max_size = 32M` (must be ≥ upload_max_filesize)
+     - Optionally, increase `memory_limit` (e.g., `256M`) for processing large images.
+   - Restart your PHP server after saving changes.
 
 5. Web servers (if not using the built‑in dev server)
 
-- Apache (mod_php): you may alternatively set in `.htaccess`:
-    - `php_value upload_max_filesize 32M`
-    - `php_value post_max_size 32M`
-- Nginx + PHP‑FPM: also set in Nginx site config:
-    - `client_max_body_size 32M;` and reload Nginx.
+   - Apache (mod_php): you may alternatively set in `.htaccess`:
+     - `php_value upload_max_filesize 32M`
+     - `php_value post_max_size 32M`
+   - Nginx + PHP‑FPM: also set in Nginx site config:
+     - `client_max_body_size 32M;` and reload Nginx.
 
 Notes
 

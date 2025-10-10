@@ -89,15 +89,15 @@
 ## 5) Caching & Headers
 
 - **Server (PHP)**
-    - Micro-cache anonymous GETs: **3–5 s TTL**, grace 30–60 s.
-    - Don’t cache responses with auth/session cookies.
-    - Add `X-Micro-Cache: hit|miss|stale` for observability.
+  - Micro-cache anonymous GETs: **3–5 s TTL**, grace 30–60 s.
+  - Don’t cache responses with auth/session cookies.
+  - Add `X-Micro-Cache: hit|miss|stale` for observability.
 
 - **Static assets**
-    - Filenames with content hash; `Cache-Control: public, max-age=31536000, immutable`.
+  - Filenames with content hash; `Cache-Control: public, max-age=31536000, immutable`.
 
 - **HTML**
-    - `Cache-Control: s-maxage=5, stale-while-revalidate=60` for CDN/proxy where applicable.
+  - `Cache-Control: s-maxage=5, stale-while-revalidate=60` for CDN/proxy where applicable.
 
 ---
 
@@ -105,9 +105,9 @@
 
 - `manifest.webmanifest` minimal and accurate (name, icons, start_url, display).
 - Service Worker:
-    - Register after first paint.
-    - Use **runtime caching** with small caps on HTML (respect micro-cache freshness).
-    - Provide an offline fallback route (`/offline`).
+  - Register after first paint.
+  - Use **runtime caching** with small caps on HTML (respect micro-cache freshness).
+  - Provide an offline fallback route (`/offline`).
 
 ---
 
@@ -138,29 +138,29 @@
 
 1. First flight
 
-- Keep a **single inline `<style>`** with only above-the-fold, critical rules (target: 3–6 KB gz).
-- No webfonts/icon fonts in first flight; use system font stack.
+   - Keep a **single inline `<style>`** with only above-the-fold, critical rules (target: 3–6 KB gz).
+   - No webfonts/icon fonts in first flight; use system font stack.
 
 2. Non-essential CSS
 
-- **Prefer CSS Modules or per-feature CSS files** with content hashes.
-- Load non-critical CSS via `<link rel="preload" as="style" …>` and switch to `rel="stylesheet"` on load.
-- Do **not** emit widespread per-element `style=""` attributes. Use classes + CSS variables instead.
+   - **Prefer CSS Modules or per-feature CSS files** with content hashes.
+   - Load non-critical CSS via `<link rel="preload" as="style" …>` and switch to `rel="stylesheet"` on load.
+   - Do **not** emit widespread per-element `style=""` attributes. Use classes + CSS variables instead.
 
 3. Islands
 
-- Each island must **scope its styles** (CSS Modules or a small island CSS file) and **lazy-load** them at mount.
-- No global CSS bloat from islands. If an island is not on the page, its CSS must not be loaded.
+   - Each island must **scope its styles** (CSS Modules or a small island CSS file) and **lazy-load** them at mount.
+   - No global CSS bloat from islands. If an island is not on the page, its CSS must not be loaded.
 
 4. CSP & a11y
 
-- Prefer external CSS to maintain a strict CSP (no `'unsafe-inline'`).
-- Avoid style attributes that interfere with focus/hover states—use classes and :focus/:hover rules.
+   - Prefer external CSS to maintain a strict CSP (no `'unsafe-inline'`).
+   - Avoid style attributes that interfere with focus/hover states—use classes and :focus/:hover rules.
 
 5. Budgets
 
-- Inline critical CSS counts toward the **14 KB first-flight** budget.
-- A route’s non-critical CSS file(s) should be ≤ **10–20 KB gz** and load after first paint.
+   - Inline critical CSS counts toward the **14 KB first-flight** budget.
+   - A route’s non-critical CSS file(s) should be ≤ **10–20 KB gz** and load after first paint.
 
 ---
 
@@ -193,7 +193,7 @@
 - When uncertain, choose **HTML-first** with progressive enhancement.
 - Do not remove performance guardrails, budgets, or this file.
 - Do not introduce tracking/telemetry without explicit approval and a toggle.
-- Native <select> elements are forbidden; reuse the custom select component (src/islands/select.ts) for form controls.
+- Native `<select>` elements are forbidden; reuse the custom select component (src/islands/select.ts) for form controls.
 
 ---
 
