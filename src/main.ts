@@ -169,6 +169,11 @@ type AuthChangedDetail = {
     role?: string;
 } | null;
 
+type HtmxConfigDetail = {
+    path?: string;
+    parameters?: Record<string, string> | null;
+};
+
 const REFRESH_INTERVAL_MS = 8 * 60 * 1000;
 const REFRESH_RETRY_MS = 60 * 1000;
 let refreshTimer: ReturnType<typeof setTimeout> | undefined;
@@ -371,6 +376,29 @@ logoutBtn?.addEventListener('click', async () => {
 document.body.addEventListener('htmx:historyRestore', () => {
     highlightNav();
     updateBodyRoute();
+});
+
+const ensureEditorStyleSlot = () => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const head = document.head;
+    if (!head || document.getElementById('editor-partial-style')) {
+        return;
+    }
+    const link = document.createElement('link');
+    link.id = 'editor-partial-style';
+    head.appendChild(link);
+};
+
+document.body?.addEventListener('htmx:configRequest', (event) => {
+    const detail = (event as CustomEvent<HtmxConfigDetail>).detail;
+    const path = (detail?.path || '').toLowerCase();
+    const queryRoute = (detail?.parameters?.r || '').toLowerCase();
+
+    if (path.includes('/editor/') || queryRoute.startsWith('editor')) {
+        ensureEditorStyleSlot();
+    }
 });
 
 document.body.addEventListener('htmx:afterSwap', (e) => {
