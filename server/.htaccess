@@ -28,8 +28,11 @@ AddType application/manifest+json .webmanifest
     RewriteEngine On
     
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    RewriteRule ^sw(?:-[A-Za-z0-9]+)?\.js$ sw.php [QSA,L]
+    
+    # Service worker files (loader + hashed runtime)
+    RewriteRule ^sw\.js$ sw.php [QSA,L]
+    RewriteRule ^sw-[A-Za-z0-9_-]+\.js$ sw.php [QSA,L]
+    RewriteRule ^sw/sw-[A-Za-z0-9_-]+\.js$ sw.php [QSA,L]
 
     # Directly serve existing files or directories
     RewriteCond %{REQUEST_FILENAME} -f [OR]

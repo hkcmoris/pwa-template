@@ -11,14 +11,14 @@ csrf_require_valid(null, 'json');
 $refresh = $_COOKIE['refresh_token'] ?? '';
 if (!$refresh) {
     http_response_code(401);
-    echo json_encode(['error' => 'ChybĂ­ obnovovacĂ­ token']);
+    echo json_encode(['error' => 'Chybný obnovovací token']);
     exit;
 }
 
 $row = find_valid_refresh_token($refresh);
 if (!$row) {
     http_response_code(401);
-    echo json_encode(['error' => 'NeplatnĂ˝ obnovovacĂ­ token']);
+    echo json_encode(['error' => 'Neplatný obnovovací token']);
     exit;
 }
 
@@ -29,7 +29,7 @@ $stmt->execute([':id' => $userId]);
 $user = $stmt->fetch();
 if (!$user) {
     http_response_code(401);
-    echo json_encode(['error' => 'NeplatnĂ˝ uĹľivatel']);
+    echo json_encode(['error' => 'Neplatný uživatel']);
     exit;
 }
 
@@ -42,7 +42,7 @@ $cookiePath = '/' . trim($base, '/');
 $newRefresh = rotate_refresh_token($refresh, $userId, $refreshTtl);
 if (!$newRefresh) {
     http_response_code(401);
-    echo json_encode(['error' => 'NeplatnĂ˝ obnovovacĂ­ token']);
+    echo json_encode(['error' => 'Neplatný obnovovací token']);
     exit;
 }
 

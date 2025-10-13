@@ -10,7 +10,7 @@ $token = $_COOKIE['token'] ?? '';
 $payload = verify_jwt($token, $jwtSecret);
 if (!$payload) {
     http_response_code(401);
-    echo json_encode(['error' => 'NeautorizovĂˇno']);
+    echo json_encode(['error' => 'Neautorizováno']);
     exit;
 }
 
@@ -21,7 +21,7 @@ $stmt->execute([':id' => (int)$payload['sub']]);
 $caller = $stmt->fetch();
 if (!$caller || ($caller['role'] ?? 'user') !== 'superadmin') {
     http_response_code(403);
-    echo json_encode(['error' => 'ZakĂˇzĂˇno']);
+    echo json_encode(['error' => 'Zakázáno']);
     exit;
 }
 
@@ -32,14 +32,14 @@ $role = isset($input['role']) ? (string)$input['role'] : '';
 $allowed = ['user','admin','superadmin'];
 if ($id <= 0 || !in_array($role, $allowed, true)) {
     http_response_code(400);
-    echo json_encode(['error' => 'NeplatnĂ˝ vstup']);
+    echo json_encode(['error' => 'Neplatný vstup']);
     exit;
 }
 
 // Prevent self demotion: superadmin cannot change their own role to anything else
 if ($id === (int)($payload['sub'] ?? 0) && $role !== 'superadmin') {
     http_response_code(400);
-    echo json_encode(['error' => 'Nelze zmÄ›nit vlastnĂ­ roli']);
+    echo json_encode(['error' => 'Nelze změnit vlastní roli']);
     exit;
 }
 
@@ -53,5 +53,5 @@ try {
     echo json_encode(['ok' => true, 'user' => $user]);
 } catch (Throwable $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'Chyba databĂˇze']);
+    echo json_encode(['error' => 'Chyba databáze']);
 }

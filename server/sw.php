@@ -34,12 +34,13 @@ if (!defined('SW_ENABLED') || !SW_ENABLED) {
 }
 
 $public = __DIR__ . '/public';
-$swDir  = $public . '/sw';
 $relative = $requested === '' ? 'sw.js' : $requested;
 if ($relative === 'sw.js') {
     $file = $public . '/sw.js';
-} elseif (preg_match('/^sw-([A-Za-z0-9]+)\\.js$/', $relative)) {
-    $file = $swDir . '/' . $relative;
+} elseif (preg_match('/^sw-([A-Za-z0-9_-]+)\.js$/', $relative)) {
+    $file = $public . '/sw/' . $relative;
+} elseif (preg_match('/^sw\/sw-([A-Za-z0-9_-]+)\.js$/', $relative)) {
+    $file = $public . '/' . $relative;
 } else {
     http_response_code(404);
     header('Cache-Control: no-store');

@@ -11,7 +11,7 @@ $payload = verify_jwt($token, $jwtSecret);
 if (!$payload) {
     log_message('Users request unauthorized', 'ERROR');
     http_response_code(401);
-    echo json_encode(['error' => 'NeautorizovĂˇno']);
+    echo json_encode(['error' => 'Neautorizováno']);
     exit;
 }
 
@@ -23,7 +23,7 @@ $caller = $stmt->fetch();
 if (!$caller || !in_array(($caller['role'] ?? 'user'), ['admin','superadmin'], true)) {
     log_message('Users request forbidden for ' . ($caller['email'] ?? 'unknown'), 'ERROR');
     http_response_code(403);
-    echo json_encode(['error' => 'ZakĂˇzĂˇno']);
+    echo json_encode(['error' => 'Zakázáno']);
     exit;
 }
 

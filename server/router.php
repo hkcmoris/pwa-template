@@ -4,8 +4,9 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 // Decode percent-encoded path so files with spaces/diacritics resolve correctly
 $decoded = rawurldecode($path ?? '/');
 $file = __DIR__ . $decoded;
-if (preg_match('/^\/sw(?:-[A-Za-z0-9]+)?\.js$/', $decoded)) {
+if (preg_match('#/(?:sw\.js|sw-[A-Za-z0-9_-]+\.js|sw/sw-[A-Za-z0-9_-]+\.js)$#', $decoded)) {
     require __DIR__ . '/sw.php';
+    exit;
 }
 
 // Normalize and ensure the requested file stays under the server docroot

@@ -97,9 +97,9 @@ try {
     const swLoaderPath = resolve(publicRoot, 'sw.js');
     // Use location-aware URL so subfolder deploys (APP_BASE) still work
     const loader = `
-        self.__BUILD_HASH__ = '${buildHash}';
-        // Use SW's own URL as base to resolve the versioned script
-        importScripts(new URL('sw/sw-${buildHash}.js', self.location).toString());
+self.__BUILD_HASH__ = '${buildHash}';
+// Use SW's own URL as base to resolve the versioned script
+importScripts(new URL('sw/sw-${buildHash}.js', self.location).toString());
     `.trim();
     writeFileSync(swLoaderPath, loader, 'utf-8');
 

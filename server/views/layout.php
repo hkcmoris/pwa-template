@@ -451,22 +451,9 @@ foreach ($viewStyles as $styleId => $entry) {
       $swBasePath = ($swBase === '') ? '' : $swBase;
       $swScopePath = ($swBasePath === '') ? '/' : $swBasePath . '/';
       $swPublicPath = $swBasePath . '/sw.js';
-      $swHash = null;
-    if (!$isDevEnv) {
-        $main = $main ?? vite_asset('src/main.ts');
-        if ($main && !empty($main['file'])) {
-            if (preg_match('/main-([^.]+)\\.js$/', $main['file'], $m)) {
-                $swHash = $m[1];
-                $swPublicPath = $swBasePath . '/sw-' . $swHash . '.js';
-            }
-        }
-    }
       $swScopeJson = json_encode($swScopePath, JSON_UNESCAPED_SLASHES);
       $swPathJson = json_encode($swPublicPath, JSON_UNESCAPED_SLASHES);
-      $swKillPaths = [$swBasePath . '/sw.js'];
-    if ($swHash) {
-        $swKillPaths[] = $swPublicPath;
-    }
+      $swKillPaths = [$swBasePath . '/sw.js', $swBasePath . '/sw-'];
       $swKillJson = json_encode($swKillPaths, JSON_UNESCAPED_SLASHES);
     ?>
     <?php if (!defined('SW_ENABLED') || SW_ENABLED) : ?>

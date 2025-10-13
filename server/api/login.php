@@ -15,7 +15,7 @@ log_message("Login attempt for {$email}");
 if (!$email || !$password) {
     log_message('Login failed: missing email or password', 'ERROR');
     http_response_code(400);
-    echo json_encode(['error' => 'Eâ€‘mail a heslo jsou povinnĂ©']);
+    echo json_encode(['error' => 'Email a heslo jsou povinné']);
     exit;
 }
 
@@ -26,7 +26,7 @@ $user = $stmt->fetch();
 if (!$user || !password_verify($password, $user['password'])) {
     log_message("Login failed: invalid credentials for {$email}", 'ERROR');
     http_response_code(401);
-    echo json_encode(['error' => 'NeplatnĂ© pĹ™ihlaĹˇovacĂ­ Ăşdaje']);
+    echo json_encode(['error' => 'Neplatné přihlašovací údaje']);
     exit;
 }
 
