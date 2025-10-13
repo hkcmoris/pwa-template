@@ -222,11 +222,8 @@ const scheduleTokenRefresh = (delay = REFRESH_INTERVAL_MS) => {
                     return;
                 }
             } else if (res.status === 401) {
-                localStorage.removeItem(USER_KEY);
-                localStorage.removeItem(ROLE_KEY);
-                updateAuthUI(null);
-                setRoleUI(null);
-                stopTokenRefresh();
+                clearStoredAuth();
+                applyLoggedOutUI();
                 return;
             }
         } catch {
@@ -271,6 +268,17 @@ const setRoleUI = (role: string | null) => {
     }
 };
 
+const clearStoredAuth = () => {
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem(ROLE_KEY);
+};
+
+const applyLoggedOutUI = () => {
+    updateAuthUI(null);
+    setRoleUI(null);
+    stopTokenRefresh();
+};
+
 const FETCH_RETRY_MS = 500;
 
 async function fetchMeAndUpdate(
@@ -288,8 +296,8 @@ async function fetchMeAndUpdate(
             if (preventDowngrade) {
                 setTimeout(() => fetchMeAndUpdate(authEpoch), FETCH_RETRY_MS);
             } else {
-                setRoleUI(null);
-                stopTokenRefresh();
+                clearStoredAuth();
+                applyLoggedOutUI();
             }
             return;
         }
@@ -308,8 +316,8 @@ async function fetchMeAndUpdate(
         } else if (preventDowngrade) {
             setTimeout(() => fetchMeAndUpdate(authEpoch), FETCH_RETRY_MS);
         } else {
-            setRoleUI(null);
-            stopTokenRefresh();
+            clearStoredAuth();
+            applyLoggedOutUI();
         }
     } catch {
         if (expectedEpoch !== authEpoch) {
@@ -319,8 +327,8 @@ async function fetchMeAndUpdate(
             setTimeout(() => fetchMeAndUpdate(authEpoch), FETCH_RETRY_MS);
             return;
         }
-        setRoleUI(null);
-        stopTokenRefresh();
+        clearStoredAuth();
+        applyLoggedOutUI();
     }
 }
 
@@ -344,8 +352,7 @@ document.addEventListener('auth-changed', (event) => {
         }
         scheduleTokenRefresh();
     } else {
-        localStorage.removeItem(USER_KEY);
-        localStorage.removeItem(ROLE_KEY);
+        clearStoredAuth();
         stopTokenRefresh();
     }
     updateAuthUI(detail?.email ?? null);
