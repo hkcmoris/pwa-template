@@ -395,7 +395,79 @@ const ensureEditorStyleSlot = () => {
     }
     const link = document.createElement('link');
     link.id = 'editor-partial-style';
+    link.rel = 'stylesheet';
     head.appendChild(link);
+};
+
+const cloneLinkElement = (source: HTMLLinkElement) => {
+    const clone = document.createElement('link');
+    clone.rel = source.rel || 'stylesheet';
+    const href = source.getAttribute('href');
+    if (href) {
+        clone.href = href;
+    }
+    if (source.media) {
+        clone.media = source.media;
+    }
+    const copyAttr = (name: string) => {
+        const value = source.getAttribute(name);
+        if (value) {
+            clone.setAttribute(name, value);
+        }
+    };
+    copyAttr('crossorigin');
+    copyAttr('integrity');
+    copyAttr('referrerpolicy');
+    copyAttr('title');
+    return clone;
+};
+
+const swapEditorStylesheet = (incoming: HTMLLinkElement) => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const head = document.head;
+    if (!head) {
+        return;
+    }
+    const hrefAttr = incoming.getAttribute('href');
+    if (!hrefAttr) {
+        return;
+    }
+
+    const existing = document.getElementById(
+        incoming.id || 'editor-partial-style'
+    ) as HTMLLinkElement | null;
+
+    if (!existing) {
+        const fresh = cloneLinkElement(incoming);
+        fresh.id = incoming.id || 'editor-partial-style';
+        head.appendChild(fresh);
+        return;
+    }
+
+    const currentHref = existing.getAttribute('href');
+    if (currentHref === hrefAttr) {
+        return;
+    }
+
+    const next = cloneLinkElement(incoming);
+    const slotId = existing.id || incoming.id || 'editor-partial-style';
+    const media = incoming.media || 'all';
+
+    next.media = 'print';
+
+    next.addEventListener('load', () => {
+        next.media = media;
+        next.id = slotId;
+        existing.remove();
+    });
+
+    next.addEventListener('error', () => {
+        next.remove();
+    });
+
+    head.appendChild(next);
 };
 
 document.body?.addEventListener('htmx:configRequest', (event) => {
@@ -405,6 +477,21 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
 
     if (path.includes('/editor/') || queryRoute.startsWith('editor')) {
         ensureEditorStyleSlot();
+    }
+});
+
+document.body.addEventListener('htmx:oobBeforeSwap', (event) => {
+    const detail = (event as CustomEvent).detail as
+        | { shouldSwap?: boolean; content?: Element | null }
+        | undefined;
+    const candidate = detail?.content;
+    if (candidate instanceof HTMLLinkElement) {
+        if (candidate.id === 'editor-partial-style') {
+            if (detail) {
+                detail.shouldSwap = false;
+            }
+            swapEditorStylesheet(candidate);
+        }
     }
 });
 
