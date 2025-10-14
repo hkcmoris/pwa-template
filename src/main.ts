@@ -422,6 +422,8 @@ const cloneLinkElement = (source: HTMLLinkElement) => {
     return clone;
 };
 
+let latestEditorStylesheetHref: string | null = null;
+
 const swapEditorStylesheet = (incoming: HTMLLinkElement) => {
     if (typeof document === 'undefined') {
         return;
@@ -442,6 +444,7 @@ const swapEditorStylesheet = (incoming: HTMLLinkElement) => {
     if (!existing) {
         const fresh = cloneLinkElement(incoming);
         fresh.id = incoming.id || 'editor-partial-style';
+        latestEditorStylesheetHref = hrefAttr;
         head.appendChild(fresh);
         return;
     }
@@ -456,11 +459,19 @@ const swapEditorStylesheet = (incoming: HTMLLinkElement) => {
     const media = incoming.media || 'all';
 
     next.media = 'print';
+    latestEditorStylesheetHref = hrefAttr;
 
     next.addEventListener('load', () => {
+        if (latestEditorStylesheetHref !== hrefAttr) {
+            next.remove();
+            return;
+        }
         next.media = media;
+        const active = document.getElementById(slotId);
+        if (active && active !== next) {
+            active.remove();
+        }
         next.id = slotId;
-        existing.remove();
     });
 
     next.addEventListener('error', () => {
