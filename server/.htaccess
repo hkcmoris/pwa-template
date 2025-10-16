@@ -39,7 +39,7 @@
     # Micro-cache only anonymous HTML fragments; authenticated, API, or htmx
     # requests must bypass cache so gallery updates reflect immediately.
     <FilesMatch "\.(html|php)$">
-        Header set Cache-Control "no-store, private" "expr=%{REQUEST_METHOD} != 'GET' || %{REQUEST_URI} =~ m#^/api/# || %{HTTP_COOKIE} =~ /(^|;\\s*)(token|refresh_token)=/ || %{HTTP_AUTHORIZATION} != '' || %{HTTP_HX_REQUEST} == 'true'"
-        Header set Cache-Control "s-maxage=5, stale-while-revalidate=60" "expr=%{REQUEST_METHOD} == 'GET' && %{REQUEST_URI} !~ m#^/api/# && %{HTTP_COOKIE} !~ /(^|;\\s*)(token|refresh_token)=/ && %{HTTP_AUTHORIZATION} == '' && %{HTTP_HX_REQUEST} != 'true'"
+        Header set Cache-Control "no-store, private" "expr=%{REQUEST_METHOD} != 'GET' || %{REQUEST_FILENAME} =~ m#/api/# || %{HTTP_COOKIE} =~ /(^|;\\s*)(token|refresh_token)=/ || %{HTTP_AUTHORIZATION} != '' || %{HTTP_HX_REQUEST} == 'true'"
+        Header set Cache-Control "s-maxage=5, stale-while-revalidate=60" "expr=%{REQUEST_METHOD} == 'GET' && %{REQUEST_FILENAME} !~ m#/api/# && %{HTTP_COOKIE} !~ /(^|;\\s*)(token|refresh_token)=/ && %{HTTP_AUTHORIZATION} == '' && %{HTTP_HX_REQUEST} != 'true'"
     </FilesMatch>
 </IfModule>
