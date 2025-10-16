@@ -36,10 +36,8 @@
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 
-    # Micro-cache only anonymous HTML fragments; authenticated, API, or htmx
-    # requests must bypass cache so gallery updates reflect immediately.
+    # Micro-cache HTML/PHP responses for 5s with stale-while-revalidate
     <FilesMatch "\.(html|php)$">
-        Header set Cache-Control "no-store, private" "expr=%{REQUEST_METHOD} != 'GET' || %{REQUEST_FILENAME} =~ m#/api/# || %{HTTP_COOKIE} =~ /(^|;\\s*)(token|refresh_token)=/ || %{HTTP_AUTHORIZATION} != '' || %{HTTP_HX_REQUEST} == 'true'"
-        Header set Cache-Control "s-maxage=5, stale-while-revalidate=60" "expr=%{REQUEST_METHOD} == 'GET' && %{REQUEST_FILENAME} !~ m#/api/# && %{HTTP_COOKIE} !~ /(^|;\\s*)(token|refresh_token)=/ && %{HTTP_AUTHORIZATION} == '' && %{HTTP_HX_REQUEST} != 'true'"
+        Header set Cache-Control "s-maxage=5, stale-while-revalidate=60"
     </FilesMatch>
 </IfModule>
