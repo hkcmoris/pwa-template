@@ -24,6 +24,7 @@ module.exports = [
         },
         rules: {
             ...tsPlugin.configs.recommended.rules,
+            'no-undef': 'off',
         },
     },
     eslintConfigPrettier,

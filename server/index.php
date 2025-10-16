@@ -1,6 +1,18 @@
 <?php
 // index.php
 require_once __DIR__.'/config/config.php';
+require_once __DIR__.'/lib/http.php';
+
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+$hasAuthCookie = !empty($_COOKIE['token'] ?? '') || !empty($_COOKIE['refresh_token'] ?? '');
+$hasAuthHeader = !empty(trim($_SERVER['HTTP_AUTHORIZATION'] ?? ''));
+$isHtmx = isset($_SERVER['HTTP_HX_REQUEST']);
+
+if ($method !== 'GET' || $hasAuthCookie || $hasAuthHeader || $isHtmx) {
+  disable_response_cache();
+} else {
+  enable_micro_cache();
+}
 
 // Normalize request path and strip BASE_PATH when deployed in subfolder
 $uriPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
