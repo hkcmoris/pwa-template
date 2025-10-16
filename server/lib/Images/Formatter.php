@@ -46,14 +46,19 @@ final class Formatter
     }
 
     /**
-     * @return array{name:string,rel:string,url:string}
+     * @return array{name:string,rel:string,url:string,version:int}
      */
-    public function formatDirectoryEntry(string $name, string $relative, string $url): array
-    {
+    public function formatDirectoryEntry(
+        string $name,
+        string $relative,
+        string $url,
+        int $version
+    ): array {
         return [
             'name' => $name,
             'rel' => $relative,
             'url' => $url,
+            'version' => $version,
         ];
     }
 

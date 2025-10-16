@@ -17,6 +17,17 @@ $sanitizedPath = $repository->sanitizeRelative((string) $pathInput);
 [, $path] = $repository->resolve($sanitizedPath);
 $list = $repository->listDirectory($path, $repository->getRootUrl($BASE));
 
+$buildGridUrl = static function (string $base, string $targetPath, int $version): string {
+    $base = rtrim($base, '/');
+    $url = $base . '/editor/images-grid?path=' . rawurlencode($targetPath);
+    if ($version > 0) {
+        $url .= '&v=' . rawurlencode((string) $version);
+    }
+    return $url;
+};
+$directoryVersion = max(1, (int) $list['version']);
+$parentVersion = max(1, (int) $list['parentVersion']);
+
 $beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status'
     . ' && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
 
@@ -39,7 +50,7 @@ if ($path !== '') {
       tabindex="0"
       data-up="1"
       data-folder-rel="<?= htmlspecialchars($parentRel) ?>"
-      hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($parentRel) ?>"
+      hx-get="<?= htmlspecialchars(($buildGridUrl)($BASE, $parentRel, $parentVersion)) ?>"
       hx-target="#image-grid"
       hx-select="#image-grid"
       hx-swap="outerHTML"
@@ -59,7 +70,7 @@ if ($path !== '') {
       class="tile folder"
       tabindex="0"
       data-folder-rel="<?= htmlspecialchars($d['rel']) ?>"
-      hx-get="<?= htmlspecialchars($BASE) ?>/editor/images-grid?path=<?= rawurlencode($d['rel']) ?>"
+      hx-get="<?= htmlspecialchars(($buildGridUrl)($BASE, $d['rel'], max(1, (int) $d['version']))) ?>"
       hx-target="#image-grid"
       hx-select="#image-grid"
       hx-swap="outerHTML"

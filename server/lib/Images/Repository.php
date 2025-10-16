@@ -145,8 +145,10 @@ final class Repository
      *     dir:string,
      *     rel:string,
      *     urlPrefix:string,
-     *     dirs:list<array{name:string,rel:string,url:string}>,
-     *     images:list<array{name:string,rel:string,url:string,thumbUrl:string,mtime:int,size:int}>
+     *     dirs:list<array{name:string,rel:string,url:string,version:int}>,
+     *     images:list<array{name:string,rel:string,url:string,thumbUrl:string,mtime:int,size:int}>,
+     *     version:int,
+     *     parentVersion:int
      * }
      */
     public function listDirectory(string $relative, string $baseUrl): array
@@ -155,6 +157,25 @@ final class Repository
         $relative = (string) $relative;
         $this->ensureDir($directory);
         $urlPrefix = $this->formatter->buildUrlPrefix($baseUrl, $relative);
+
+        $directoryVersion = (int) @filemtime($directory);
+        if ($directoryVersion <= 0) {
+            $directoryVersion = time();
+        }
+        $parentVersion = $directoryVersion;
+        if ($relative !== '') {
+            $parentDirectory = dirname($directory);
+            if (
+                $parentDirectory &&
+                is_dir($parentDirectory) &&
+                strpos($parentDirectory, $root) === 0
+            ) {
+                $parentMtime = (int) @filemtime($parentDirectory);
+                if ($parentMtime > 0) {
+                    $parentVersion = $parentMtime;
+                }
+            }
+        }
 
         $directories = [];
         $images = [];
@@ -166,7 +187,16 @@ final class Repository
             $relativeChild = ltrim(($relative === '' ? '' : ($relative . '/')) . $entry, '/');
             $url = $urlPrefix . '/' . rawurlencode($entry);
             if (is_dir($fullPath)) {
-                $directories[] = $this->formatter->formatDirectoryEntry($entry, $relativeChild, $url);
+                $dirMtime = (int) @filemtime($fullPath);
+                if ($dirMtime <= 0) {
+                    $dirMtime = $directoryVersion;
+                }
+                $directories[] = $this->formatter->formatDirectoryEntry(
+                    $entry,
+                    $relativeChild,
+                    $url,
+                    $dirMtime
+                );
                 continue;
             }
             $extension = strtolower(pathinfo($entry, PATHINFO_EXTENSION));
@@ -205,6 +235,8 @@ final class Repository
             'urlPrefix' => $urlPrefix,
             'dirs' => $directories,
             'images' => $images,
+            'version' => $directoryVersion,
+            'parentVersion' => $parentVersion,
         ];
     }
 
