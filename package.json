@@ -1,6 +1,6 @@
 {
     "name": "pwa-template",
-    "version": "0.2.6",
+    "version": "0.2.7",
     "description": "PWA template with PHP SSR and Vite-powered TypeScript build",
     "repository": {
         "type": "git",
