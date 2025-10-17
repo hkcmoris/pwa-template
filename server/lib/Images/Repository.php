@@ -12,6 +12,8 @@ final class Repository
 
     private string $lastError = '';
 
+    private const VERSION_FILE = '.directory-version';
+
     public function __construct(?Formatter $formatter = null)
     {
         $this->formatter = $formatter ?? new Formatter();
@@ -139,6 +141,52 @@ final class Repository
         return @mkdir($directory, 0775, true);
     }
 
+    private function versionFile(string $directory): string
+    {
+        return rtrim($directory, '/') . '/' . self::VERSION_FILE;
+    }
+
+    private function readDirectoryVersion(string $directory): int
+    {
+        $directoryVersion = (int) @filemtime($directory);
+        if ($directoryVersion <= 0) {
+            $directoryVersion = time();
+        }
+
+        $versionFile = $this->versionFile($directory);
+        if (is_file($versionFile)) {
+            $contents = trim((string) @file_get_contents($versionFile));
+            if (ctype_digit($contents)) {
+                $stored = (int) $contents;
+                if ($stored > $directoryVersion) {
+                    $directoryVersion = $stored;
+                }
+            } else {
+                $fileVersion = (int) @filemtime($versionFile);
+                if ($fileVersion > $directoryVersion) {
+                    $directoryVersion = $fileVersion;
+                }
+            }
+        }
+
+        return $directoryVersion;
+    }
+
+    private function bumpDirectoryVersion(string $directory): void
+    {
+        if (!is_dir($directory)) {
+            return;
+        }
+
+        $current = $this->readDirectoryVersion($directory);
+        $candidate = (int) round(microtime(true) * 1000);
+        $next = max($current + 1, $candidate);
+
+        $versionFile = $this->versionFile($directory);
+        @file_put_contents($versionFile, (string) $next, LOCK_EX);
+        @touch($directory);
+    }
+
     /**
      * @return array{
      *     root:string,
@@ -158,10 +206,7 @@ final class Repository
         $this->ensureDir($directory);
         $urlPrefix = $this->formatter->buildUrlPrefix($baseUrl, $relative);
 
-        $directoryVersion = (int) @filemtime($directory);
-        if ($directoryVersion <= 0) {
-            $directoryVersion = time();
-        }
+        $directoryVersion = $this->readDirectoryVersion($directory);
         $parentVersion = $directoryVersion;
         if ($relative !== '') {
             $parentDirectory = dirname($directory);
@@ -170,10 +215,7 @@ final class Repository
                 is_dir($parentDirectory) &&
                 strpos($parentDirectory, $root) === 0
             ) {
-                $parentMtime = (int) @filemtime($parentDirectory);
-                if ($parentMtime > 0) {
-                    $parentVersion = $parentMtime;
-                }
+                $parentVersion = $this->readDirectoryVersion($parentDirectory);
             }
         }
 
@@ -284,6 +326,7 @@ final class Repository
                     $imagick->clear();
                     $imagick->destroy();
                     if ($success) {
+                        $this->bumpDirectoryVersion(dirname($destinationPath));
                         return true;
                     }
                 }
@@ -294,16 +337,29 @@ final class Repository
 
         if (!function_exists('imagewebp')) {
             if ($mime === 'image/webp') {
-                return @move_uploaded_file($temporaryFile, $destinationPath) || @copy($temporaryFile, $destinationPath);
+                $result =
+                    @move_uploaded_file($temporaryFile, $destinationPath) ||
+                    @copy($temporaryFile, $destinationPath);
+                if ($result) {
+                    $this->bumpDirectoryVersion(dirname($destinationPath));
+                }
+                return (bool) $result;
             }
             return false;
         }
 
         if (!$this->gdCanDecode($info)) {
             if ($mime === 'image/webp') {
-                return @move_uploaded_file($temporaryFile, $destinationPath) || @copy($temporaryFile, $destinationPath);
+                $result =
+                    @move_uploaded_file($temporaryFile, $destinationPath) ||
+                    @copy($temporaryFile, $destinationPath);
+                if ($result) {
+                    $this->bumpDirectoryVersion(dirname($destinationPath));
+                }
+                return (bool) $result;
             }
             if ($this->tryCwebp($temporaryFile, $destinationPath, 85)) {
+                $this->bumpDirectoryVersion(dirname($destinationPath));
                 return true;
             }
             $this->setError(
@@ -351,6 +407,9 @@ final class Repository
         }
         $result = @imagewebp($image, $destinationPath, 85);
         @imagedestroy($image);
+        if ($result) {
+            $this->bumpDirectoryVersion(dirname($destinationPath));
+        }
         return (bool) $result;
     }
 
@@ -377,9 +436,14 @@ final class Repository
             $targetThumb = preg_replace('#\.webp$#i', '.thumb.webp', $target);
             $index++;
         } while ((file_exists($target) || ($hasThumb && $targetThumb && file_exists($targetThumb))) && $index < 10000);
+        $sourceDir = dirname($fullFile);
         $success = @rename($fullFile, $target);
         if ($success && $hasThumb) {
             @rename($sourceThumb, $targetThumb);
+        }
+        if ($success) {
+            $this->bumpDirectoryVersion($sourceDir);
+            $this->bumpDirectoryVersion(dirname($target));
         }
         return (bool) $success;
     }
@@ -408,6 +472,9 @@ final class Repository
         if ($success && $hasThumb) {
             @rename($sourceThumb, $targetThumb);
         }
+        if ($success) {
+            $this->bumpDirectoryVersion($directory);
+        }
         return (bool) $success;
     }
 
@@ -417,10 +484,14 @@ final class Repository
         if (!is_file($fullFile)) {
             return false;
         }
+        $directory = dirname($fullFile);
         $success = @unlink($fullFile);
         $thumb = preg_replace('#\.webp$#i', '.thumb.webp', $fullFile);
         if ($thumb && is_file($thumb)) {
             @unlink($thumb);
+        }
+        if ($success) {
+            $this->bumpDirectoryVersion($directory);
         }
         return (bool) $success;
     }
@@ -442,7 +513,12 @@ final class Repository
             $index++;
             $target = $parent . '/' . $newBase . '_' . $index;
         }
-        return @rename($fullDir, $target);
+        $success = @rename($fullDir, $target);
+        if ($success) {
+            $this->bumpDirectoryVersion($parent);
+            $this->bumpDirectoryVersion($target);
+        }
+        return (bool) $success;
     }
 
     public function moveDir(string $relativeDir, string $relativeDestinationDir): bool
@@ -467,7 +543,14 @@ final class Repository
             $index++;
             $target = $destDir . '/' . preg_replace('#(.*?)(?:_(\d+))?$#', '$1_' . $index, $name);
         }
-        return @rename($fullDir, $target);
+        $sourceParent = dirname($fullDir);
+        $success = @rename($fullDir, $target);
+        if ($success) {
+            $this->bumpDirectoryVersion($sourceParent);
+            $this->bumpDirectoryVersion($destDir);
+            $this->bumpDirectoryVersion($target);
+        }
+        return (bool) $success;
     }
 
     public function deleteDir(string $relativeDir, bool $recursive = false): bool
@@ -476,8 +559,13 @@ final class Repository
         if (!is_dir($fullDir)) {
             return false;
         }
+        $parent = dirname($fullDir);
         if (!$recursive) {
-            return @rmdir($fullDir);
+            $success = @rmdir($fullDir);
+            if ($success) {
+                $this->bumpDirectoryVersion($parent);
+            }
+            return (bool) $success;
         }
         $root = str_replace('\\', '/', $root);
         $fullDir = str_replace('\\', '/', $fullDir);
@@ -497,7 +585,11 @@ final class Repository
                 $success = @unlink($path) && $success;
             }
         }
-        return @rmdir($fullDir) && $success;
+        $removed = @rmdir($fullDir) && $success;
+        if ($removed) {
+            $this->bumpDirectoryVersion($parent);
+        }
+        return $removed;
     }
 
     public function createDir(string $relativeParent, string $name): bool
@@ -518,7 +610,12 @@ final class Repository
             $index++;
             $target = $parentFull . '/' . $candidate;
         } while (file_exists($target) && $index < 10000);
-        return @mkdir($target, 0775, true);
+        $created = @mkdir($target, 0775, true);
+        if ($created) {
+            $this->bumpDirectoryVersion($parentFull);
+            $this->bumpDirectoryVersion($target);
+        }
+        return (bool) $created;
     }
 
     public function generateThumb(string $webpPath, int $size = 96): bool
@@ -541,6 +638,9 @@ final class Repository
                     $success = $imagick->writeImage($thumbPath);
                     $imagick->clear();
                     $imagick->destroy();
+                    if ($success) {
+                        $this->bumpDirectoryVersion(dirname($thumbPath));
+                    }
                     return (bool) $success;
                 }
             } catch (Throwable $e) {
@@ -570,6 +670,9 @@ final class Repository
             $success = @imagewebp($destination, $thumbPath, 75);
             @imagedestroy($destination);
             @imagedestroy($source);
+            if ($success) {
+                $this->bumpDirectoryVersion(dirname($thumbPath));
+            }
             return (bool) $success;
         }
         return false;
