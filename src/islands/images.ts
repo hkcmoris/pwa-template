@@ -1,6 +1,7 @@
 // Island for Images: modal preview, context menu (files + folders), drag & drop move
 
 import './images.css';
+import { createSpinnerOverlay } from './components/spinner-overlay';
 import { getCsrfToken } from '../utils/api';
 
 const ensureRouteCss = () => {
@@ -24,29 +25,11 @@ const ensureRouteCss = () => {
     document.head.appendChild(link);
 };
 
-const ensureUploadOverlay = () => {
-    if (typeof document === 'undefined') {
-        return null;
-    }
-    let overlay = document.getElementById(
-        'images-upload-overlay'
-    ) as HTMLElement | null;
-    if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'images-upload-overlay';
-        overlay.className = 'images-upload-overlay is-hidden';
-        overlay.setAttribute('aria-hidden', 'true');
-        overlay.setAttribute('aria-busy', 'false');
-        overlay.innerHTML = `
-      <div class="images-upload-overlay-panel" role="status" aria-live="assertive">
-        <div class="images-upload-overlay-spinner" aria-hidden="true"></div>
-        <p>Nahrávám obrázky…</p>
-      </div>
-    `;
-        document.body.appendChild(overlay);
-    }
-    return overlay;
-};
+const ensureUploadOverlay = () =>
+    createSpinnerOverlay({
+        id: 'images-upload-overlay',
+        label: 'Nahrávám obrázky…',
+    });
 
 // Minimal query root to avoid referencing global DOM typings like ParentNode
 type QueryRoot = {
@@ -130,16 +113,10 @@ function mount(el: HTMLElement) {
     const newFolderBtn = qs<HTMLButtonElement>(el, '#new-folder-btn');
     const uploadForm = qs<HTMLFormElement>(el, '#upload-form');
     const showUploadOverlay = () => {
-        if (!uploadOverlay) return;
-        uploadOverlay.classList.remove('is-hidden');
-        uploadOverlay.setAttribute('aria-hidden', 'false');
-        uploadOverlay.setAttribute('aria-busy', 'true');
+        uploadOverlay?.show();
     };
     const hideUploadOverlay = () => {
-        if (!uploadOverlay) return;
-        uploadOverlay.classList.add('is-hidden');
-        uploadOverlay.setAttribute('aria-hidden', 'true');
-        uploadOverlay.setAttribute('aria-busy', 'false');
+        uploadOverlay?.hide();
     };
     let overlayActive = false;
     if (uploadForm && uploadOverlay) {
