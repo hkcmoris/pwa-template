@@ -6,6 +6,8 @@ const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
 // All hashed build artifacts (JS/CSS/image chunks) live under /public/assets/.
 // Cache them with a cache-first strategy so islands remain available offline.
 const ASSET_PREFIX = `${SCOPE_PATH}/public/assets/`;
+// User uploads live under /public/assets/images/upload and remain mutable.
+const UPLOAD_PREFIX = `${ASSET_PREFIX}images/upload/`;
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
@@ -27,7 +29,8 @@ self.addEventListener('fetch', (event) => {
         return;
     }
     const url = new URL(event.request.url);
-    const isImmutableAsset = url.pathname.startsWith(ASSET_PREFIX);
+    const isImmutableAsset =
+        url.pathname.startsWith(ASSET_PREFIX) && !url.pathname.startsWith(UPLOAD_PREFIX);
 
     event.respondWith(
         caches.open(CACHE_NAME).then(async (cache) => {
