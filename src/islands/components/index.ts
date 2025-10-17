@@ -7,6 +7,7 @@ import {
     renderPriceHistory,
 } from './form';
 import { createComponentModalManager } from './modal';
+import { openImagePickerModal } from './image-picker';
 import type {
     AfterRequestDetail,
     ComponentModalOptions,
@@ -264,6 +265,18 @@ export default function init(root: HTMLElement) {
         const imageField = form.querySelector<HTMLInputElement>(
             '#component-modal-image'
         );
+        const imagePlaceholder = form.querySelector<HTMLElement>(
+            '[data-image-placeholder]'
+        );
+        const imagePathLabel = form.querySelector<HTMLElement>(
+            '[data-image-path]'
+        );
+        const imageOpenButton = form.querySelector<HTMLButtonElement>(
+            '[data-image-select-open]'
+        );
+        const imageClearButton = form.querySelector<HTMLButtonElement>(
+            '[data-image-clear]'
+        );
         const colorField = form.querySelector<HTMLInputElement>(
             '#component-modal-color'
         );
@@ -306,9 +319,27 @@ export default function init(root: HTMLElement) {
         if (descriptionField) {
             descriptionField.value = options.description ?? '';
         }
-        if (imageField) {
-            imageField.value = mediaMode === 'image' ? imageValue : '';
-        }
+        const setImageValue = (value: string) => {
+            const trimmed = value.trim();
+            if (imageField) {
+                imageField.value = trimmed;
+            }
+            if (imagePathLabel) {
+                imagePathLabel.textContent = trimmed;
+            }
+            if (imagePlaceholder) {
+                imagePlaceholder.classList.toggle('hidden', trimmed !== '');
+            }
+            if (imageClearButton) {
+                if (trimmed) {
+                    imageClearButton.removeAttribute('disabled');
+                } else {
+                    imageClearButton.setAttribute('disabled', 'true');
+                }
+            }
+        };
+
+        setImageValue(mediaMode === 'image' ? imageValue : '');
         if (colorField) {
             colorField.value = normalisedColor;
         }
@@ -360,6 +391,26 @@ export default function init(root: HTMLElement) {
 
         modal.open(modalTitle, form as HTMLElement);
         focusFirstField(form as HTMLElement);
+
+        imageOpenButton?.addEventListener('click', async (event) => {
+            event.preventDefault();
+            try {
+                const selection = await openImagePickerModal({
+                    basePath,
+                    currentValue: imageField?.value ?? '',
+                });
+                if (selection) {
+                    setImageValue(selection.value);
+                }
+            } catch (error) {
+                console.error('Image picker failed', error);
+            }
+        });
+
+        imageClearButton?.addEventListener('click', (event) => {
+            event.preventDefault();
+            setImageValue('');
+        });
 
         const definitionSelect = definitionHidden
             ?.closest('[data-select-wrapper]')
