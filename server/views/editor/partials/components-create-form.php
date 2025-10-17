@@ -179,15 +179,25 @@ $parentPlaceholder = 'Kořenová komponenta';
       </div>
       <div class="component-media-panel" data-media-panel="image">
         <label for="component-modal-image">Obrazek</label>
-        <input
-          type="text"
-          id="component-modal-image"
-          name="image"
-          maxlength="255"
-          placeholder="napr. /assets/components/modul.jpg"
-          data-media-input="image"
-        >
-        <p class="component-help">URL obrazku nebo cesta v assetech (volitelne).</p>
+        <div class="component-image-picker" data-image-picker>
+          <input
+            type="hidden"
+            id="component-modal-image"
+            name="image"
+            maxlength="255"
+            data-media-input="image"
+            data-image-input
+          >
+          <div class="component-image-selected" data-image-display>
+            <span class="component-image-placeholder" data-image-placeholder>Žádný obrázek není vybrán.</span>
+            <span class="component-image-path" data-image-path></span>
+          </div>
+          <div class="component-image-actions">
+            <button type="button" class="component-action" data-image-select-open>Vybrat obrázek</button>
+            <button type="button" class="component-action" data-image-clear disabled>Odebrat</button>
+          </div>
+        </div>
+        <p class="component-help">Vyberte obrázek z galerie (volitelné).</p>
       </div>
       <div class="component-media-panel hidden" data-media-panel="color">
         <label for="component-modal-color">Barva</label>
