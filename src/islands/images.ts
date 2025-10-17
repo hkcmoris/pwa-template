@@ -24,6 +24,30 @@ const ensureRouteCss = () => {
     document.head.appendChild(link);
 };
 
+const ensureUploadOverlay = () => {
+    if (typeof document === 'undefined') {
+        return null;
+    }
+    let overlay = document.getElementById(
+        'images-upload-overlay'
+    ) as HTMLElement | null;
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'images-upload-overlay';
+        overlay.className = 'images-upload-overlay is-hidden';
+        overlay.setAttribute('aria-hidden', 'true');
+        overlay.setAttribute('aria-busy', 'false');
+        overlay.innerHTML = `
+      <div class="images-upload-overlay-panel" role="status" aria-live="assertive">
+        <div class="images-upload-overlay-spinner" aria-hidden="true"></div>
+        <p>Nahrávám obrázky…</p>
+      </div>
+    `;
+        document.body.appendChild(overlay);
+    }
+    return overlay;
+};
+
 // Minimal query root to avoid referencing global DOM typings like ParentNode
 type QueryRoot = {
     querySelector<E extends Element = Element>(selectors: string): E | null;
@@ -98,11 +122,60 @@ async function postAndSwap(url: string, data: Record<string, string>) {
 
 function mount(el: HTMLElement) {
     ensureRouteCss();
+    const uploadOverlay = ensureUploadOverlay();
     const grid = () =>
         document.getElementById('image-grid') as HTMLElement | null;
     const modal = qs<HTMLElement>(el, '#img-modal')!;
     const menu = qs<HTMLElement>(el, '#img-context-menu')!;
     const newFolderBtn = qs<HTMLButtonElement>(el, '#new-folder-btn');
+    const uploadForm = qs<HTMLFormElement>(el, '#upload-form');
+    const showUploadOverlay = () => {
+        if (!uploadOverlay) return;
+        uploadOverlay.classList.remove('is-hidden');
+        uploadOverlay.setAttribute('aria-hidden', 'false');
+        uploadOverlay.setAttribute('aria-busy', 'true');
+    };
+    const hideUploadOverlay = () => {
+        if (!uploadOverlay) return;
+        uploadOverlay.classList.add('is-hidden');
+        uploadOverlay.setAttribute('aria-hidden', 'true');
+        uploadOverlay.setAttribute('aria-busy', 'false');
+    };
+    let overlayActive = false;
+    if (uploadForm && uploadOverlay) {
+        uploadForm.addEventListener('htmx:beforeRequest', () => {
+            overlayActive = true;
+            showUploadOverlay();
+        });
+        const finishOverlay = (event: Event) => {
+            if (!overlayActive) return;
+            const detail = (event as CustomEvent).detail as
+                | {
+                      elt?: Element;
+                      target?: Element;
+                      requestConfig?: { elt?: Element };
+                  }
+                | undefined;
+            const source =
+                detail?.elt || detail?.requestConfig?.elt || undefined;
+            if (source === uploadForm) {
+                overlayActive = false;
+                hideUploadOverlay();
+            }
+        };
+        const finishEvents: ReadonlyArray<string> = [
+            'htmx:afterRequest',
+            'htmx:responseError',
+            'htmx:sendError',
+            'htmx:afterSwap',
+            'htmx:timeout',
+            'htmx:loadError',
+            'htmx:swapError',
+        ];
+        finishEvents.forEach((evtName) => {
+            document.body?.addEventListener(evtName, finishOverlay);
+        });
+    }
     // Disable native drag inside the island root as a safety net
     el.addEventListener('dragstart', (ev) => ev.preventDefault(), {
         capture: true,
