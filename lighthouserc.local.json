@@ -1,0 +1,20 @@
+{
+    "ci": {
+        "extends": "lighthouserc.base.json",
+        "collect": {
+            "url": ["http://localhost:8000/"],
+            "startServerCommand": "powershell -NoProfile -Command \"$p = Start-Process php -PassThru -NoNewWindow -ArgumentList '-d','post_max_size=32M','-d','upload_max_filesize=32M','-S','127.0.0.1:8000','-t','server','server/router.php'; Write-Output 'ready'; Wait-Process -Id $p.Id\"",
+            "startServerReadyPattern": "ready",
+            "numberOfRuns": 3,
+            "settings": {
+                "emulatedFormFactor": "desktop",
+                "throttlingMethod": "simulate"
+            }
+        },
+        "assert": {
+            "assertions": {
+                "is-on-https": "off"
+            }
+        }
+    }
+}

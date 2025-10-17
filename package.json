@@ -17,7 +17,8 @@
         "lint:php": "composer --working-dir=server run lint:php",
         "fix:php": "composer --working-dir=server run fix:php",
         "lint": "npm run lint:ts && npm run lint:css && npm run lint:php",
-        "lhci": "lhci autorun",
+        "lhci:local": "lhci autorun --config=lighthouserc.local.json",
+        "lhci:prod": "lhci autorun --config=lighthouserc.prod.json",
         "test": "jest"
     },
     "devDependencies": {
