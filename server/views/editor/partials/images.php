@@ -12,13 +12,18 @@ $BASE = rtrim($BASE, '/');
 $repository = new Repository();
 $pathInput = isset($_GET['path']) && is_string($_GET['path']) ? $_GET['path'] : '';
 $sanitizedPath = $repository->sanitizeRelative((string) $pathInput);
-[, $currentPath] = $repository->resolve($sanitizedPath);
+[$currentAbsolute, $currentPath] = $repository->resolve($sanitizedPath);
 $beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status'
     . ' && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
 $uploadHxVals = 'js:{ path: document.getElementById("images-root")?.dataset.currentPath'
     . ' || "" }';
+$currentVersion = (int) @filemtime($currentAbsolute);
+if ($currentVersion <= 0) {
+    $currentVersion = time();
+}
 $initialGridUrl = htmlspecialchars(
-    $BASE . '/editor/images-grid?path=' . rawurlencode($currentPath),
+    $BASE . '/editor/images-grid?path=' . rawurlencode($currentPath)
+        . '&v=' . rawurlencode((string) max(1, $currentVersion)),
     ENT_QUOTES,
     'UTF-8'
 );

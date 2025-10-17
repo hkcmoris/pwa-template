@@ -78,7 +78,10 @@ async function postAndSwap(url: string, data: Record<string, string>) {
     if (token) {
         fd.append('_csrf', token);
     }
-    const headers: Record<string, string> = { 'HX-Request': 'true' };
+    const headers: Record<string, string> = {
+        'HX-Request': 'true',
+        'Cache-Control': 'no-cache',
+    };
     if (token) {
         headers['X-CSRF-Token'] = token;
     }
@@ -87,6 +90,7 @@ async function postAndSwap(url: string, data: Record<string, string>) {
         body: fd,
         credentials: 'same-origin',
         headers,
+        cache: 'no-store',
     });
     const text = await res.text();
     swapGridFromHTML(text);
