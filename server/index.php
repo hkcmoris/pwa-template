@@ -58,6 +58,25 @@ if ($route !== '' && !preg_match('~^[a-z0-9/_-]+$~i', $route)) {
 $current = app_get_current_user();
 $role    = $current['role'] ?? 'guest';
 $requiresAdmin = (strpos($route, 'editor/') === 0);
+$requiresAdminView = $requiresAdmin || $route === 'users';
+$hasAdminPrivileges = in_array($role, ['admin', 'superadmin'], true);
+$forcedView = null;
+
+if ($requiresAdminView && !$hasAdminPrivileges) {
+    // Guests should be redirected to login, including HTMX callers via HX-Redirect
+    if ($role === 'guest') {
+        $loginUrl = ($basePath !== '' ? $basePath : '') . '/login';
+        if ($isHx) {
+            http_response_code(401);
+            header('HX-Redirect: ' . $loginUrl);
+            exit;
+        }
+        header('Location: ' . $loginUrl, true, 302);
+        exit;
+    }
+    // Authenticated but non-admin users get a 403 page without leaking admin content
+    $forcedView = '403';
+}
 
 // For controller calls (usually POST HTMX), deny early if not admin
 if ($requiresAdmin && !in_array($role, ['admin','superadmin'], true) && $method !== 'GET') {
@@ -107,12 +126,14 @@ if (isset($controllerRoutes[$key])) {
 
 // --- View resolution ---
 $viewPath = __DIR__ . "/views/{$route}.php";
-if (is_file($viewPath)) {
+if ($forcedView !== null) {
+    http_response_code(403);
+    $view = $forcedView;
+    $viewPath = __DIR__ . "/views/{$view}.php";
+} elseif (is_file($viewPath)) {
     // Apply view-level gates (GET requests)
     if (
-        ($requiresAdmin && !in_array($role, ['admin','superadmin'], true)) ||
-        ($route === 'konfigurator' && $role === 'guest') ||
-        ($route === 'users' && !in_array($role, ['admin','superadmin'], true))
+        ($route === 'konfigurator' && $role === 'guest')
     ) {
         http_response_code(403);
     } else {
@@ -136,6 +157,7 @@ $titleMap = [
   'about' => 'O aplikaci',
   'demo' => 'Demo',
   'konfigurator' => 'Konfigurátor',
+  '403' => 'Přístup zamítnut',
   '404' => 'Stránka nenalezena'
 ];
 $title = $titleMap[$view] ?? ucfirst($view);
@@ -152,6 +174,7 @@ $descMap = [
   'about' => 'Informace o aplikaci a jejích možnostech.',
   'demo' => 'Ukázková stránka aplikace.',
   'konfigurator' => 'Konfigurátor produktu s postupným výběrem.',
+  '403' => 'Přístup na tuto stránku vyžaduje administrátorská oprávnění.',
   '404' => 'Požadovaná stránka nebyla nalezena.'
 ];
 $description = $descMap[$view] ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.';
