@@ -1,6 +1,7 @@
 // Island for Images: modal preview, context menu (files + folders), drag & drop move
 
 import './images.css';
+import { createSpinnerOverlay } from './components/spinner-overlay';
 import { getCsrfToken } from '../utils/api';
 
 const ensureRouteCss = () => {
@@ -23,6 +24,12 @@ const ensureRouteCss = () => {
     link.href = cssHref;
     document.head.appendChild(link);
 };
+
+const ensureUploadOverlay = () =>
+    createSpinnerOverlay({
+        id: 'images-upload-overlay',
+        label: 'Nahrávám obrázky…',
+    });
 
 // Minimal query root to avoid referencing global DOM typings like ParentNode
 type QueryRoot = {
@@ -98,11 +105,55 @@ async function postAndSwap(url: string, data: Record<string, string>) {
 
 function mount(el: HTMLElement) {
     ensureRouteCss();
+    const uploadOverlay = ensureUploadOverlay();
     const grid = () =>
         document.getElementById('image-grid') as HTMLElement | null;
     const modal = qs<HTMLElement>(el, '#img-modal')!;
     const menu = qs<HTMLElement>(el, '#img-context-menu')!;
     const newFolderBtn = qs<HTMLButtonElement>(el, '#new-folder-btn');
+    const uploadForm = qs<HTMLFormElement>(el, '#upload-form');
+    const showUploadOverlay = () => {
+        uploadOverlay?.show();
+    };
+    const hideUploadOverlay = () => {
+        uploadOverlay?.hide();
+    };
+    let overlayActive = false;
+    if (uploadForm && uploadOverlay) {
+        uploadForm.addEventListener('htmx:beforeRequest', () => {
+            overlayActive = true;
+            showUploadOverlay();
+        });
+        const finishOverlay = (event: Event) => {
+            if (!overlayActive) return;
+            const detail = (event as CustomEvent).detail as
+                | {
+                      elt?: Element;
+                      target?: Element;
+                      requestConfig?: { elt?: Element };
+                  }
+                | undefined;
+            const source =
+                detail?.elt || detail?.requestConfig?.elt || undefined;
+            if (source === uploadForm) {
+                overlayActive = false;
+                hideUploadOverlay();
+            }
+        };
+        const finishEvents: ReadonlyArray<string> = [
+            'htmx:afterRequest',
+            'htmx:responseError',
+            'htmx:sendError',
+            'htmx:afterSwap',
+            'htmx:timeout',
+            'htmx:loadError',
+            'htmx:swapError',
+            'htmx:abort',
+        ];
+        finishEvents.forEach((evtName) => {
+            document.body?.addEventListener(evtName, finishOverlay);
+        });
+    }
     // Disable native drag inside the island root as a safety net
     el.addEventListener('dragstart', (ev) => ev.preventDefault(), {
         capture: true,
