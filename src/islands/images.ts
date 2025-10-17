@@ -171,6 +171,7 @@ function mount(el: HTMLElement) {
             'htmx:timeout',
             'htmx:loadError',
             'htmx:swapError',
+            'htmx:abort',
         ];
         finishEvents.forEach((evtName) => {
             document.body?.addEventListener(evtName, finishOverlay);
