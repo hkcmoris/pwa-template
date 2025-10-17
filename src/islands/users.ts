@@ -1,5 +1,5 @@
 import { apiFetch } from '../utils/api';
-import { enhanceSelects, setSelectValue } from './select';
+import { enhanceSelects, setSelectValue } from './shared/select';
 
 export default async function init(el: HTMLElement) {
     const list = el.querySelector<HTMLTableSectionElement>('#users-list');

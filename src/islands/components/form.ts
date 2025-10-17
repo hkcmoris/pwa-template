@@ -1,4 +1,4 @@
-import { enhanceSelects, setSelectValue } from '../select';
+import { enhanceSelects, setSelectValue } from '../shared/select';
 import type {
     MediaMode,
     PriceHistoryItem,

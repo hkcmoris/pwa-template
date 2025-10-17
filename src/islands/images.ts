@@ -1,7 +1,7 @@
 // Island for Images: modal preview, context menu (files + folders), drag & drop move
 
 import './images.css';
-import { createSpinnerOverlay } from './components/spinner-overlay';
+import { createSpinnerOverlay } from './shared/spinner-overlay';
 import { getCsrfToken } from '../utils/api';
 
 const ensureRouteCss = () => {

@@ -1,4 +1,4 @@
-import { setSelectValue } from '../select';
+import { setSelectValue } from '../shared/select';
 import { createComponentApiClient } from './api-client';
 import {
     COMPONENT_FORM_ERROR_ID,
