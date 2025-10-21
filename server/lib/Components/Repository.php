@@ -401,18 +401,15 @@ final class Repository
             $this->validator->assertParentChangeIsValid($componentId, $parentId);
 
             $oldParentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
-            $detach = $this->pdo->prepare('UPDATE components SET parent_id = NULL WHERE id = :id');
-            $detach->bindValue(':id', $componentId, PDO::PARAM_INT);
-            $detach->execute();
-            $this->reorderPositions($oldParentId);
-
-            if ($parentId !== null && $parentId !== $oldParentId) {
-                $this->reorderPositions($parentId);
-            } elseif ($parentId === null && $oldParentId !== null) {
-                $this->reorderPositions(null);
-            }
+            $oldPosition = isset($current['position']) ? (int) $current['position'] : 0;
+            $sameParent = ($oldParentId === null && $parentId === null)
+                || ($oldParentId !== null && $parentId !== null && $oldParentId === $parentId);
 
             $childCount = $this->queries->childrenCount($parentId);
+
+            if ($sameParent) {
+                $childCount = max(0, $childCount - 1);
+            }
 
             if ($position === null || $position < 0) {
                 $position = $childCount;
@@ -420,39 +417,80 @@ final class Repository
                 $position = $childCount;
             }
 
-            if ($image !== null) {
-                $image = trim((string) $image);
+            if (!$sameParent) {
+                $closeGap = $this->pdo->prepare(
+                    'UPDATE components SET position = position - 1 '
+                    . 'WHERE parent_id <=> :parent AND position > :position'
+                );
 
-                if ($image === '') {
-                    $image = null;
+                if ($oldParentId === null) {
+                    $closeGap->bindValue(':parent', null, PDO::PARAM_NULL);
+                } else {
+                    $closeGap->bindValue(':parent', $oldParentId, PDO::PARAM_INT);
+                }
+
+                $closeGap->bindValue(':position', $oldPosition, PDO::PARAM_INT);
+                $closeGap->execute();
+
+                $openGap = $this->pdo->prepare(
+                    'UPDATE components SET position = position + 1 '
+                    . 'WHERE parent_id <=> :parent AND position >= :position'
+                );
+
+                if ($parentId === null) {
+                    $openGap->bindValue(':parent', null, PDO::PARAM_NULL);
+                } else {
+                    $openGap->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                }
+
+                $openGap->bindValue(':position', $position, PDO::PARAM_INT);
+                $openGap->execute();
+            } elseif ($position !== $oldPosition) {
+                if ($position > $oldPosition) {
+                    $shiftDown = $this->pdo->prepare(
+                        'UPDATE components SET position = position - 1 '
+                        . 'WHERE parent_id <=> :parent AND position > :old AND position <= :new'
+                    );
+
+                    if ($parentId === null) {
+                        $shiftDown->bindValue(':parent', null, PDO::PARAM_NULL);
+                    } else {
+                        $shiftDown->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                    }
+
+                    $shiftDown->bindValue(':old', $oldPosition, PDO::PARAM_INT);
+                    $shiftDown->bindValue(':new', $position, PDO::PARAM_INT);
+                    $shiftDown->execute();
+                } else {
+                    $shiftUp = $this->pdo->prepare(
+                        'UPDATE components SET position = position + 1 '
+                        . 'WHERE parent_id <=> :parent AND position >= :new AND position < :old'
+                    );
+
+                    if ($parentId === null) {
+                        $shiftUp->bindValue(':parent', null, PDO::PARAM_NULL);
+                    } else {
+                        $shiftUp->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                    }
+
+                    $shiftUp->bindValue(':new', $position, PDO::PARAM_INT);
+                    $shiftUp->bindValue(':old', $oldPosition, PDO::PARAM_INT);
+                    $shiftUp->execute();
                 }
             }
 
-            if ($color !== null) {
-                $color = trim((string) $color);
+            [$imageValue, $colorValue] = $this->normaliseMediaInputs($image, $color);
+            $alternate = $alternateTitle !== null ? trim((string) $alternateTitle) : null;
 
-                if ($color === '') {
-                    $color = null;
-                }
+            if ($alternate === '') {
+                $alternate = null;
             }
 
-            if ($image !== null && $color !== null) {
-                $color = null;
+            $descriptionValue = $description !== null ? trim((string) $description) : null;
+
+            if ($descriptionValue === '') {
+                $descriptionValue = null;
             }
-
-            $shift = $this->pdo->prepare(
-                'UPDATE components SET position = position + 1 '
-                . 'WHERE parent_id <=> :parent AND position >= :position'
-            );
-
-            if ($parentId === null) {
-                $shift->bindValue(':parent', null, PDO::PARAM_NULL);
-            } else {
-                $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
-            }
-
-            $shift->bindValue(':position', $position, PDO::PARAM_INT);
-            $shift->execute();
 
             $update = $this->pdo->prepare(
                 <<<'SQL'
@@ -476,28 +514,28 @@ final class Repository
                 $update->bindValue(':parent', $parentId, PDO::PARAM_INT);
             }
 
-            if ($alternateTitle === null || $alternateTitle === '') {
+            if ($alternate === null) {
                 $update->bindValue(':alternate', null, PDO::PARAM_NULL);
             } else {
-                $update->bindValue(':alternate', $alternateTitle, PDO::PARAM_STR);
+                $update->bindValue(':alternate', $alternate, PDO::PARAM_STR);
             }
 
-            if ($description === null || $description === '') {
+            if ($descriptionValue === null) {
                 $update->bindValue(':description', null, PDO::PARAM_NULL);
             } else {
-                $update->bindValue(':description', $description, PDO::PARAM_STR);
+                $update->bindValue(':description', $descriptionValue, PDO::PARAM_STR);
             }
 
-            if ($image === null) {
+            if ($imageValue === null) {
                 $update->bindValue(':image', null, PDO::PARAM_NULL);
             } else {
-                $update->bindValue(':image', $image, PDO::PARAM_STR);
+                $update->bindValue(':image', $imageValue, PDO::PARAM_STR);
             }
 
-            if ($color === null) {
+            if ($colorValue === null) {
                 $update->bindValue(':color', null, PDO::PARAM_NULL);
             } else {
-                $update->bindValue(':color', $color, PDO::PARAM_STR);
+                $update->bindValue(':color', $colorValue, PDO::PARAM_STR);
             }
 
             $update->bindValue(':position', $position, PDO::PARAM_INT);
