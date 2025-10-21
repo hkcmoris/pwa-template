@@ -22,14 +22,14 @@ final class Validator
     public function assertDefinitionExists(int $definitionId, string $message = 'Vybraná definice neexistuje.'): void
     {
         if (!$this->definitions->find($definitionId)) {
-            throw new RuntimeException($message);
+            throw new ValidationException($message);
         }
     }
 
     public function assertParentExists(?int $parentId, string $message): void
     {
         if ($parentId !== null && !$this->queries->parentExists($parentId)) {
-            throw new RuntimeException($message);
+            throw new ValidationException($message);
         }
     }
 
@@ -54,13 +54,13 @@ final class Validator
         }
 
         if ($parentId === $componentId) {
-            throw new RuntimeException('Komponenta nemůže být sama sobě rodičem.');
+            throw new ValidationException('Komponenta nemůže být sama sobě rodičem.');
         }
 
         $this->assertParentExists($parentId, 'Vybraný rodičovský prvek neexistuje.');
 
         if ($this->isDescendant($componentId, $parentId)) {
-            throw new RuntimeException('Nelze přesunout komponentu pod jejího potomka.');
+            throw new ValidationException('Nelze přesunout komponentu pod jejího potomka.');
         }
     }
 
