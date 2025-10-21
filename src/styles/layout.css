@@ -201,7 +201,7 @@ nav {
     margin-left: 0;
   }
 
-  nav.open {
+  #nav-menu.open {
     display: flex;
   }
 
