@@ -111,6 +111,53 @@ navMenu?.addEventListener('click', (e) => {
     }
 });
 
+// Nav actions are sometimes injected/updated by HTMX. Use a small
+// initializer that can be safely re-run and that doesn't throw when
+// elements are missing. Also use the correct event names: 'mouseenter'/'mouseleave'.
+const initNavActions = (root: Document | HTMLElement = document) => {
+    const find = (selector: string) =>
+        root instanceof Document
+            ? (root.getElementById(selector.replace(/^#/, '')) as
+                  | HTMLElement
+                  | null)
+            : (root.querySelector(selector) as HTMLElement | null);
+
+    const icon = find('#nav-actions-icon');
+    const panel = find('#nav-actions-panel');
+    if (!icon || !panel) {
+        return; // nothing to do yet; caller may re-run after swaps
+    }
+
+    if (icon.hasAttribute('data-nav-actions-mounted')) {
+        return; // already initialized
+    }
+
+    const show = () => panel.classList.remove('hidden');
+    const hide = () => panel.classList.add('hidden');
+
+    icon.addEventListener('mouseenter', show);
+    icon.addEventListener('focus', show);
+    icon.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            // Toggle on keyboard activate
+            panel.classList.toggle('hidden');
+        }
+    });
+
+    panel.addEventListener('mouseleave', hide);
+    panel.addEventListener('focusout', (e) => {
+        // If focus moved outside the panel, hide it
+        if (!panel.contains(e.relatedTarget as Node)) {
+            hide();
+        }
+    });
+
+    icon.setAttribute('data-nav-actions-mounted', '');
+};
+
+// Run initially (non-blocking)
+onIdle(() => initNavActions());
+
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'theme';
 
@@ -517,6 +564,7 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
     }
 
     mountIslands();
+    initNavActions();
     highlightNav();
     updateBodyRoute();
 });
@@ -528,8 +576,10 @@ document.body.addEventListener('htmx:oobAfterSwap', (event) => {
     const swapped = detail?.content ?? (event.target as Element | null);
     if (swapped instanceof HTMLElement) {
         mountIslands(swapped as HTMLElement);
+        initNavActions(swapped as HTMLElement);
     } else {
         mountIslands();
+        initNavActions();
     }
 });
 
