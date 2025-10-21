@@ -5,6 +5,7 @@ use Components\Repository;
 use Definitions\Formatter as DefinitionsFormatter;
 use Definitions\Repository as DefinitionsRepository;
 use Editor\ComponentPresenter;
+use RuntimeException;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/components-response.php';
@@ -167,6 +168,14 @@ try {
     $viewModel = $presenter->presentInitial([
         'message' => 'Komponenta byla aktualizována.',
         'message_type' => 'success',
+    ]);
+    components_render_fragments($viewModel);
+} catch (RuntimeException $e) {
+    log_message('Component update validation failed: ' . $e->getMessage(), 'WARN');
+    http_response_code(422);
+    $viewModel = $presenter->presentInitial([
+        'message' => $e->getMessage(),
+        'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
 } catch (Throwable $e) {
