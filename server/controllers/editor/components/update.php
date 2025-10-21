@@ -2,6 +2,7 @@
 
 use Components\Formatter;
 use Components\Repository;
+use Components\ValidationException;
 use Definitions\Formatter as DefinitionsFormatter;
 use Definitions\Repository as DefinitionsRepository;
 use Editor\ComponentPresenter;
@@ -167,6 +168,14 @@ try {
     $viewModel = $presenter->presentInitial([
         'message' => 'Komponenta byla aktualizována.',
         'message_type' => 'success',
+    ]);
+    components_render_fragments($viewModel);
+} catch (ValidationException $e) {
+    log_message('Component update validation failed: ' . $e->getMessage(), 'WARN');
+    http_response_code(422);
+    $viewModel = $presenter->presentInitial([
+        'message' => $e->getMessage(),
+        'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
 } catch (Throwable $e) {
