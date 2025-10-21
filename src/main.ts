@@ -135,6 +135,14 @@ const initNavActions = (root: Document | HTMLElement = document) => {
     const show = () => panel.classList.remove('hidden');
     const hide = () => panel.classList.add('hidden');
 
+    const handleMouseLeave = (event: MouseEvent) => {
+        const related = event.relatedTarget as Node | null;
+        if (related && (panel.contains(related) || icon.contains(related))) {
+            return;
+        }
+        hide();
+    };
+
     icon.addEventListener('mouseenter', show);
     icon.addEventListener('focus', show);
     icon.addEventListener('keydown', (e) => {
@@ -144,8 +152,8 @@ const initNavActions = (root: Document | HTMLElement = document) => {
         }
     });
 
-    icon.addEventListener('mouseleave', hide);
-    panel.addEventListener('mouseleave', hide);
+    icon.addEventListener('mouseleave', handleMouseLeave);
+    panel.addEventListener('mouseleave', handleMouseLeave);
     panel.addEventListener('focusout', (e) => {
         // If focus moved outside the panel, hide it
         if (!panel.contains(e.relatedTarget as Node)) {
