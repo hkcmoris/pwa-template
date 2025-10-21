@@ -417,6 +417,17 @@ final class Repository
                 $position = $childCount;
             }
 
+            $needsReorder = !$sameParent || $position !== $oldPosition;
+
+            if ($needsReorder) {
+                $detach = $this->pdo->prepare(
+                    'UPDATE components SET parent_id = NULL, position = NULL WHERE id = :id'
+                );
+
+                $detach->bindValue(':id', $componentId, PDO::PARAM_INT);
+                $detach->execute();
+            }
+
             if (!$sameParent) {
                 $closeGap = $this->pdo->prepare(
                     'UPDATE components SET position = position - 1 '
