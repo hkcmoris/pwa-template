@@ -120,7 +120,6 @@ foreach ($viewStyles as $styleId => $entry) {
         top: 0;
         left: 0;
         right: 0;
-        box-shadow: 0 2px 4px rgb(0 0 0 / 5%);
         z-index: 999;
       }
 
