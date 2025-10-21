@@ -104,7 +104,7 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  box-shadow: 0 2px 4px rgb(0 0 0 / 5%);
+  box-shadow: 0 8px 24px rgb(from var(--fg) r g b / 20%);
   z-index: 999;
 }
 
@@ -152,6 +152,7 @@ nav {
   border-radius: 1rem;
   padding: 1rem;
   background-color: var(--bg-2);
+  box-shadow: 0 4px 12px rgb(from var(--fg) r g b / 20%);
 }
 
 .nav-actions-panel.hidden {
@@ -295,12 +296,14 @@ body[data-route="home"] {
   padding: 0.5rem;
   border: 1px solid var(--fg);
   border-radius: 0.25rem;
+  box-shadow: 0 4px 8px rgb(from var(--fg) r g b / 20%);
 }
 
 .auth-form button {
   width: 100%;
   font-size: 1.1rem;
   margin-top: 1rem;
+  box-shadow: 0 8px 16px rgb(from var(--fg) r g b / 20%);
 }
 
 .app-version-badge {

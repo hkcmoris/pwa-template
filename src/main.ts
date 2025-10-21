@@ -144,6 +144,7 @@ const initNavActions = (root: Document | HTMLElement = document) => {
         }
     });
 
+    icon.addEventListener('mouseleave', hide);
     panel.addEventListener('mouseleave', hide);
     panel.addEventListener('focusout', (e) => {
         // If focus moved outside the panel, hide it
