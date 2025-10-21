@@ -8,19 +8,40 @@ const ensureRouteCss = () => {
     if (typeof document === 'undefined') {
         return;
     }
+
     const cssHref = new URL('../styles/editor/images.css', import.meta.url).href;
     const existing = document.getElementById(
         'editor-partial-style'
     ) as HTMLLinkElement | null;
-    if (existing) {
-        if (existing.href !== cssHref) {
-            existing.href = cssHref;
+
+    if (!existing) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.id = 'editor-partial-style';
+        link.href = cssHref;
+        document.head.appendChild(link);
+        return;
+    }
+
+    if (existing.href === cssHref) {
+        return;
+    }
+
+    const modalLinkId = 'editor-images-style';
+    const modalLink = document.getElementById(
+        modalLinkId
+    ) as HTMLLinkElement | null;
+
+    if (modalLink) {
+        if (modalLink.href !== cssHref) {
+            modalLink.href = cssHref;
         }
         return;
     }
+
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.id = 'editor-partial-style';
+    link.id = modalLinkId;
     link.href = cssHref;
     document.head.appendChild(link);
 };
