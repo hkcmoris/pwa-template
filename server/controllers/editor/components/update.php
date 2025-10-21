@@ -84,8 +84,8 @@ if ($description !== '' && mb_strlen($description, 'UTF-8') > 1000) {
 }
 
 if ($mediaType === 'image') {
-    if ($image !== '' && mb_strlen($image, 'UTF-8') > 255) {
-        $errors[] = 'Cesta k obrázku je příliš dlouhá (max 255 znaků).';
+    if ($image !== '' && mb_strlen($image, 'UTF-8') > 191) {
+        $errors[] = 'Cesta k obrázku je příliš dlouhá (max 191 znaků).';
     }
     $color = '';
 } else {
