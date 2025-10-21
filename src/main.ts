@@ -132,8 +132,15 @@ const initNavActions = (root: Document | HTMLElement = document) => {
         return; // already initialized
     }
 
+    let lockedOpen = false;
+
     const show = () => panel.classList.remove('hidden');
-    const hide = () => panel.classList.add('hidden');
+    const hide = (force = false) => {
+        if (!force && lockedOpen) {
+            return;
+        }
+        panel.classList.add('hidden');
+    };
 
     const handleMouseLeave = (event: MouseEvent) => {
         const related = event.relatedTarget as Node | null;
@@ -145,14 +152,34 @@ const initNavActions = (root: Document | HTMLElement = document) => {
 
     icon.addEventListener('mouseenter', show);
     icon.addEventListener('focus', show);
+    icon.addEventListener('click', () => {
+        const isHidden = panel.classList.contains('hidden');
+        if (isHidden) {
+            lockedOpen = true;
+            show();
+            return;
+        }
+
+        if (!lockedOpen) {
+            lockedOpen = true;
+            return;
+        }
+
+        lockedOpen = false;
+        hide(true);
+    });
     icon.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
             // Toggle on keyboard activate
             panel.classList.toggle('hidden');
+            lockedOpen = false;
         }
     });
 
     icon.addEventListener('mouseleave', handleMouseLeave);
+    panel.addEventListener('mouseenter', () => {
+        lockedOpen = false;
+    });
     panel.addEventListener('mouseleave', handleMouseLeave);
     panel.addEventListener('focusout', (e) => {
         // If focus moved outside the panel, hide it
