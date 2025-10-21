@@ -1,6 +1,6 @@
 :root {
   --bg: #fff;
-  --bg-2: hsl(210, 30%, 90%);
+  --bg-2: hsl(210deg 30% 90%);
   --fg: #111;
   --primary: #2563eb;
   --primary-contrast: #fff;
@@ -158,6 +158,14 @@ nav {
   display: none;
 }
 
+.nav-actions svg {
+  color: var(--fg);
+}
+
+.nav-actions svg path {
+  fill: currentcolor;
+}
+
 .nav-actions-icon svg {
   cursor: pointer;
   transition: scale 0.2s, color 0.2s;
@@ -166,14 +174,6 @@ nav {
 .nav-actions-icon:hover svg {
   color: var(--primary);
   scale: 1.618;
-}
-
-.nav-actions svg {
-  color: var(--fg);
-}
-
-.nav-actions svg path {
-  fill: currentColor;
 }
 
 #menu-toggle {
