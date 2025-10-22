@@ -231,6 +231,7 @@ nav {
   .nav-actions-panel.hidden {
     display: block!important;
   }
+
   .nav-actions-icon {
     display: none;
   }
