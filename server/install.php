@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS components (
   parent_id BIGINT UNSIGNED DEFAULT NULL,
   alternate_title VARCHAR(191) DEFAULT NULL,
   description TEXT NULL,
-  image VARCHAR(191) DEFAULT NULL,
+  images JSON NOT NULL DEFAULT (JSON_ARRAY()),
   color VARCHAR(21) DEFAULT NULL,
   dependency_tree JSON NOT NULL,
   position INT UNSIGNED NOT NULL DEFAULT 0,
@@ -130,8 +130,26 @@ CREATE TABLE IF NOT EXISTS components (
 SQL;
     $pdo->exec($componentsSql);
 
+    if (!columnExists($pdo, 'components', 'images')) {
+        $pdo->exec('ALTER TABLE components ADD COLUMN images JSON NOT NULL DEFAULT (JSON_ARRAY()) AFTER description');
+    }
+
+    if (columnExists($pdo, 'components', 'image')) {
+        $pdo->exec(<<<'SQL'
+UPDATE components
+SET images = CASE
+    WHEN COALESCE(JSON_LENGTH(images), 0) = 0 THEN JSON_ARRAY(image)
+    ELSE images
+END
+WHERE image IS NOT NULL AND image <> ''
+SQL
+        );
+
+        $pdo->exec('ALTER TABLE components DROP COLUMN image');
+    }
+
     if (!columnExists($pdo, 'components', 'color')) {
-        $pdo->exec('ALTER TABLE components ADD COLUMN color VARCHAR(21) DEFAULT NULL AFTER image');
+        $pdo->exec('ALTER TABLE components ADD COLUMN color VARCHAR(21) DEFAULT NULL AFTER images');
     }
 
     $pdo->exec('ALTER TABLE components MODIFY description TEXT NULL');
