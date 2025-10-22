@@ -450,8 +450,7 @@
 
 .component-node-details .component-image-list {
     display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+    flex-flow: row nowrap;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: .75rem;
 }
@@ -482,6 +481,7 @@
     border-radius: .3rem;
     overflow: hidden;
     background: rgb(0 0 0 / 5%);
+
     /* aspect-ratio: 4 / 3; */
     width: 48px;
     height: 48px;

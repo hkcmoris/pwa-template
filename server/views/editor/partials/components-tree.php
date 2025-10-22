@@ -177,7 +177,9 @@ if (!function_exists('render_component_nodes')) {
                         echo '<li class="component-image-list-item">';
                         echo '<figure class="component-image-thumb">';
                         echo '<div class="component-image-thumb-media">';
-                        echo '<img src="' . $thumbSrc . '" alt="' . $alt . '" width="48px" height="48px" loading="lazy" decoding="async">';
+                        echo '<img src="' . $thumbSrc . '"'
+                             . ' alt="' . $alt . '" width="48px" height="48px"'
+                             . ' loading="lazy" decoding="async">';
                         echo '</div>';
                         echo '</figure>';
                         echo '</li>';

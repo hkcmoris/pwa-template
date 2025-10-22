@@ -188,7 +188,14 @@ foreach ($items as $node) {
                         <li class="component-image-list-item">
                           <figure class="component-image-thumb">
                             <div class="component-image-thumb-media">
-                              <img src="<?= $thumbSrc ?>" alt="<?= $alt ?>" width="48px" height="48px" loading="lazy" decoding="async">
+                              <img
+                                src="<?= $thumbSrc ?>"
+                                alt="<?= $alt ?>"
+                                width="48px"
+                                height="48px"
+                                loading="lazy"
+                                decoding="async"
+                              >
                             </div>
                           </figure>
                         </li>
