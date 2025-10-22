@@ -155,7 +155,9 @@ if (!function_exists('render_component_nodes')) {
                 if (!empty($rawImages)) {
                     echo '<div><dt>Obrázky</dt><dd><ul class="component-image-list">';
                     foreach ($rawImages as $imgPath) {
-                        echo '<li class="component-image-list-item">' . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . '</li>';
+                        echo '<li class="component-image-list-item">' .
+                            htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') .
+                        '</li>';
                     }
                     echo '</ul></dd></div>';
                 }
