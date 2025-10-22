@@ -15,6 +15,64 @@ import type {
 } from './types';
 import { escapeHtml, focusFirstField, getHtmx } from './utils';
 
+type SelectedImageEntry = {
+    value: string;
+    label?: string;
+};
+
+const trimImageValue = (value: string): string => value.trim();
+
+const buildImageList = (
+    values: readonly string[] | undefined,
+    fallback?: string
+): string[] => {
+    const unique: string[] = [];
+
+    if (Array.isArray(values)) {
+        values.forEach((item) => {
+            const trimmed = trimImageValue(item);
+            if (trimmed && !unique.includes(trimmed)) {
+                unique.push(trimmed);
+            }
+        });
+    }
+
+    if (fallback) {
+        const trimmedFallback = trimImageValue(fallback);
+        if (trimmedFallback && !unique.includes(trimmedFallback)) {
+            unique.push(trimmedFallback);
+        }
+    }
+
+    return unique;
+};
+
+const parseImagesDataset = (
+    raw: string | undefined,
+    fallback?: string
+): string[] => {
+    if (!raw) {
+        return buildImageList([], fallback);
+    }
+
+    try {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+            return buildImageList(
+                parsed.filter((item): item is string => typeof item === 'string'),
+                fallback
+            );
+        }
+    } catch {
+        const trimmed = trimImageValue(raw);
+        if (trimmed) {
+            return buildImageList([trimmed], fallback);
+        }
+    }
+
+    return buildImageList([], fallback);
+};
+
 const listTarget = '#components-list';
 const listWrapperTarget = '#components-list-wrapper';
 
@@ -262,14 +320,14 @@ export default function init(root: HTMLElement) {
         const descriptionField = form.querySelector<HTMLTextAreaElement>(
             '#component-modal-description'
         );
-        const imageField = form.querySelector<HTMLInputElement>(
-            '#component-modal-image'
+        const imagesField = form.querySelector<HTMLInputElement>(
+            '[data-images-input]'
         );
         const imagePlaceholder = form.querySelector<HTMLElement>(
             '[data-image-placeholder]'
         );
-        const imagePathLabel = form.querySelector<HTMLElement>(
-            '[data-image-path]'
+        const imageList = form.querySelector<HTMLUListElement>(
+            '[data-image-list]'
         );
         const imageOpenButton = form.querySelector<HTMLButtonElement>(
             '[data-image-select-open]'
@@ -309,9 +367,14 @@ export default function init(root: HTMLElement) {
                 mode === 'edit' ? options.componentId ?? '' : '';
         }
 
-        const imageValue = options.image ?? '';
         const normalisedColor = normaliseColorValue(options.color);
-        const mediaMode = options.mediaType ?? (normalisedColor ? 'color' : 'image');
+        const initialImages = buildImageList(
+            options.images,
+            options.image
+        );
+        let mediaMode =
+            options.mediaType ??
+            (normalisedColor ? 'color' : initialImages.length > 0 ? 'image' : 'image');
 
         if (alternateInput) {
             alternateInput.value = options.alternateTitle ?? '';
@@ -319,27 +382,99 @@ export default function init(root: HTMLElement) {
         if (descriptionField) {
             descriptionField.value = options.description ?? '';
         }
-        const setImageValue = (value: string) => {
-            const trimmed = value.trim();
-            if (imageField) {
-                imageField.value = trimmed;
-            }
-            if (imagePathLabel) {
-                imagePathLabel.textContent = trimmed;
+        let selectedImages: SelectedImageEntry[] =
+            mediaMode === 'image'
+                ? initialImages.map((value) => ({ value, label: value }))
+                : [];
+
+        const syncSelectedImages = () => {
+            const values = selectedImages.map((item) => item.value);
+            if (imagesField) {
+                imagesField.value = JSON.stringify(values);
             }
             if (imagePlaceholder) {
-                imagePlaceholder.classList.toggle('hidden', trimmed !== '');
+                imagePlaceholder.classList.toggle('hidden', values.length > 0);
             }
             if (imageClearButton) {
-                if (trimmed) {
+                if (values.length > 0) {
                     imageClearButton.removeAttribute('disabled');
                 } else {
                     imageClearButton.setAttribute('disabled', 'true');
                 }
             }
+            if (imageList) {
+                imageList.innerHTML = '';
+                selectedImages.forEach((item, index) => {
+                    const entry = document.createElement('li');
+                    entry.className = 'component-image-entry';
+                    const label = document.createElement('span');
+                    label.className = 'component-image-path';
+                    label.textContent = item.label;
+                    entry.appendChild(label);
+                    const removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.className =
+                        'component-action component-image-remove';
+                    removeButton.dataset.imageRemove = 'true';
+                    removeButton.dataset.index = String(index);
+                    removeButton.textContent = 'Odebrat';
+                    entry.appendChild(removeButton);
+                    imageList.appendChild(entry);
+                });
+            }
         };
 
-        setImageValue(mediaMode === 'image' ? imageValue : '');
+        const setSelectedImages = (entries: SelectedImageEntry[]) => {
+            selectedImages = entries.filter((entry) => {
+                const value = trimImageValue(entry.value);
+                return value !== '';
+            });
+            selectedImages = selectedImages.map((entry) => ({
+                value: trimImageValue(entry.value),
+                label: entry.label?.trim() || trimImageValue(entry.value),
+            }));
+            const unique: SelectedImageEntry[] = [];
+            selectedImages.forEach((entry) => {
+                if (!unique.some((item) => item.value === entry.value)) {
+                    unique.push(entry);
+                }
+            });
+            selectedImages = unique;
+            syncSelectedImages();
+        };
+
+        const addImageEntry = (entry: SelectedImageEntry) => {
+            const value = trimImageValue(entry.value);
+            if (!value) {
+                return;
+            }
+            const label = entry.label?.trim() || value;
+            const existingIndex = selectedImages.findIndex(
+                (item) => item.value === value
+            );
+            if (existingIndex >= 0) {
+                const next = [...selectedImages];
+                next[existingIndex] = { value, label };
+                setSelectedImages(next);
+            } else {
+                setSelectedImages([...selectedImages, { value, label }]);
+            }
+        };
+
+        const removeImageAt = (index: number) => {
+            if (index < 0 || index >= selectedImages.length) {
+                return;
+            }
+            const next = selectedImages.slice();
+            next.splice(index, 1);
+            setSelectedImages(next);
+        };
+
+        if (mediaMode === 'color') {
+            setSelectedImages([]);
+        } else {
+            syncSelectedImages();
+        }
         if (colorField) {
             colorField.value = normalisedColor;
         }
@@ -395,12 +530,17 @@ export default function init(root: HTMLElement) {
         imageOpenButton?.addEventListener('click', async (event) => {
             event.preventDefault();
             try {
+                const currentValue =
+                    selectedImages[selectedImages.length - 1]?.value ?? '';
                 const selection = await openImagePickerModal({
                     basePath,
-                    currentValue: imageField?.value ?? '',
+                    currentValue,
                 });
                 if (selection) {
-                    setImageValue(selection.value);
+                    addImageEntry({
+                        value: selection.value,
+                        label: selection.name ?? selection.value,
+                    });
                 }
             } catch (error) {
                 console.error('Image picker failed', error);
@@ -409,7 +549,22 @@ export default function init(root: HTMLElement) {
 
         imageClearButton?.addEventListener('click', (event) => {
             event.preventDefault();
-            setImageValue('');
+            setSelectedImages([]);
+        });
+
+        imageList?.addEventListener('click', (event) => {
+            const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
+                '[data-image-remove]'
+            );
+            if (!button) {
+                return;
+            }
+            event.preventDefault();
+            const indexRaw = button.dataset.index ?? '';
+            const index = Number.parseInt(indexRaw, 10);
+            if (!Number.isNaN(index)) {
+                removeImageAt(index);
+            }
         });
 
         const definitionSelect = definitionHidden
@@ -474,6 +629,10 @@ export default function init(root: HTMLElement) {
             const priceHistory = parsePriceHistoryDataset(
                 button.dataset.priceHistory
             );
+            const images = parseImagesDataset(
+                button.dataset.images,
+                button.dataset.image
+            );
             openComponentModal({
                 mode: 'edit',
                 componentId:
@@ -482,6 +641,7 @@ export default function init(root: HTMLElement) {
                 alternateTitle: button.dataset.alternateTitle ?? '',
                 description: button.dataset.description ?? '',
                 image: button.dataset.image ?? '',
+                images,
                 color: button.dataset.color ?? '',
                 mediaType:
                     (button.dataset.mediaType as

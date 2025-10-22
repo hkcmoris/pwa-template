@@ -27,8 +27,37 @@ foreach ($items as $node) {
         ? htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8')
         : '';
     $rawImage = isset($node['image']) ? (string) $node['image'] : '';
-    $image = $rawImage !== ''
-        ? htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8')
+    $rawImagesValue = isset($node['images']) && is_array($node['images'])
+        ? $node['images']
+        : [];
+    $rawImages = [];
+
+    foreach ($rawImagesValue as $entry) {
+        if (!is_string($entry)) {
+            continue;
+        }
+        $trimmed = trim($entry);
+        if ($trimmed === '') {
+            continue;
+        }
+        if (!in_array($trimmed, $rawImages, true)) {
+            $rawImages[] = $trimmed;
+        }
+    }
+
+    $legacyImage = trim($rawImage);
+    if ($legacyImage !== '' && !in_array($legacyImage, $rawImages, true)) {
+        array_unshift($rawImages, $legacyImage);
+    }
+
+    $imagesJsonRaw = json_encode($rawImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($imagesJsonRaw === false) {
+        $imagesJsonRaw = '[]';
+    }
+    $imagesJson = htmlspecialchars($imagesJsonRaw, ENT_QUOTES, 'UTF-8');
+    $primaryImage = $rawImages[0] ?? '';
+    $image = $primaryImage !== ''
+        ? htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8')
         : '';
     $rawColor = isset($node['color']) ? (string) $node['color'] : '';
     $color = $rawColor !== ''
@@ -102,7 +131,8 @@ foreach ($items as $node) {
               data-definition-id="<?= $definitionId ?>"
               data-alternate-title="<?= htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') ?>"
               data-description="<?= htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') ?>"
-              data-image="<?= htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') ?>"
+              data-image="<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>"
+              data-images='<?= $imagesJson ?>'
               data-color="<?= htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') ?>"
               data-media-type="<?= $mediaType ?>"
               data-position="<?= $position ?>"
@@ -119,14 +149,23 @@ foreach ($items as $node) {
             >Smazat</button>
           </div>
         </div>
-        <?php $hasDetails = $description !== '' || $image !== '' || $color !== '' || $dependencyCount > 0; ?>
+        <?php $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0; ?>
         <?php if ($hasDetails) : ?>
           <dl class="component-node-details">
             <?php if ($description !== '') : ?>
               <div><dt>Popis</dt><dd><?= $description ?></dd></div>
             <?php endif; ?>
-            <?php if ($image !== '') : ?>
-              <div><dt>Obrázek</dt><dd><?= $image ?></dd></div>
+            <?php if (!empty($rawImages)) : ?>
+              <div>
+                <dt>Obrázky</dt>
+                <dd>
+                  <ul class="component-image-list">
+                    <?php foreach ($rawImages as $imgPath) : ?>
+                      <li class="component-image-list-item"><?= htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </dd>
+              </div>
             <?php endif; ?>
             <?php if ($color !== '') : ?>
               <div>

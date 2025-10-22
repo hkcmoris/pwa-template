@@ -31,8 +31,37 @@ if (!function_exists('render_component_nodes')) {
                 ? htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8')
                 : '';
             $rawImage = isset($node['image']) ? (string) $node['image'] : '';
-            $image = $rawImage !== ''
-                ? htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8')
+            $rawImagesValue = isset($node['images']) && is_array($node['images'])
+                ? $node['images']
+                : [];
+            $rawImages = [];
+
+            foreach ($rawImagesValue as $entry) {
+                if (!is_string($entry)) {
+                    continue;
+                }
+                $trimmedEntry = trim($entry);
+                if ($trimmedEntry === '') {
+                    continue;
+                }
+                if (!in_array($trimmedEntry, $rawImages, true)) {
+                    $rawImages[] = $trimmedEntry;
+                }
+            }
+
+            $legacyImage = trim($rawImage);
+            if ($legacyImage !== '' && !in_array($legacyImage, $rawImages, true)) {
+                array_unshift($rawImages, $legacyImage);
+            }
+
+            $imagesJsonRaw = json_encode($rawImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if ($imagesJsonRaw === false) {
+                $imagesJsonRaw = '[]';
+            }
+            $imagesJson = htmlspecialchars($imagesJsonRaw, ENT_QUOTES, 'UTF-8');
+            $primaryImage = $rawImages[0] ?? '';
+            $image = $primaryImage !== ''
+                ? htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8')
                 : '';
             $rawColor = isset($node['color']) ? (string) $node['color'] : '';
             $color = $rawColor !== ''
@@ -101,7 +130,8 @@ if (!function_exists('render_component_nodes')) {
                 . ' data-definition-id="' . $definitionId . '"'
                 . ' data-alternate-title="' . htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-description="' . htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') . '"'
-                . ' data-image="' . htmlspecialchars($rawImage, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-image="' . htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-images="' . $imagesJson . '"'
                 . ' data-color="' . htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-media-type="' . $mediaType . '"'
                 . ' data-position="' . $position . '"'
@@ -116,14 +146,18 @@ if (!function_exists('render_component_nodes')) {
                 . '">Smazat</button>';
             echo '</div>';
             echo '</div>';
-            $hasDetails = $description !== '' || $image !== '' || $color !== '' || $dependencyCount > 0;
+            $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0;
             if ($hasDetails) {
                 echo '<dl class="component-node-details">';
                 if ($description !== '') {
                     echo '<div><dt>Popis</dt><dd>' . $description . '</dd></div>';
                 }
-                if ($image !== '') {
-                    echo '<div><dt>Obrázek</dt><dd>' . $image . '</dd></div>';
+                if (!empty($rawImages)) {
+                    echo '<div><dt>Obrázky</dt><dd><ul class="component-image-list">';
+                    foreach ($rawImages as $imgPath) {
+                        echo '<li class="component-image-list-item">' . htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') . '</li>';
+                    }
+                    echo '</ul></dd></div>';
                 }
                 if ($color !== '') {
                     echo '<div><dt>Barva</dt><dd>'

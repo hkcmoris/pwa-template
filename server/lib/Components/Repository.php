@@ -98,14 +98,28 @@ final class Repository
     }
 
     /**
-     * @return array{0: ?string, 1: ?string}
+     * @param array<int, string>|null $images
+     * @return array{0: array<int, string>, 1: ?string, 2: ?string}
      */
-    private function normaliseMediaInputs(?string $image, ?string $color): array
+    private function resolveMediaInputs(?array $images, ?string $color): array
     {
-        if ($image !== null) {
-            $image = trim((string) $image);
-            if ($image === '') {
-                $image = null;
+        $normalisedImages = [];
+
+        if ($images !== null) {
+            foreach ($images as $value) {
+                if (!is_string($value)) {
+                    continue;
+                }
+
+                $trimmed = trim($value);
+
+                if ($trimmed === '') {
+                    continue;
+                }
+
+                if (!in_array($trimmed, $normalisedImages, true)) {
+                    $normalisedImages[] = $trimmed;
+                }
             }
         }
 
@@ -116,11 +130,15 @@ final class Repository
             }
         }
 
-        if ($image !== null && $color !== null) {
+        if (!empty($normalisedImages)) {
+            $primary = $normalisedImages[0];
             $color = null;
+        } else {
+            $primary = null;
+            $normalisedImages = [];
         }
 
-        return [$image, $color];
+        return [$normalisedImages, $primary, $color];
     }
 
     public function reorderPositions(?int $parentId): void
@@ -159,7 +177,7 @@ final class Repository
         ?int $parentId,
         ?string $alternateTitle,
         ?string $description,
-        ?string $image,
+        array $images,
         ?string $color,
         int $position
     ): int {
@@ -174,7 +192,7 @@ final class Repository
             $position = $count;
         }
 
-        [$imageValue, $colorValue] = $this->normaliseMediaInputs($image, $color);
+        [$imagesValue, $primaryImage, $colorValue] = $this->resolveMediaInputs($images, $color);
         $alternate = $alternateTitle !== null ? trim((string) $alternateTitle) : null;
 
         if ($alternate === '') {
@@ -209,6 +227,7 @@ final class Repository
                 alternate_title,
                 description,
                 image,
+                images,
                 color,
                 dependency_tree,
                 position
@@ -218,6 +237,7 @@ final class Repository
                 :alternate,
                 :description,
                 :image,
+                :images,
                 :color,
                 :dependency,
                 :position
@@ -245,11 +265,13 @@ final class Repository
             $stmt->bindValue(':description', $descriptionValue, PDO::PARAM_STR);
         }
 
-        if ($imageValue === null) {
+        if ($primaryImage === null) {
             $stmt->bindValue(':image', null, PDO::PARAM_NULL);
         } else {
-            $stmt->bindValue(':image', $imageValue, PDO::PARAM_STR);
+            $stmt->bindValue(':image', $primaryImage, PDO::PARAM_STR);
         }
+
+        $stmt->bindValue(':images', json_encode($imagesValue), PDO::PARAM_STR);
 
         if ($colorValue === null) {
             $stmt->bindValue(':color', null, PDO::PARAM_NULL);
@@ -318,7 +340,7 @@ final class Repository
                 $componentId,
                 null,
                 null,
-                null,
+                [],
                 null,
                 $position
             );
@@ -336,7 +358,7 @@ final class Repository
         ?int $parentId,
         ?string $alternateTitle,
         ?string $description,
-        ?string $image,
+        array $images,
         ?string $color,
         int $position,
         ?string $priceAmount = null,
@@ -353,7 +375,7 @@ final class Repository
                 $parentId,
                 $alternateTitle,
                 $description,
-                $image,
+                $images,
                 $color,
                 $position
             );
@@ -387,7 +409,7 @@ final class Repository
         ?int $parentId,
         ?string $alternateTitle,
         ?string $description,
-        ?string $image,
+        array $images,
         ?string $color,
         ?int $position,
         ?string $priceAmount = null,
@@ -490,7 +512,7 @@ final class Repository
                 }
             }
 
-            [$imageValue, $colorValue] = $this->normaliseMediaInputs($image, $color);
+            [$imagesValue, $primaryImage, $colorValue] = $this->resolveMediaInputs($images, $color);
             $alternate = $alternateTitle !== null ? trim((string) $alternateTitle) : null;
 
             if ($alternate === '') {
@@ -511,6 +533,7 @@ final class Repository
                     alternate_title = :alternate,
                     description = :description,
                     image = :image,
+                    images = :images,
                     color = :color,
                     position = :position
                 WHERE id = :id
@@ -537,11 +560,13 @@ final class Repository
                 $update->bindValue(':description', $descriptionValue, PDO::PARAM_STR);
             }
 
-            if ($imageValue === null) {
+            if ($primaryImage === null) {
                 $update->bindValue(':image', null, PDO::PARAM_NULL);
             } else {
-                $update->bindValue(':image', $imageValue, PDO::PARAM_STR);
+                $update->bindValue(':image', $primaryImage, PDO::PARAM_STR);
             }
+
+            $update->bindValue(':images', json_encode($imagesValue), PDO::PARAM_STR);
 
             if ($colorValue === null) {
                 $update->bindValue(':color', null, PDO::PARAM_NULL);

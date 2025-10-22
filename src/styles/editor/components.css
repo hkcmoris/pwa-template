@@ -380,6 +380,44 @@
     min-height: 1.5rem;
 }
 
+.component-image-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+}
+
+.component-image-list-item {
+    font-size: .85rem;
+    word-break: break-all;
+    font-family: var(
+        --mono-font,
+        ui-monospace,
+        SFMono-Regular,
+        SFMono,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+    );
+}
+
+.component-image-entry {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.component-image-remove {
+    font-size: .8rem;
+    line-height: 1;
+    padding: .35rem .5rem;
+}
+
 .component-image-placeholder {
     font-size: .85rem;
     color: var(--fg-muted, #6b7280);
@@ -404,6 +442,10 @@
         'Courier New',
         monospace
     );
+}
+
+.component-image-entry .component-image-path {
+    flex: 1 1 auto;
 }
 
 .component-image-actions {
