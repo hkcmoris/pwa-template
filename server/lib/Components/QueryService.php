@@ -32,7 +32,6 @@ final class QueryService
             c.parent_id,
             c.alternate_title,
             c.description,
-            c.image,
             c.images,
             c.color,
             c.dependency_tree,
@@ -75,7 +74,9 @@ final class QueryService
 
         foreach ($rows as $row) {
             $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
-            $row['images'] = $this->formatter->normaliseImages($row['images'] ?? null);
+            $images = $this->formatter->normaliseImages($row['images'] ?? null);
+            $row['images'] = $images;
+            $row['image'] = $images[0] ?? null;
             $row['effective_title'] = $this->formatter->effectiveTitle($row);
             $rowId = isset($row['id']) ? (int) $row['id'] : 0;
             $history = $priceHistoryMap[$rowId] ?? [];
@@ -259,7 +260,6 @@ final class QueryService
             c.parent_id,
             c.alternate_title,
             c.description,
-            c.image,
             c.images,
             c.color,
             c.dependency_tree,
@@ -282,7 +282,9 @@ final class QueryService
         }
 
         $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
-        $row['images'] = $this->formatter->normaliseImages($row['images'] ?? null);
+        $images = $this->formatter->normaliseImages($row['images'] ?? null);
+        $row['images'] = $images;
+        $row['image'] = $images[0] ?? null;
         $row['effective_title'] = $this->formatter->effectiveTitle($row);
         $priceHistory = $this->fetchPriceHistory([$id]);
         $history = $priceHistory[$id] ?? [];

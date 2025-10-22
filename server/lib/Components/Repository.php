@@ -229,7 +229,6 @@ final class Repository
                 parent_id,
                 alternate_title,
                 description,
-                image,
                 images,
                 color,
                 dependency_tree,
@@ -239,7 +238,6 @@ final class Repository
                 :parent,
                 :alternate,
                 :description,
-                :image,
                 :images,
                 :color,
                 :dependency,
@@ -266,12 +264,6 @@ final class Repository
             $stmt->bindValue(':description', null, PDO::PARAM_NULL);
         } else {
             $stmt->bindValue(':description', $descriptionValue, PDO::PARAM_STR);
-        }
-
-        if ($primaryImage === null) {
-            $stmt->bindValue(':image', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':image', $primaryImage, PDO::PARAM_STR);
         }
 
         $stmt->bindValue(':images', json_encode($imagesValue), PDO::PARAM_STR);
@@ -537,7 +529,6 @@ final class Repository
                     parent_id = :parent,
                     alternate_title = :alternate,
                     description = :description,
-                    image = :image,
                     images = :images,
                     color = :color,
                     position = :position
@@ -563,12 +554,6 @@ final class Repository
                 $update->bindValue(':description', null, PDO::PARAM_NULL);
             } else {
                 $update->bindValue(':description', $descriptionValue, PDO::PARAM_STR);
-            }
-
-            if ($primaryImage === null) {
-                $update->bindValue(':image', null, PDO::PARAM_NULL);
-            } else {
-                $update->bindValue(':image', $primaryImage, PDO::PARAM_STR);
             }
 
             $update->bindValue(':images', json_encode($imagesValue), PDO::PARAM_STR);
