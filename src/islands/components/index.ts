@@ -17,7 +17,7 @@ import { escapeHtml, focusFirstField, getHtmx } from './utils';
 
 type SelectedImageEntry = {
     value: string;
-    label?: string;
+    label: string | null;
 };
 
 const trimImageValue = (value: string): string => value.trim();
