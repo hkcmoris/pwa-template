@@ -98,7 +98,7 @@ final class Repository
     }
 
     /**
-     * @param array<int, string>|null $images
+     * @param array<int, scalar|null>|null $images
      * @return array{0: array<int, string>, 1: ?string, 2: ?string}
      */
     private function resolveMediaInputs(?array $images, ?string $color): array
@@ -172,6 +172,9 @@ final class Repository
         }
     }
 
+    /**
+     * @param array<int, scalar|null> $images
+     */
     public function insertComponentRow(
         int $definitionId,
         ?int $parentId,
@@ -351,6 +354,7 @@ final class Repository
     }
 
     /**
+     * @param array<int, scalar|null> $images
      * @return array<string, mixed>
      */
     public function create(
@@ -401,6 +405,7 @@ final class Repository
     }
 
     /**
+     * @param array<int, scalar|null> $images
      * @return array<string, mixed>
      */
     public function update(
