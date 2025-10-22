@@ -159,10 +159,12 @@ if (!function_exists('render_component_nodes')) {
                         if ($trimmedPath === '') {
                             continue;
                         }
-                        $imageSrc = htmlspecialchars($trimmedPath, ENT_QUOTES, 'UTF-8');
                         $fileNameRaw = basename($trimmedPath);
-                        $fileName = $fileNameRaw !== '' ? $fileNameRaw : $trimmedPath;
-                        $caption = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
+                        $extension = pathinfo($fileNameRaw, PATHINFO_EXTENSION);
+                        $thumbSrc = pathinfo($trimmedPath, PATHINFO_DIRNAME) . '/'
+                            . pathinfo($trimmedPath, PATHINFO_FILENAME)
+                            . (".thumb")
+                            . ($extension !== '' ? ('.' . $extension) : '');
                         $altSourcesRaw = array_filter([
                             $rawEffectiveTitle !== '' ? trim($rawEffectiveTitle) : null,
                             $fileNameRaw !== '' ? trim($fileNameRaw) : null,
@@ -175,14 +177,8 @@ if (!function_exists('render_component_nodes')) {
                         echo '<li class="component-image-list-item">';
                         echo '<figure class="component-image-thumb">';
                         echo '<div class="component-image-thumb-media">';
-                        echo '<img src="' . $imageSrc . '" alt="' . $alt . '" loading="lazy" decoding="async">';
+                        echo '<img src="' . $thumbSrc . '" alt="' . $alt . '" width="48px" height="48px" loading="lazy" decoding="async">';
                         echo '</div>';
-                        echo '<figcaption class="component-image-thumb-caption">';
-                        echo '<span class="component-image-filename">' . $caption . '</span>';
-                        if ($imageSrc !== $caption) {
-                            echo '<span class="component-image-path">' . $imageSrc . '</span>';
-                        }
-                        echo '</figcaption>';
                         echo '</figure>';
                         echo '</li>';
                     }

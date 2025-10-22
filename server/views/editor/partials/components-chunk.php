@@ -168,6 +168,11 @@ foreach ($items as $node) {
                         }
                         $imageSrc = htmlspecialchars($trimmedPath, ENT_QUOTES, 'UTF-8');
                         $fileNameRaw = basename($trimmedPath);
+                        $extension = pathinfo($trimmedPath, PATHINFO_EXTENSION);
+                        $thumbSrc = pathinfo($trimmedPath, PATHINFO_DIRNAME) . '/'
+                            . pathinfo($trimmedPath, PATHINFO_FILENAME)
+                            . (".thumb")
+                            . ($extension !== '' ? ('.' . $extension) : '');
                         $fileName = $fileNameRaw !== '' ? $fileNameRaw : $trimmedPath;
                         $caption = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
                         $altSourcesRaw = array_filter([
@@ -183,14 +188,8 @@ foreach ($items as $node) {
                         <li class="component-image-list-item">
                           <figure class="component-image-thumb">
                             <div class="component-image-thumb-media">
-                              <img src="<?= $imageSrc ?>" alt="<?= $alt ?>" loading="lazy" decoding="async">
+                              <img src="<?= $thumbSrc ?>" alt="<?= $alt ?>" width="48px" height="48px" loading="lazy" decoding="async">
                             </div>
-                            <figcaption class="component-image-thumb-caption">
-                              <span class="component-image-filename"><?= $caption ?></span>
-                              <?php if ($imageSrc !== $caption) : ?>
-                                <span class="component-image-path"><?= $imageSrc ?></span>
-                              <?php endif; ?>
-                            </figcaption>
                           </figure>
                         </li>
                         <?php

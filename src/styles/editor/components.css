@@ -449,7 +449,9 @@
 }
 
 .component-node-details .component-image-list {
-    display: grid;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: .75rem;
 }
@@ -461,14 +463,13 @@
 }
 
 .component-image-thumb {
-    display: flex;
-    flex-direction: column;
-    gap: .4rem;
+    display: inline-block;
     border: 1px solid var(--border);
     border-radius: .5rem;
-    padding: .4rem;
+    padding: .2rem;
     background: rgb(0 0 0 / 3%);
     overflow: hidden;
+    margin: 0;
 }
 
 [data-theme="dark"] .component-image-thumb {
@@ -478,16 +479,16 @@
 
 .component-image-thumb-media {
     position: relative;
-    border-radius: .35rem;
+    border-radius: .3rem;
     overflow: hidden;
     background: rgb(0 0 0 / 5%);
-    aspect-ratio: 4 / 3;
+    /* aspect-ratio: 4 / 3; */
+    width: 48px;
+    height: 48px;
 }
 
 .component-image-thumb-media img {
     display: block;
-    width: 100%;
-    height: 100%;
     object-fit: cover;
 }
 
