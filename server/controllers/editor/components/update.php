@@ -39,6 +39,8 @@ $definitionParam = $_POST['definition_id'] ?? '';
 $parentParam = $_POST['parent_id'] ?? '';
 $alternateTitle = isset($_POST['alternate_title']) ? trim((string) $_POST['alternate_title']) : '';
 $description = isset($_POST['description']) ? trim((string) $_POST['description']) : '';
+$imagesParam = $_POST['images'] ?? [];
+$imageList = [];
 $image = isset($_POST['image']) ? trim((string) $_POST['image']) : '';
 $color = isset($_POST['color']) ? trim((string) $_POST['color']) : '';
 $mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'image';
@@ -51,6 +53,32 @@ $definitionId = null;
 $parentId = null;
 $position = null;
 $priceValue = null;
+
+if (is_string($imagesParam)) {
+    $decoded = json_decode($imagesParam, true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $imagesParam = $decoded;
+    }
+}
+
+if (is_array($imagesParam)) {
+    foreach ($imagesParam as $value) {
+        if (!is_string($value)) {
+            continue;
+        }
+        $trimmed = trim($value);
+        if ($trimmed === '') {
+            continue;
+        }
+        if (!in_array($trimmed, $imageList, true)) {
+            $imageList[] = $trimmed;
+        }
+    }
+}
+
+if ($image !== '' && !in_array($image, $imageList, true)) {
+    $imageList[] = $image;
+}
 
 if ($componentParam === '' || !preg_match('/^\d+$/', (string) $componentParam)) {
     $errors[] = 'Vyberte prosím platnou komponentu.';
@@ -85,12 +113,15 @@ if ($description !== '' && mb_strlen($description, 'UTF-8') > 1000) {
 }
 
 if ($mediaType === 'image') {
-    if ($image !== '' && mb_strlen($image, 'UTF-8') > 191) {
-        $errors[] = 'Cesta k obrázku je příliš dlouhá (max 191 znaků).';
+    foreach ($imageList as $img) {
+        if (mb_strlen($img, 'UTF-8') > 191) {
+            $errors[] = 'Cesta k obrázku je příliš dlouhá (max 191 znaků).';
+            break;
+        }
     }
     $color = '';
 } else {
-    $image = '';
+    $imageList = [];
     if ($color === '') {
         $errors[] = 'Zadejte barvu komponenty.';
     } elseif (!preg_match('/^#(?:[0-9A-Fa-f]{3}){1,2}$/', $color)) {
@@ -159,7 +190,7 @@ try {
         $parentId,
         $alternateTitle !== '' ? $alternateTitle : null,
         $description !== '' ? $description : null,
-        $image !== '' ? $image : null,
+        $imageList,
         $color !== '' ? strtoupper($color) : null,
         $position,
         $priceValue,

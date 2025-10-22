@@ -39,6 +39,7 @@ export type ComponentModalOptions = {
     alternateTitle?: string;
     description?: string;
     image?: string;
+    images?: string[];
     color?: string;
     mediaType?: 'image' | 'color';
     position?: number;

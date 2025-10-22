@@ -183,18 +183,17 @@ $parentPlaceholder = 'Kořenová komponenta';
           <input
             type="hidden"
             id="component-modal-image"
-            name="image"
-            maxlength="255"
+            name="images"
             data-media-input="image"
-            data-image-input
+            data-images-input
           >
           <div class="component-image-selected" data-image-display>
             <span class="component-image-placeholder" data-image-placeholder>Žádný obrázek není vybrán.</span>
-            <span class="component-image-path" data-image-path></span>
+            <ul class="component-image-list" data-image-list></ul>
           </div>
           <div class="component-image-actions">
             <button type="button" class="component-action" data-image-select-open>Vybrat obrázek</button>
-            <button type="button" class="component-action" data-image-clear disabled>Odebrat</button>
+            <button type="button" class="component-action" data-image-clear disabled>Odebrat vše</button>
           </div>
         </div>
         <p class="component-help">Vyberte obrázek z galerie (volitelné).</p>

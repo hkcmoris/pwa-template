@@ -68,6 +68,47 @@ final class Formatter
     }
 
     /**
+     * @param mixed $raw
+     * @return array<int, string>
+     */
+    public function normaliseImages($raw): array
+    {
+        $values = [];
+
+        if (is_array($raw)) {
+            $values = $raw;
+        } elseif (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $values = $decoded;
+            } else {
+                $values = [$raw];
+            }
+        }
+
+        $normalised = [];
+
+        foreach ($values as $value) {
+            if (!is_string($value)) {
+                continue;
+            }
+
+            $trimmed = trim($value);
+
+            if ($trimmed === '') {
+                continue;
+            }
+
+            if (!in_array($trimmed, $normalised, true)) {
+                $normalised[] = $trimmed;
+            }
+        }
+
+        return $normalised;
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     public function effectiveTitle(array $row): string
