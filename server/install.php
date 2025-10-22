@@ -135,13 +135,14 @@ SQL;
     }
 
     if (columnExists($pdo, 'components', 'image')) {
-        $pdo->exec(
-            "UPDATE components \
-SET images = CASE \
-    WHEN COALESCE(JSON_LENGTH(images), 0) = 0 THEN JSON_ARRAY(image) \
-    ELSE images \
-END \
-WHERE image IS NOT NULL AND image <> ''"
+        $pdo->exec(<<<'SQL'
+UPDATE components
+SET images = CASE
+    WHEN COALESCE(JSON_LENGTH(images), 0) = 0 THEN JSON_ARRAY(image)
+    ELSE images
+END
+WHERE image IS NOT NULL AND image <> ''
+SQL
         );
 
         $pdo->exec('ALTER TABLE components DROP COLUMN image');
