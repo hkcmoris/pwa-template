@@ -8,7 +8,7 @@
 }
 
 #images-root .upload input[type="file"] {
-    border: 1px solid var(--fg);
+    border: 1px solid var(--border);
     padding: .25rem;
     border-radius: .25rem;
     background: transparent;
@@ -26,7 +26,7 @@
 }
 
 .tile {
-    border: 1px solid var(--fg);
+    border: 1px solid var(--border);
     border-radius: .25rem;
     padding: .25rem;
     display: flex;

@@ -117,7 +117,7 @@
     position: fixed;
     z-index: 1001;
     background: var(--bg);
-    border: 1px solid var(--fg);
+    border: 1px solid var(--border);
     border-radius: 0.25rem;
     box-shadow: 0 4px 10px rgb(0 0 0 / 15%);
     min-width: 160px;

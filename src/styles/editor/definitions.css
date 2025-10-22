@@ -83,7 +83,7 @@
     justify-content: space-between;
     gap: 0.75rem;
     align-items: flex-start;
-    border: 1px solid rgb(0 0 0 / 15%);
+    border: 1px solid var(--border);
     border-radius: 0.35rem;
     padding: 0.4rem 0.5rem;
     background: rgb(0 0 0 / 2%);
@@ -253,7 +253,7 @@
 
 .definition-form--modal input,
 .definition-form--modal .select-button {
-    border: 1px solid var(--fg);
+    border: 1px solid var(--border);
     border-radius: 0.35rem;
     padding: 0.4rem 0.5rem;
     font: inherit;
