@@ -160,9 +160,42 @@ foreach ($items as $node) {
                 <dt>Obrázky</dt>
                 <dd>
                   <ul class="component-image-list">
-                    <?php foreach ($rawImages as $imgPath) : ?>
-                      <li class="component-image-list-item"><?= htmlspecialchars($imgPath, ENT_QUOTES, 'UTF-8') ?></li>
-                    <?php endforeach; ?>
+                    <?php
+                    foreach ($rawImages as $imgPath) {
+                        $trimmedPath = trim($imgPath);
+                        if ($trimmedPath === '') {
+                            continue;
+                        }
+                        $imageSrc = htmlspecialchars($trimmedPath, ENT_QUOTES, 'UTF-8');
+                        $fileNameRaw = basename($trimmedPath);
+                        $fileName = $fileNameRaw !== '' ? $fileNameRaw : $trimmedPath;
+                        $caption = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
+                        $altSourcesRaw = array_filter([
+                            $rawEffectiveTitle !== '' ? trim($rawEffectiveTitle) : null,
+                            $fileNameRaw !== '' ? trim($fileNameRaw) : null,
+                        ], static fn ($value) => $value !== null && $value !== '');
+                        $altSources = array_values(array_unique($altSourcesRaw));
+                        $altText = !empty($altSources)
+                            ? implode(' – ', $altSources)
+                            : 'Náhled obrázku';
+                        $alt = htmlspecialchars($altText, ENT_QUOTES, 'UTF-8');
+                        ?>
+                        <li class="component-image-list-item">
+                          <figure class="component-image-thumb">
+                            <div class="component-image-thumb-media">
+                              <img src="<?= $imageSrc ?>" alt="<?= $alt ?>" loading="lazy" decoding="async">
+                            </div>
+                            <figcaption class="component-image-thumb-caption">
+                              <span class="component-image-filename"><?= $caption ?></span>
+                              <?php if ($imageSrc !== $caption) : ?>
+                                <span class="component-image-path"><?= $imageSrc ?></span>
+                              <?php endif; ?>
+                            </figcaption>
+                          </figure>
+                        </li>
+                        <?php
+                    }
+                    ?>
                   </ul>
                 </dd>
               </div>
