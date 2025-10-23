@@ -2,6 +2,116 @@
 $tree = $definitionsTree ?? [];
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 
+if (!function_exists('definitions_normalise_meta_array')) {
+    /**
+     * @param mixed $meta
+     * @return array<string, mixed>|null
+     */
+    function definitions_normalise_meta_array($meta): ?array
+    {
+        if (is_array($meta)) {
+            return $meta;
+        }
+
+        if (is_string($meta) && $meta !== '') {
+            $decoded = json_decode($meta, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return null;
+    }
+}
+
+if (!function_exists('definitions_extract_value_range')) {
+    /**
+     * @param mixed $meta
+     * @return array{min: int|null, max: int|null}|null
+     */
+    function definitions_extract_value_range($meta): ?array
+    {
+        $data = definitions_normalise_meta_array($meta);
+
+        if ($data === null) {
+            return null;
+        }
+
+        if (isset($data['value_range']) && is_array($data['value_range'])) {
+            $data = array_merge($data, $data['value_range']);
+        }
+
+        $normaliseInt = static function ($value): ?int {
+            if ($value === null) {
+                return null;
+            }
+
+            if (is_int($value)) {
+                return $value;
+            }
+
+            if (is_float($value)) {
+                return (int) $value;
+            }
+
+            if (is_string($value)) {
+                $trimmed = trim($value);
+                if ($trimmed === '') {
+                    return null;
+                }
+
+                if (preg_match('/^-?\d+$/', $trimmed) === 1) {
+                    return (int) $trimmed;
+                }
+            }
+
+            return null;
+        };
+
+        $min = $normaliseInt($data['value_min'] ?? $data['min'] ?? $data['from'] ?? null);
+        $max = $normaliseInt($data['value_max'] ?? $data['max'] ?? $data['to'] ?? null);
+
+        if ($min === null && $max === null) {
+            return null;
+        }
+
+        return ['min' => $min, 'max' => $max];
+    }
+}
+
+if (!function_exists('definitions_format_value_range')) {
+    /**
+     * @param array{min: int|null, max: int|null}|null $range
+     */
+    function definitions_format_value_range(?array $range): ?string
+    {
+        if ($range === null) {
+            return null;
+        }
+
+        $min = $range['min'];
+        $max = $range['max'];
+
+        if ($min !== null && $max !== null) {
+            if ($min === $max) {
+                return (string) $min;
+            }
+
+            return $min . '–' . $max;
+        }
+
+        if ($min !== null) {
+            return '≥ ' . $min;
+        }
+
+        if ($max !== null) {
+            return '≤ ' . $max;
+        }
+
+        return null;
+    }
+}
+
 if (!function_exists('render_definition_nodes')) {
     /**
      * @param array<int, array<string, mixed>> $nodes
@@ -19,31 +129,53 @@ if (!function_exists('render_definition_nodes')) {
             $children = $node['children'] ?? [];
             $childCount = count($children);
             $nodePath = ltrim(($path === '' ? '' : $path . '/') . $id, '/');
+            $range = definitions_extract_value_range($node['meta'] ?? null);
+            $rangeLabel = definitions_format_value_range($range);
+            $rangeAttributes = '';
+            if ($range !== null) {
+                if ($range['min'] !== null) {
+                    $rangeAttributes .= ' data-value-min="' . (int) $range['min'] . '"';
+                }
+                if ($range['max'] !== null) {
+                    $rangeAttributes .= ' data-value-max="' . (int) $range['max'] . '"';
+                }
+                if ($rangeLabel !== null) {
+                    $rangeAttributes .= ' data-value-range="' . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8') . '"';
+                }
+            }
             echo '<li class="definition-item"'
                 . ' data-id="' . $id . '"'
                 . ' data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-position="' . $position . '"'
                 . ' data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-children-count="' . $childCount . '"'
+                . ($range !== null ? ' data-has-value-range="true"' : '')
+                . $rangeAttributes
                 . '">';
             echo '<div class="definition-node" draggable="true"'
                 . ' data-id="' . $id . '"'
                 . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . ($range !== null ? ' data-has-value-range="true"' : '')
                 . '">';
             echo '<div class="definition-node-info">';
             echo '<strong>' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '</strong>';
             $metaParts = [];
             $metaParts[] = 'ID ' . $id;
             $metaParts[] = 'pozice ' . $position;
+            if ($rangeLabel !== null) {
+                $metaParts[] = 'rozsah ' . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8');
+            }
             echo '<span class="definition-meta">' . implode(' | ', $metaParts) . '</span>';
             echo '</div>';
             echo '<div class="definition-actions">';
-            echo '<button type="button" class="definition-action" draggable="false"'
-                . ' data-action="create-child"'
-                . ' data-parent-id="' . $id . '"'
-                . ' data-parent-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
-                . ' data-parent-children="' . $childCount . '"'
-                . '">Přidat poduzel</button>';
+            if ($range === null) {
+                echo '<button type="button" class="definition-action" draggable="false"'
+                    . ' data-action="create-child"'
+                    . ' data-parent-id="' . $id . '"'
+                    . ' data-parent-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                    . ' data-parent-children="' . $childCount . '"'
+                    . '">Přidat poduzel</button>';
+            }
             echo '<button type="button" class="definition-action" draggable="false"'
                 . ' data-action="rename"'
                 . ' data-id="' . $id . '"'

@@ -57,6 +57,15 @@ final class Formatter
         foreach ($grouped[$key] as $row) {
             $childKey = (string) $row['id'];
             $node = $row;
+            $meta = $row['meta'] ?? null;
+            if (is_string($meta) && $meta !== '') {
+                $decoded = json_decode($meta, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $node['meta'] = $decoded;
+                } elseif ($decoded === null) {
+                    $node['meta'] = null;
+                }
+            }
             $node['children'] = $this->buildBranch($grouped, $childKey);
             $branch[] = $node;
         }
