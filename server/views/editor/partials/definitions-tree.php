@@ -140,7 +140,9 @@ if (!function_exists('render_definition_nodes')) {
                     $rangeAttributes .= ' data-value-max="' . (int) $range['max'] . '"';
                 }
                 if ($rangeLabel !== null) {
-                    $rangeAttributes .= ' data-value-range="' . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8') . '"';
+                    $rangeAttributes .= ' data-value-range="'
+                        . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8')
+                        . '"';
                 }
             }
             echo '<li class="definition-item"'
@@ -176,6 +178,23 @@ if (!function_exists('render_definition_nodes')) {
                     . ' data-parent-children="' . $childCount . '"'
                     . '">Přidat poduzel</button>';
             }
+            $rangeButtonLabel = $range === null ? 'Nastavit rozsah' : 'Upravit rozsah';
+            $rangeButtonAttributes = '';
+            if ($range !== null) {
+                if ($range['min'] !== null) {
+                    $rangeButtonAttributes .= ' data-value-min="' . (int) $range['min'] . '"';
+                }
+                if ($range['max'] !== null) {
+                    $rangeButtonAttributes .= ' data-value-max="' . (int) $range['max'] . '"';
+                }
+            }
+            echo '<button type="button" class="definition-action" draggable="false"'
+                . ' data-action="configure-range"'
+                . ' data-id="' . $id . '"'
+                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-has-range="' . ($range !== null ? 'true' : 'false') . '"'
+                . $rangeButtonAttributes
+                . '">' . $rangeButtonLabel . '</button>';
             echo '<button type="button" class="definition-action" draggable="false"'
                 . ' data-action="rename"'
                 . ' data-id="' . $id . '"'

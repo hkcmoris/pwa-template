@@ -177,6 +177,72 @@ final class Repository
         return $row;
     }
 
+    public function updateValueRange(int $id, ?int $min, ?int $max): void
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $row = $this->find($id);
+            if (!$row) {
+                throw new RuntimeException('Definice neexistuje.');
+            }
+
+            $hasChildren = $this->childrenCount($id) > 0;
+            if ($hasChildren && ($min !== null || $max !== null)) {
+                throw new RuntimeException('Definice s potomky nelze změnit na rozsah hodnot.');
+            }
+
+            $metaData = [];
+            if (isset($row['meta'])) {
+                $existing = $row['meta'];
+                if (is_string($existing) && $existing !== '') {
+                    $decoded = json_decode($existing, true);
+                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                        $metaData = $decoded;
+                    }
+                } elseif (is_array($existing)) {
+                    $metaData = $existing;
+                }
+            }
+
+            unset(
+                $metaData['value_min'],
+                $metaData['value_max'],
+                $metaData['min'],
+                $metaData['max'],
+                $metaData['from'],
+                $metaData['to']
+            );
+
+            if ($min === null && $max === null) {
+                unset($metaData['value_range']);
+            } else {
+                $metaData['value_range'] = ['min' => $min, 'max' => $max];
+            }
+
+            $metaJson = null;
+            if (!empty($metaData)) {
+                $metaJson = json_encode($metaData, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
+                if (!is_string($metaJson)) {
+                    throw new RuntimeException('Nepodařilo se serializovat meta data.');
+                }
+            }
+
+            $stmt = $this->pdo->prepare('UPDATE definitions SET meta = :meta WHERE id = :id');
+            if ($metaJson === null) {
+                $stmt->bindValue(':meta', null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindValue(':meta', $metaJson, PDO::PARAM_STR);
+            }
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
