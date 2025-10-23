@@ -44,4 +44,20 @@ export const createDefinitionsApiClient = (
         };
         sendRequest(htmx, `${base}/editor/definitions/move`, payload);
     },
+    updateRange(id, options) {
+        if (!id) {
+            return;
+        }
+        const payload: Record<string, unknown> = { id };
+
+        if (options.mode === 'clear') {
+            payload.mode = 'clear';
+        } else {
+            payload.mode = 'set';
+            payload.value_min = options.min ?? '';
+            payload.value_max = options.max ?? '';
+        }
+
+        sendRequest(htmx, `${base}/editor/definitions/range`, payload);
+    },
 });

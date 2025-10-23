@@ -40,6 +40,83 @@ export const setupNodeActions = (
 
         if (!id) return;
 
+        if (action === 'configure-range') {
+            const title = button.dataset.title ?? '';
+            const hasRange = button.dataset.hasRange === 'true';
+            const currentMin = button.dataset.valueMin ?? '';
+            const currentMax = button.dataset.valueMax ?? '';
+            const form = document.createElement('form');
+            form.className = 'definition-form definition-form--modal';
+            const safeTitle = escapeHtml(title);
+            const rangeTitle = hasRange
+                ? `Upravit rozsah hodnot` + (title ? ` — ${safeTitle}` : '')
+                : `Nastavit rozsah hodnot` + (title ? ` — ${safeTitle}` : '');
+            form.innerHTML = `
+                <fieldset>
+                  <legend>${rangeTitle}</legend>
+                  <p class="definition-help">Zadejte minimální a/nebo maximální hodnotu. Prázdné pole ponechá hranici neomezenou.</p>
+                  <div class="definition-field">
+                    <label for="definition-range-min">Minimální hodnota</label>
+                    <input type="number" id="definition-range-min" name="value_min" step="1" inputmode="numeric" value="${escapeHtml(
+                        currentMin
+                    )}" placeholder="neomezeno">
+                  </div>
+                  <div class="definition-field">
+                    <label for="definition-range-max">Maximální hodnota</label>
+                    <input type="number" id="definition-range-max" name="value_max" step="1" inputmode="numeric" value="${escapeHtml(
+                        currentMax
+                    )}" placeholder="neomezeno">
+                  </div>
+                </fieldset>
+                <div class="definition-modal-actions">
+                  <button type="button" class="definition-action" data-modal-close>Storno</button>
+                  ${
+                      hasRange
+                          ? '<button type="button" class="definition-action definition-action--danger" data-range-clear>Odstranit rozsah</button>'
+                          : ''
+                  }
+                  <button type="submit" class="definition-primary">Uložit</button>
+                </div>
+            `;
+
+            const modalTitleBase = hasRange ? 'Upravit rozsah' : 'Nastavit rozsah';
+            const modalTitle = title ? `${modalTitleBase} – ${title}` : modalTitleBase;
+
+            modal.open(modalTitle, form);
+
+            const minInput = form.querySelector<HTMLInputElement>('input[name="value_min"]');
+            const maxInput = form.querySelector<HTMLInputElement>('input[name="value_max"]');
+
+            minInput?.focus();
+
+            form.addEventListener('submit', (ev) => {
+                ev.preventDefault();
+                const minValue = minInput?.value.trim() ?? '';
+                const maxValue = maxInput?.value.trim() ?? '';
+
+                api.updateRange(id, {
+                    mode: 'set',
+                    min: minValue === '' ? null : minValue,
+                    max: maxValue === '' ? null : maxValue,
+                });
+
+                modal.close();
+            });
+
+            form.querySelector('[data-modal-close]')?.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                modal.close();
+            });
+
+            form.querySelector('[data-range-clear]')?.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                api.updateRange(id, { mode: 'clear' });
+                modal.close();
+            });
+
+            return;
+        }
+
         if (action === 'rename') {
             const currentTitle = button.dataset.title || '';
             const form = document.createElement('form');

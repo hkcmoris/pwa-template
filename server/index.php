@@ -101,6 +101,7 @@ $controllerRoutes = [
     'POST editor/definitions/create'             => __DIR__ . '/controllers/editor/definitions/create.php',
     'POST editor/definitions/delete'             => __DIR__ . '/controllers/editor/definitions/delete.php',
     'POST editor/definitions/move'               => __DIR__ . '/controllers/editor/definitions/move.php',
+    'POST editor/definitions/range'              => __DIR__ . '/controllers/editor/definitions/range.php',
     'POST editor/definitions/rename'             => __DIR__ . '/controllers/editor/definitions/rename.php',
 
     'POST editor/images/delete'                  => __DIR__ . '/controllers/editor/images/delete.php',
