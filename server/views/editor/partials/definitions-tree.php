@@ -60,7 +60,7 @@ if (!function_exists('definitions_extract_value_range')) {
                     return null;
                 }
 
-                if (preg_match('/^-?\\d+$/', $trimmed) === 1) {
+                if (preg_match('/^-?\d+$/', $trimmed) === 1) {
                     return (int) $trimmed;
                 }
             }
