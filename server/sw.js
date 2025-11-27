@@ -30,7 +30,8 @@ self.addEventListener('fetch', (event) => {
     }
     const url = new URL(event.request.url);
     const isImmutableAsset =
-        url.pathname.startsWith(ASSET_PREFIX) && !url.pathname.startsWith(UPLOAD_PREFIX);
+        url.pathname.startsWith(ASSET_PREFIX) &&
+        !url.pathname.startsWith(UPLOAD_PREFIX);
 
     event.respondWith(
         caches.open(CACHE_NAME).then(async (cache) => {

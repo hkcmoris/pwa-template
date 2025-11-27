@@ -1,9 +1,5 @@
 import { enhanceSelects, setSelectValue } from '../shared/select';
-import type {
-    MediaMode,
-    PriceHistoryItem,
-    SelectChangeDetail,
-} from './types';
+import type { MediaMode, PriceHistoryItem, SelectChangeDetail } from './types';
 
 export const COMPONENT_FORM_ERROR_ID = 'component-form-errors';
 

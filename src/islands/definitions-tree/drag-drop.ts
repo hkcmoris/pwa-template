@@ -1,18 +1,22 @@
 import { listSelectors } from './constants';
-import type { DefinitionsApiClient, DragContext, DropContext, DropPosition } from './types';
+import type {
+    DefinitionsApiClient,
+    DragContext,
+    DropContext,
+    DropPosition,
+} from './types';
 import { isDescendantPath } from './utils';
 
 const clearDropClasses = (root: HTMLElement) => {
     root.querySelectorAll(
         '.definition-item--drop-before, .definition-item--drop-after, .definition-item--drop-inside'
-    )
-        .forEach((el) =>
-            el.classList.remove(
-                'definition-item--drop-before',
-                'definition-item--drop-after',
-                'definition-item--drop-inside'
-            )
-        );
+    ).forEach((el) =>
+        el.classList.remove(
+            'definition-item--drop-before',
+            'definition-item--drop-after',
+            'definition-item--drop-inside'
+        )
+    );
 };
 
 const getPositionForDrop = (
@@ -163,7 +167,10 @@ export const setupDragAndDrop = (
         }
 
         const parentAttr = targetItem.dataset.parent ?? '';
-        const targetPosition = getPositionForDrop(targetItem, targetItem.dataset.position);
+        const targetPosition = getPositionForDrop(
+            targetItem,
+            targetItem.dataset.position
+        );
 
         const dragId = dragContext.id.trim();
 
@@ -172,7 +179,8 @@ export const setupDragAndDrop = (
             return;
         }
 
-        let parentId: string | null = parentAttr === '' ? null : parentAttr.trim();
+        let parentId: string | null =
+            parentAttr === '' ? null : parentAttr.trim();
         let position = 0;
 
         if (dropPosition === 'inside') {

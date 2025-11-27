@@ -70,7 +70,7 @@
     border-left: 1px dashed var(--border);
 }
 
-[data-theme="dark"] .definition-tree ul {
+[data-theme='dark'] .definition-tree ul {
     border-color: rgb(255 255 255 / 25%);
 }
 
@@ -95,7 +95,7 @@
     cursor: grabbing;
 }
 
-[data-theme="dark"] .definition-node {
+[data-theme='dark'] .definition-node {
     border-color: rgb(255 255 255 / 20%);
     background: rgb(255 255 255 / 5%);
 }
@@ -110,7 +110,7 @@
     margin-left: 1rem;
 }
 
-[data-theme="dark"] .definition-meta {
+[data-theme='dark'] .definition-meta {
     color: #cbd5e1;
 }
 

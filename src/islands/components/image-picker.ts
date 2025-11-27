@@ -51,19 +51,14 @@ const candidateAbsPathsFromRel = (
         return [];
     }
     const baseVariants = new Set<string>(['', normalizeBasePath(basePath)]);
-    const roots = [
-        '/public/assets/images/upload',
-        '/assets/images/upload',
-    ];
+    const roots = ['/public/assets/images/upload', '/assets/images/upload'];
     const candidates = new Set<string>();
     candidates.add(trimmedRel);
     candidates.add(`/${trimmedRel}`);
     baseVariants.forEach((baseVariant) => {
         roots.forEach((root) => {
             const prefix = baseVariant ? `${baseVariant}${root}` : root;
-            candidates.add(
-                normaliseCandidate(`${prefix}/${trimmedRel}`)
-            );
+            candidates.add(normaliseCandidate(`${prefix}/${trimmedRel}`));
         });
     });
     return Array.from(candidates);
@@ -77,9 +72,8 @@ let imagesRoot: HTMLElement | null = null;
 let loadPromise: Promise<void> | null = null;
 let listenersAttached = false;
 let escHandler: ((event: KeyboardEvent) => void) | null = null;
-let resolveSelection:
-    | ((value: ImagePickerSelection | null) => void)
-    | null = null;
+let resolveSelection: ((value: ImagePickerSelection | null) => void) | null =
+    null;
 let currentBasePath = '';
 let selectedValue: string = '';
 let selectedRel: string | null = null;
@@ -183,15 +177,13 @@ const highlightSelection = (): HTMLElement | null => {
         return null;
     }
     let matched: HTMLElement | null = null;
-    imagesRoot
-        .querySelectorAll<HTMLElement>('.tile.image')
-        .forEach((tile) => {
-            const isMatch = matchesTile(tile);
-            tile.toggleAttribute('data-selected', isMatch);
-            if (isMatch && !matched) {
-                matched = tile;
-            }
-        });
+    imagesRoot.querySelectorAll<HTMLElement>('.tile.image').forEach((tile) => {
+        const isMatch = matchesTile(tile);
+        tile.toggleAttribute('data-selected', isMatch);
+        if (isMatch && !matched) {
+            matched = tile;
+        }
+    });
     return matched;
 };
 
@@ -274,11 +266,9 @@ const attachPersistentListeners = () => {
         event.preventDefault();
         closeModal(null);
     };
-    container
-        .querySelectorAll('[data-image-picker-dismiss]')
-        .forEach((el) => {
-            el.addEventListener('click', handleDismiss);
-        });
+    container.querySelectorAll('[data-image-picker-dismiss]').forEach((el) => {
+        el.addEventListener('click', handleDismiss);
+    });
     confirmButton?.addEventListener('click', (event) => {
         event.preventDefault();
         if (!selectedValue || container?.classList.contains('hidden')) {
@@ -409,9 +399,8 @@ const loadImagesMarkup = async (basePath: string, htmx: HTMX | null) => {
             const html = await response.text();
             const template = document.createElement('template');
             template.innerHTML = html;
-            const root = template.content.querySelector<HTMLElement>(
-                '#images-root'
-            );
+            const root =
+                template.content.querySelector<HTMLElement>('#images-root');
             if (!root) {
                 throw new Error('Galerie nebyla nalezena.');
             }

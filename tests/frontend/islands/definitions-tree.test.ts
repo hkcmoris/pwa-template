@@ -1,4 +1,7 @@
-import { isDescendantPath, setupDragAndDrop } from '../../../src/islands/definitions-tree';
+import {
+    isDescendantPath,
+    setupDragAndDrop,
+} from '../../../src/islands/definitions-tree';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 type ApiClient = Parameters<typeof setupDragAndDrop>[1];
@@ -51,6 +54,7 @@ describe('setupDragAndDrop', () => {
     let renameMock: jest.MockedFunction<ApiClient['rename']>;
     let deleteMock: jest.MockedFunction<ApiClient['delete']>;
     let moveMock: jest.MockedFunction<ApiClient['move']>;
+    let updateRangeMock: jest.MockedFunction<ApiClient['updateRange']>;
     let apiMock: ApiClient;
 
     beforeEach(() => {
@@ -58,10 +62,12 @@ describe('setupDragAndDrop', () => {
         renameMock = jest.fn();
         deleteMock = jest.fn();
         moveMock = jest.fn();
+        updateRangeMock = jest.fn();
         apiMock = {
             rename: renameMock,
             delete: deleteMock,
             move: moveMock,
+            updateRange: updateRangeMock,
         };
     });
 

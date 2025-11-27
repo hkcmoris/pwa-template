@@ -60,9 +60,9 @@ async function fetchNewCsrfToken(): Promise<string | null> {
         if (!response.ok) {
             return null;
         }
-        const payload = (await response
-            .json()
-            .catch(() => null)) as { token?: string } | null;
+        const payload = (await response.json().catch(() => null)) as {
+            token?: string;
+        } | null;
         const token = payload?.token;
         if (typeof token === 'string' && token) {
             updateCsrfToken(token);
@@ -115,7 +115,8 @@ export async function apiFetch(
             return response;
         }
         if (method !== 'GET' && method !== 'HEAD') {
-            headers = headers ?? new Headers(opts.headers as HeadersBag | undefined);
+            headers =
+                headers ?? new Headers(opts.headers as HeadersBag | undefined);
             headers.set('X-CSRF-Token', newToken);
             opts.headers = headers;
         }

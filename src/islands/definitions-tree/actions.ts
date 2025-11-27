@@ -1,4 +1,8 @@
-import type { DefinitionsApiClient, ModalManager, OpenCreateOptions } from './types';
+import type {
+    DefinitionsApiClient,
+    ModalManager,
+    OpenCreateOptions,
+} from './types';
 import { escapeHtml } from './utils';
 import { listSelectors } from './constants';
 
@@ -79,13 +83,21 @@ export const setupNodeActions = (
                 </div>
             `;
 
-            const modalTitleBase = hasRange ? 'Upravit rozsah' : 'Nastavit rozsah';
-            const modalTitle = title ? `${modalTitleBase} – ${title}` : modalTitleBase;
+            const modalTitleBase = hasRange
+                ? 'Upravit rozsah'
+                : 'Nastavit rozsah';
+            const modalTitle = title
+                ? `${modalTitleBase} – ${title}`
+                : modalTitleBase;
 
             modal.open(modalTitle, form);
 
-            const minInput = form.querySelector<HTMLInputElement>('input[name="value_min"]');
-            const maxInput = form.querySelector<HTMLInputElement>('input[name="value_max"]');
+            const minInput = form.querySelector<HTMLInputElement>(
+                'input[name="value_min"]'
+            );
+            const maxInput = form.querySelector<HTMLInputElement>(
+                'input[name="value_max"]'
+            );
 
             minInput?.focus();
 
@@ -103,16 +115,22 @@ export const setupNodeActions = (
                 modal.close();
             });
 
-            form.querySelector('[data-modal-close]')?.addEventListener('click', (ev) => {
-                ev.preventDefault();
-                modal.close();
-            });
+            form.querySelector('[data-modal-close]')?.addEventListener(
+                'click',
+                (ev) => {
+                    ev.preventDefault();
+                    modal.close();
+                }
+            );
 
-            form.querySelector('[data-range-clear]')?.addEventListener('click', (ev) => {
-                ev.preventDefault();
-                api.updateRange(id, { mode: 'clear' });
-                modal.close();
-            });
+            form.querySelector('[data-range-clear]')?.addEventListener(
+                'click',
+                (ev) => {
+                    ev.preventDefault();
+                    api.updateRange(id, { mode: 'clear' });
+                    modal.close();
+                }
+            );
 
             return;
         }

@@ -9,7 +9,8 @@ const ensureRouteCss = () => {
         return;
     }
 
-    const cssHref = new URL('../styles/editor/images.css', import.meta.url).href;
+    const cssHref = new URL('../styles/editor/images.css', import.meta.url)
+        .href;
     const existing = document.getElementById(
         'editor-partial-style'
     ) as HTMLLinkElement | null;

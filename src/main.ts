@@ -14,7 +14,6 @@ if (typeof document !== 'undefined') {
     );
 }
 
-
 const normalizeRoute = (value: string) => value.replace(/^\/+|\/+$/g, '');
 const getCurrentRoute = () => {
     const base = BASE || '';
@@ -117,9 +116,9 @@ navMenu?.addEventListener('click', (e) => {
 const initNavActions = (root: Document | HTMLElement = document) => {
     const find = (selector: string) =>
         root instanceof Document
-            ? (root.getElementById(selector.replace(/^#/, '')) as
-                  | HTMLElement
-                  | null)
+            ? (root.getElementById(
+                  selector.replace(/^#/, '')
+              ) as HTMLElement | null)
             : (root.querySelector(selector) as HTMLElement | null);
 
     const icon = find('#nav-actions-icon');
@@ -618,4 +617,3 @@ document.body.addEventListener('htmx:oobAfterSwap', (event) => {
         initNavActions();
     }
 });
-

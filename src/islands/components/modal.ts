@@ -24,7 +24,9 @@ export const createComponentModalManager = (
         ) {
             errorAnchor = previousSibling as Comment;
         } else {
-            errorAnchor = document.createComment('component-form-errors-anchor');
+            errorAnchor = document.createComment(
+                'component-form-errors-anchor'
+            );
             errorBox.parentNode.insertBefore(errorAnchor, errorBox);
         }
     }

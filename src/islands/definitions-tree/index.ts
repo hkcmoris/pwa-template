@@ -20,10 +20,7 @@ const bindCreateButton = (
     });
 };
 
-const initializeDragAndDrop = (
-    el: HTMLElement,
-    api: DefinitionsApiClient
-) => {
+const initializeDragAndDrop = (el: HTMLElement, api: DefinitionsApiClient) => {
     setupDragAndDrop(el, api);
 };
 

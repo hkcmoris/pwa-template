@@ -59,7 +59,9 @@ const parseImagesDataset = (
         const parsed = JSON.parse(raw) as unknown;
         if (Array.isArray(parsed)) {
             return buildImageList(
-                parsed.filter((item): item is string => typeof item === 'string'),
+                parsed.filter(
+                    (item): item is string => typeof item === 'string'
+                ),
                 fallback
             );
         }
@@ -92,7 +94,9 @@ const parseNumber = (value: string | undefined): number => {
 };
 
 const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
-    const sentinel = root.querySelector<HTMLElement>('[data-component-sentinel]');
+    const sentinel = root.querySelector<HTMLElement>(
+        '[data-component-sentinel]'
+    );
     const list = root.querySelector<HTMLElement>(listTarget);
 
     if (!sentinel || !list) {
@@ -119,16 +123,19 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         return;
     }
 
-    const observer = new IntersectionObserver((entries) => {
-        if (!hasMore()) {
-            observer.disconnect();
-            return;
-        }
+    const observer = new IntersectionObserver(
+        (entries) => {
+            if (!hasMore()) {
+                observer.disconnect();
+                return;
+            }
 
-        if (entries.some((entry) => entry.isIntersecting)) {
-            void fetchNext();
-        }
-    }, { rootMargin: '200px' });
+            if (entries.some((entry) => entry.isIntersecting)) {
+                void fetchNext();
+            }
+        },
+        { rootMargin: '200px' }
+    );
 
     observer.observe(sentinelElement);
 
@@ -144,7 +151,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             const url = `${basePath}/editor/components/page?offset=${nextOffset}`;
             const response = await fetch(url, {
                 headers: {
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                     'HX-Request': 'true',
                 },
             });
@@ -196,7 +203,9 @@ const computeModalTitle = (options: ComponentModalOptions): string => {
         const trimmed = options.displayName?.trim();
         return trimmed ? `Upravit ${trimmed}` : 'Upravit komponentu';
     }
-    return options.parentTitle?.trim() ? 'Přidat podkomponentu' : 'Přidat komponentu';
+    return options.parentTitle?.trim()
+        ? 'Přidat podkomponentu'
+        : 'Přidat komponentu';
 };
 
 const applySelectValue = (
@@ -224,11 +233,7 @@ const updatePositionField = (
         return;
     }
     const isEdit = options.mode === 'edit';
-    if (
-        isEdit &&
-        options.position !== undefined &&
-        options.position !== null
-    ) {
+    if (isEdit && options.position !== undefined && options.position !== null) {
         input.value = String(options.position);
     } else if (
         !isEdit &&
@@ -287,10 +292,14 @@ export default function init(root: HTMLElement) {
     setupInfiniteScroll(root, basePath);
 
     root.addEventListener('htmx:afterSwap', (event) => {
-        const detail = (event as CustomEvent<{ target: HTMLElement | null }>).detail;
+        const detail = (event as CustomEvent<{ target: HTMLElement | null }>)
+            .detail;
         const target = detail?.target;
 
-        if (target && (target.matches(listTarget) || target.matches(listWrapperTarget))) {
+        if (
+            target &&
+            (target.matches(listTarget) || target.matches(listWrapperTarget))
+        ) {
             setupInfiniteScroll(root, basePath);
         }
     });
@@ -326,15 +335,13 @@ export default function init(root: HTMLElement) {
         const imagePlaceholder = form.querySelector<HTMLElement>(
             '[data-image-placeholder]'
         );
-        const imageList = form.querySelector<HTMLUListElement>(
-            '[data-image-list]'
-        );
+        const imageList =
+            form.querySelector<HTMLUListElement>('[data-image-list]');
         const imageOpenButton = form.querySelector<HTMLButtonElement>(
             '[data-image-select-open]'
         );
-        const imageClearButton = form.querySelector<HTMLButtonElement>(
-            '[data-image-clear]'
-        );
+        const imageClearButton =
+            form.querySelector<HTMLButtonElement>('[data-image-clear]');
         const colorField = form.querySelector<HTMLInputElement>(
             '#component-modal-color'
         );
@@ -364,17 +371,18 @@ export default function init(root: HTMLElement) {
         applySelectValue(parentHidden, parentValue);
         if (componentIdInput) {
             componentIdInput.value =
-                mode === 'edit' ? options.componentId ?? '' : '';
+                mode === 'edit' ? (options.componentId ?? '') : '';
         }
 
         const normalisedColor = normaliseColorValue(options.color);
-        const initialImages = buildImageList(
-            options.images,
-            options.image
-        );
+        const initialImages = buildImageList(options.images, options.image);
         let mediaMode =
             options.mediaType ??
-            (normalisedColor ? 'color' : initialImages.length > 0 ? 'image' : 'image');
+            (normalisedColor
+                ? 'color'
+                : initialImages.length > 0
+                  ? 'image'
+                  : 'image');
 
         if (alternateInput) {
             alternateInput.value = options.alternateTitle ?? '';
@@ -496,7 +504,11 @@ export default function init(root: HTMLElement) {
             priceField.value = formatPriceForInput(options.priceAmount);
             priceField.dataset.currency = priceCurrency;
         }
-        applyPriceHistory(priceHistoryList, options.priceHistory, priceCurrency);
+        applyPriceHistory(
+            priceHistoryList,
+            options.priceHistory,
+            priceCurrency
+        );
 
         updatePositionField(positionInput, { ...options, mode });
 
@@ -511,7 +523,8 @@ export default function init(root: HTMLElement) {
             }
         }
         if (submitButton) {
-            submitButton.textContent = mode === 'edit' ? 'Uložit změny' : 'Uložit';
+            submitButton.textContent =
+                mode === 'edit' ? 'Uložit změny' : 'Uložit';
         }
 
         const modalTitle = computeModalTitle({ ...options, mode });
@@ -553,9 +566,9 @@ export default function init(root: HTMLElement) {
         });
 
         imageList?.addEventListener('click', (event) => {
-            const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-                '[data-image-remove]'
-            );
+            const button = (
+                event.target as HTMLElement
+            ).closest<HTMLButtonElement>('[data-image-remove]');
             if (!button) {
                 return;
             }

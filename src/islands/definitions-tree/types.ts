@@ -40,7 +40,11 @@ export type ModalManager = {
 export type DefinitionsApiClient = {
     rename: (id: string, title: string) => void;
     delete: (id: string) => void;
-    move: (options: { id: string; parentId: string | null; position: number }) => void;
+    move: (options: {
+        id: string;
+        parentId: string | null;
+        position: number;
+    }) => void;
     updateRange: (
         id: string,
         options:
