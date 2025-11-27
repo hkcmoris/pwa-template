@@ -88,7 +88,7 @@
     padding: 0.4rem 0.5rem;
     background: rgb(0 0 0 / 2%);
     cursor: grab;
-    box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
+    box-shadow: 0 2px 4px var(--shadow);
 }
 
 .definition-node:active {
@@ -194,7 +194,7 @@
     background: var(--bg);
     color: var(--fg);
     border-radius: 0.5rem;
-    box-shadow: 0 12px 32px rgb(0 0 0 / 22%);
+    box-shadow: 0 12px 32px var(--shadow);
     max-width: 420px;
     width: 100%;
     padding: 1rem;
