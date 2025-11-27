@@ -26,6 +26,12 @@ if (!defined('BASE_PATH')) {
         $dir = dirname($script);
         $dir = str_replace('\\', '/', $dir);
         $dir = rtrim($dir, '/');
+        // When the request hits an API endpoint (/api/*.php), strip the trailing
+        // `/api` segment so cookies (sessions, JWTs) are scoped to the app root
+        // instead of `/api`, which would otherwise hide them from page loads.
+        if (strlen($dir) >= 4 && substr($dir, -4) === '/api') {
+            $dir = rtrim(substr($dir, 0, -4), '/');
+        }
         $base = ($dir === '' || $dir === '/') ? '' : $dir;
     }
     define('BASE_PATH', $base);
