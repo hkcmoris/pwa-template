@@ -12,6 +12,7 @@
     <exclude-pattern>views/login.php</exclude-pattern>
     <exclude-pattern>views/register.php</exclude-pattern>
     <exclude-pattern>views/demo.php</exclude-pattern>
+    <exclude-pattern>var/*</exclude-pattern>
     <config name="ignore_warnings_on_exit" value="1"/>
     <rule ref="PSR12"/>
     <config name="testVersion" value="7.4-7.4"/>
