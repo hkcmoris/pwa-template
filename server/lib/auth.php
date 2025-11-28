@@ -90,16 +90,60 @@ function rotate_refresh_token(string $token, int $userId, int $ttlSeconds = 1209
  */
 function app_get_current_user(): ?array
 {
+    $jwtSecret = config_jwt_secret();
     $token = $_COOKIE['token'] ?? '';
-    if ($token === '') {
-        return null;
-    }
-    $payload = verify_jwt($token, JWT_SECRET);
-    if (!$payload || empty($payload['sub'])) {
-        return null;
-    }
+    $refresh = $_COOKIE['refresh_token'] ?? '';
+    $payload = $token ? verify_jwt($token, $jwtSecret) : false;
+
     try {
         $db = get_db_connection();
+
+        // Attempt inline refresh for expired tokens so SSR routes stay authenticated
+        if (!$payload && $refresh) {
+            $refreshRow = find_valid_refresh_token($refresh);
+            if ($refreshRow) {
+                $stmt = $db->prepare('SELECT id, username, email, role FROM users WHERE id = :id');
+                $stmt->execute([':id' => (int)$refreshRow['user_id']]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if (is_array($row)) {
+                    $refreshTtl = 14 * 24 * 3600;
+                    $base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+                    $cookiePath = '/' . trim($base, '/');
+
+                    $newRefresh = rotate_refresh_token($refresh, (int)$refreshRow['user_id'], $refreshTtl);
+                    if (!$newRefresh) {
+                        return null;
+                    }
+                    setcookie('refresh_token', $newRefresh, [
+                        'httponly' => true,
+                        'samesite' => 'Lax',
+                        'expires' => time() + $refreshTtl,
+                        'path' => $cookiePath,
+                        'secure' => !app_is_dev(),
+                    ]);
+
+                    $newAccessPayload = [
+                        'sub' => (int)$refreshRow['user_id'],
+                        'email' => $row['email'] ?? '',
+                        'role' => $row['role'] ?? 'user',
+                    ];
+                    $access = generate_jwt($newAccessPayload, $jwtSecret, 600);
+                    setcookie('token', $access, [
+                        'httponly' => true,
+                        'samesite' => 'Lax',
+                        'path' => $cookiePath,
+                        'secure' => !app_is_dev(),
+                    ]);
+
+                    $payload = $newAccessPayload;
+                }
+            }
+        }
+
+        if (!$payload || empty($payload['sub'])) {
+            return null;
+        }
+
         $stmt = $db->prepare('SELECT id, username, email, role FROM users WHERE id = :id');
         $stmt->execute([':id' => (int)$payload['sub']]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
