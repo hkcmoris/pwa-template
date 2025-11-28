@@ -16,6 +16,7 @@
         "lint:css": "stylelint \"src/**/*.css\" --fix && stylelint \"server/**/*.{php,html}\"",
         "lint:php": "composer --working-dir=server run lint:php",
         "fix:php": "composer --working-dir=server run fix:php",
+        "lint:clean": "Remove-Item -Recurse -Force server\\var\\phpstan",
         "lint": "npm run lint:ts && npm run lint:css && npm run lint:php",
         "lhci:local": "lhci autorun --config=lighthouserc.local.json",
         "lhci:prod": "lhci autorun --config=lighthouserc.prod.json",

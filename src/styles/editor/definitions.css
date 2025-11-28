@@ -112,7 +112,7 @@
     margin: -0.4rem 0 -0.4rem -0.5rem;
     padding: 0.4rem 0.25rem;
     border-right: 1px solid var(--border);
-    background: rgba(from var(--border) r g b / 10%);
+    background: rgb(from var(--border) r g b / 10%);
 }
 
 [data-theme='dark'] .definition-meta {
