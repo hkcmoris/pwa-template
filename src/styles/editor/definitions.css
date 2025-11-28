@@ -105,9 +105,14 @@
 }
 
 .definition-meta {
+    display: flex;
+    align-items: center;
     font-size: 0.75rem;
     color: #555;
-    margin-left: 1rem;
+    margin: -0.4rem 0 -0.4rem -0.5rem;
+    padding: 0.4rem 0.25rem;
+    border-right: 1px solid var(--border);
+    background: rgba(from var(--border) r g b / 10%);
 }
 
 [data-theme='dark'] .definition-meta {
@@ -181,9 +186,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgb(0 0 0 / 40%);
+    background: rgb(255 255 255 / 80%);
     padding: 1rem;
     z-index: 2000;
+}
+
+[data-theme='dark'] .definitions-modal {
+    background: rgb(0 0 0 / 80%);
 }
 
 .definitions-modal.hidden {

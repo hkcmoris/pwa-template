@@ -97,7 +97,7 @@ nav a.active:hover {
     color: var(--primary);
 }
 
-header {
+header#main-header {
     display: flex;
     align-items: center;
     gap: 0.75rem;

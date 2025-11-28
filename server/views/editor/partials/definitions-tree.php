@@ -159,15 +159,15 @@ if (!function_exists('render_definition_nodes')) {
                 . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
                 . ($range !== null ? ' data-has-value-range="true"' : '')
                 . '">';
-            echo '<div class="definition-node-info">';
-            echo '<strong>' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '</strong>';
             $metaParts = [];
-            $metaParts[] = 'ID ' . $id;
-            $metaParts[] = 'pozice ' . $position;
+            $metaParts['ID'] = $id;
+            $metaParts['position'] = $position;
             if ($rangeLabel !== null) {
                 $metaParts[] = 'rozsah ' . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8');
             }
-            echo '<span class="definition-meta">' . implode(' | ', $metaParts) . '</span>';
+            echo '<div class="definition-meta">' . $metaParts['position'] . '</div>';
+            echo '<div class="definition-node-info">';
+            echo '<strong>' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '</strong>';
             echo '</div>';
             echo '<div class="definition-actions">';
             if ($range === null) {

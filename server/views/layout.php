@@ -208,7 +208,7 @@ foreach ($viewStyles as $styleId => $entry) {
     endif; ?>
   </head>
     <body data-route="<?= htmlspecialchars($view ?? '', ENT_QUOTES, 'UTF-8') ?>">
-    <header>
+    <header id="main-header">
       <div class="logo">
         <svg
           xmlns="http://www.w3.org/2000/svg"
