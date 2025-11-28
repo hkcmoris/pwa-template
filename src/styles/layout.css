@@ -325,7 +325,7 @@ body[data-route='home'] {
     color: var(--tint);
     max-width: 300px;
     margin: 1rem auto 0;
-    padding: .25rem .75rem;
+    padding: 0.25rem 0.75rem;
     border: 1px solid var(--tint);
     border-radius: 4px;
     background: rgb(from var(--tint) r g b / 10%);

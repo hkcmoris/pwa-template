@@ -1,6 +1,6 @@
 dist/
-public/assets/
-public/vendor/
+server/public/
 node_modules/
 .lighthouseci/
 .vscode/
+*.md
