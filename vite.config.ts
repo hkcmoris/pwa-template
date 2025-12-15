@@ -24,6 +24,10 @@ export default defineConfig(({ mode }) => {
                     main: resolve(__dirname, 'src/main.ts'),
                     layout: resolve(__dirname, 'src/styles/layout.css'),
                     fonts: resolve(__dirname, 'src/styles/fonts.css'),
+                    'konfigurator-breadcrumbs': resolve(
+                        __dirname,
+                        'src/styles/konfigurator/breadcrumbs.css'
+                    ),
                     'editor-definitions': resolve(
                         __dirname,
                         'src/styles/editor/definitions.css'

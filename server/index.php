@@ -184,6 +184,7 @@ $viewStylesMap = [
     'editor/definitions' => ['editor-partial-style' => 'src/styles/editor/definitions.css'],
     'editor/components' => ['editor-partial-style' => 'src/styles/editor/components.css'],
     'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
+    'konfigurator' => ['konfigurator-breadcrumbs' => 'src/styles/konfigurator/breadcrumbs.css'],
 ];
 
 $viewStyles = $viewStylesMap[$view] ?? [];
