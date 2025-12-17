@@ -27,6 +27,7 @@
     align-items: center;
     transform: skew(-21deg);
     box-shadow: 0 2px 8px rgb(from var(--fg) r g b / 25%);
+
     /* margin: 5px; */
     padding: 8px var(--padding-x) !important;
     cursor: pointer;

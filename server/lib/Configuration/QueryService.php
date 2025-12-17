@@ -11,7 +11,7 @@ use function log_message;
 final class QueryService
 {
     private PDO $pdo;
-    
+
     public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;

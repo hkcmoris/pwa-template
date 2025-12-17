@@ -24,5 +24,3 @@ if (is_file($options)) {
 } else {
     echo '<p>Panel s volbami nebyl nalezen.</p>';
 }
-?>
-

@@ -14,9 +14,11 @@ final class Repository
     private QueryService $queries;
 
     public function __construct(
-        PDO $pdo
+        PDO $pdo,
+        ?QueryService $queries = null
     ) {
         $this->pdo = $pdo;
+        $this->queries = $queries ?? new QueryService($pdo);
     }
 
     /**
@@ -27,4 +29,3 @@ final class Repository
         return $this->queries->fetch($userId, $limit, $offset);
     }
 }
-?>

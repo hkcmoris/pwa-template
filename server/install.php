@@ -236,7 +236,7 @@ SQL;
         KEY idx_configurations_user (user_id),
         KEY idx_configurations_updated (updated_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    SQL;    
+    SQL;
     $pdo->exec($configurationsTableSql);
 
     $configurationsOptionsTableSql = <<<'SQL'
@@ -249,7 +249,7 @@ SQL;
         CONSTRAINT fk_conf_options_components FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE
         UNIQUE KEY uq_conf_options_configuration_position (configuration_id, position)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-    SQL;    
+    SQL;
     $pdo->exec($configurationsOptionsTableSql);
 
     echo "Database setup complete\n";
