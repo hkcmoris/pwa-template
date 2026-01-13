@@ -4,28 +4,158 @@ declare(strict_types=1);
 
 namespace Configuration;
 
+use Components\Repository as ComponentsRepository;
 use PDO;
+use RuntimeException;
+use Throwable;
+
+use function get_db_connection;
+use function log_message;
 
 final class Repository
 {
     // Repository implementation
     private PDO $pdo;
 
+    private Formatter $formatter;
+
+    private ComponentsRepository $components;
+
     private QueryService $queries;
 
+    private Validator $validator;
+
     public function __construct(
-        PDO $pdo,
-        ?QueryService $queries = null
+        ?PDO $pdo = null,
+        ?Formatter $formatter = null,
+        ?ComponentsRepository $components = null,
+        ?QueryService $queries = null,
+        ?Validator $validator = null
     ) {
-        $this->pdo = $pdo;
-        $this->queries = $queries ?? new QueryService($pdo);
+        $this->pdo = $pdo ?? get_db_connection();
+        $this->formatter = $formatter ?? new Formatter();
+        $this->components = $components ?? new ComponentsRepository($this->pdo);
+        $this->queries = $queries ?? new QueryService($this->pdo);
+        $this->validator = $validator ?? new Validator($this->components, $this->queries);
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{
+     *    id: int,
+     *    user_id: int,
+     *    created_at: string,
+     *    updated_at: string
+     * }>
      */
-    public function fetch(int $userId, ?int $limit = null, int $offset = 0): array
+    public function fetch(?int $limit = null, int $offset = 0, ?int $userId = null): array
     {
-        return $this->queries->fetch($userId, $limit, $offset);
+        return $this->queries->fetch($limit, $offset, $userId);
+    }
+
+    public function countAll(): int
+    {
+        $stmt = $this->pdo->query('SELECT COUNT(*) FROM configurations');
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function countByUser(int $userId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM configurations WHERE user_id = :user_id');
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function userExists(string $userId): bool
+    {
+        $stmt = $this->pdo->prepare('SELECT 1 FROM users WHERE id = :id');
+        $stmt->bindValue(':id', $userId, PDO::PARAM_STR);
+        $stmt->execute();
+        /** @var array<string, mixed>|false $row */
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row !== false;
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     user_id: int,
+     *     created_at: string,
+     *     updated_at: string
+     * }|null
+     */
+    public function find(int $id): ?array
+    {
+        return $this->queries->find($id);
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     user_id: int,
+     *     created_at: string,
+     *     updated_at: string,
+     *     children: list<array{id: int,configuration_id: int,component_id: int,position: int}>
+     * }
+     */
+    public function fetchConfiguration(int $configurationId): array
+    {
+        $meta = $this->find($configurationId);
+        if ($meta === null) {
+            throw new RuntimeException('Konfigurace s ID ' . $configurationId . ' nebyla nalezena.');
+        }
+
+        $rows = $this->queries->fetchRows($configurationId);
+
+        return $this->formatter->buildConfiguration($meta, $rows);
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     user_id: int,
+     *     created_at: string,
+     *     updated_at: string
+     * }|null
+     */
+    public function create(string $userId): array
+    {
+        $message = 'Creating configuration for user=' . $userId;
+        log_message($message, 'DEBUG');
+        $this->pdo->beginTransaction();
+        try {
+            if ($userId !== null && !$this->userExists($userId)) {
+                log_message('User ID ' . $userId . ' does not exist.', 'ERROR');
+                throw new RuntimeException('Vybraný uživatel neexistuje.');
+            }
+            $stmt = $this->pdo->prepare(
+                'INSERT INTO configurations (user_id) VALUES (:user_id)'
+            );
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+            log_message('Insert query: ' . $stmt->queryString, 'DEBUG');
+            $stmt->execute();
+            $id = (int) $this->pdo->lastInsertId();
+            $this->pdo->commit();
+            $row = $this->find($id);
+            if (!$row) {
+                log_message('Failed to find configuration after insert with ID ' . $id, 'ERROR');
+                throw new RuntimeException('Konfigurace nebyla nalezena po vložení.');
+            }
+            return $row;
+        } catch (Throwable $e) {
+            log_message('Error during configuration creation: ' . $e->getMessage(), 'ERROR');
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    public function delete(int $id): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM configurations WHERE id = :id');
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        log_message('Deleted configuration with ID ' . $id, 'DEBUG');
     }
 }

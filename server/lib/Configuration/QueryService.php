@@ -18,9 +18,14 @@ final class QueryService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{
+     *    id: int,
+     *    user_id: int,
+     *    created_at: string,
+     *    updated_at: string
+     * }>
      */
-    public function fetch(int $userId, ?int $limit = null, int $offset = 0): array
+    public function fetch(?int $limit = null, int $offset = 0, ?int $userId = null): array
     {
         $sql = <<<'SQL'
         SELECT
@@ -29,7 +34,11 @@ final class QueryService
             c.created_at,
             c.updated_at
         FROM configurations c
-        WHERE c.user_id = :user_id
+        SQL;
+        if ($userId !== null) {
+            $sql .= ' WHERE c.user_id = :user_id';
+        }
+        $sql .= <<<'SQL'
         ORDER BY c.updated_at, c.created_at, c.id
         SQL;
 
@@ -47,7 +56,9 @@ final class QueryService
 
         $stmt = $this->pdo->prepare($sql);
 
-        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        if ($userId !== null) {
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        }
 
         if ($limit !== null) {
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
@@ -55,8 +66,61 @@ final class QueryService
         }
 
         $stmt->execute();
+        log_message('Fetched ' . $stmt->rowCount() . ' definitions from database', 'DEBUG');
+        /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         return $rows;
+    }
+
+    /**
+     * @return array<int, array{
+     *    id: int,
+     *    configuration_id: int,
+     *    component_id: int,
+     *    position: int
+     * }>
+     */
+    public function fetchRows(int $id): array
+    {
+        $sql = <<<'SQL'
+        SELECT
+            id,
+            configuration_id,
+            component_id,
+            position
+        FROM configuration_components
+        WHERE configuration_id = :configuration_id
+        ORDER BY position, id
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':configuration_id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        log_message('Fetched ' . $stmt->rowCount() . ' configuration components from database', 'DEBUG');
+        /** @var list<array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows;
+    }
+
+    /**
+     * @return array{
+     *     id: int,
+     *     user_id: int,
+     *     created_at: string,
+     *     updated_at: string
+     * }|null
+     */
+    public function find(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, user_id, created_at, updated_at FROM configurations WHERE id = :id'
+        );
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        /** @var array<string, mixed>|false $row */
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
     }
 }
