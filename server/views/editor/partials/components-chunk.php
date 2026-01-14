@@ -89,7 +89,6 @@ foreach ($items as $node) {
     $priceHistoryJson = htmlspecialchars($priceHistoryJsonRaw, ENT_QUOTES, 'UTF-8');
     $metaParts = [
         'ID ' . $id,
-        'pozice ' . $position,
         'definice ' . $definitionTitle . ' (#' . $definitionId . ')',
     ];
     $metaLine = htmlspecialchars(implode(' | ', $metaParts), ENT_QUOTES, 'UTF-8');
@@ -105,119 +104,117 @@ foreach ($items as $node) {
       <?= $depthAttr ?>
     >
       <div class="component-node">
+        <div class="component-position"><?= $position ?></div>
         <div class="component-node-header">
           <div class="component-node-info">
             <strong><?= $effectiveTitle ?></strong>
-            <?php if ($alternateTitle !== '') : ?>
-              <span class="component-alias">alias "<?= $alternateTitle ?>"</span>
-            <?php endif; ?>
             <span class="component-meta"><?= $metaLine ?></span>
-          </div>
-          <div class="component-actions">
-            <button
-              type="button"
-              class="component-action"
-              data-action="create-child"
-              data-parent-id="<?= $id ?>"
-              data-parent-title="<?= $effectiveTitle ?>"
-              data-parent-children="<?= $childCount ?>"
-            >Přidat podkomponentu</button>
-            <button
-              type="button"
-              class="component-action"
-              data-action="edit"
-              data-component-id="<?= $id ?>"
-              data-title="<?= $effectiveTitle ?>"
-              data-definition-id="<?= $definitionId ?>"
-              data-alternate-title="<?= htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') ?>"
-              data-description="<?= htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') ?>"
-              data-image="<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>"
-              data-images='<?= $imagesJson ?>'
-              data-color="<?= htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') ?>"
-              data-media-type="<?= $mediaType ?>"
-              data-position="<?= $position ?>"
-              data-price-amount="<?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>"
-              data-price-currency="<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?>"
-              data-price-history="<?= $priceHistoryJson ?>"
-            >Upravit</button>
-            <button
-              type="button"
-              class="component-action component-action--danger"
-              data-action="delete"
-              data-id="<?= $id ?>"
-              data-title="<?= $effectiveTitle ?>"
-            >Smazat</button>
+            <?php $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0; ?>
+            <?php if ($hasDetails) : ?>
+              <dl class="component-node-details">
+                <?php if ($description !== '') : ?>
+                  <div><dt>Popis</dt><dd><?= $description ?></dd></div>
+                <?php endif; ?>
+                <?php if (!empty($rawImages)) : ?>
+                  <div>
+                    <dt>Obrázky</dt>
+                    <dd>
+                      <ul class="component-image-list">
+                        <?php
+                        foreach ($rawImages as $imgPath) {
+                            $trimmedPath = trim($imgPath);
+                            if ($trimmedPath === '') {
+                                continue;
+                            }
+                            $imageSrc = htmlspecialchars($trimmedPath, ENT_QUOTES, 'UTF-8');
+                            $fileNameRaw = basename($trimmedPath);
+                            $extension = pathinfo($trimmedPath, PATHINFO_EXTENSION);
+                            $thumbSrc = pathinfo($trimmedPath, PATHINFO_DIRNAME) . '/'
+                                . pathinfo($trimmedPath, PATHINFO_FILENAME)
+                                . (".thumb")
+                                . ($extension !== '' ? ('.' . $extension) : '');
+                            $fileName = $fileNameRaw !== '' ? $fileNameRaw : $trimmedPath;
+                            $caption = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
+                            $altSourcesRaw = array_filter([
+                                $rawEffectiveTitle !== '' ? trim($rawEffectiveTitle) : null,
+                                $fileNameRaw !== '' ? trim($fileNameRaw) : null,
+                            ], static fn ($value) => $value !== null && $value !== '');
+                            $altSources = array_values(array_unique($altSourcesRaw));
+                            $altText = !empty($altSources)
+                                ? implode(' – ', $altSources)
+                                : 'Náhled obrázku';
+                            $alt = htmlspecialchars($altText, ENT_QUOTES, 'UTF-8');
+                            ?>
+                            <li class="component-image-list-item">
+                              <figure class="component-image-thumb">
+                                <div class="component-image-thumb-media">
+                                  <img
+                                    src="<?= $thumbSrc ?>"
+                                    alt="<?= $alt ?>"
+                                    width="48px"
+                                    height="48px"
+                                    loading="lazy"
+                                    decoding="async"
+                                  >
+                                </div>
+                              </figure>
+                            </li>
+                            <?php
+                        }
+                        ?>
+                      </ul>
+                    </dd>
+                  </div>
+                <?php endif; ?>
+                <?php if ($color !== '') : ?>
+                  <div>
+                    <dt>Barva</dt>
+                    <dd>
+                      <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
+                      <?= $color ?>
+                    </dd>
+                  </div>
+                <?php endif; ?>
+                <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
+              </dl>
+            <?php endif; ?>
           </div>
         </div>
-        <?php $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0; ?>
-        <?php if ($hasDetails) : ?>
-          <dl class="component-node-details">
-            <?php if ($description !== '') : ?>
-              <div><dt>Popis</dt><dd><?= $description ?></dd></div>
-            <?php endif; ?>
-            <?php if (!empty($rawImages)) : ?>
-              <div>
-                <dt>Obrázky</dt>
-                <dd>
-                  <ul class="component-image-list">
-                    <?php
-                    foreach ($rawImages as $imgPath) {
-                        $trimmedPath = trim($imgPath);
-                        if ($trimmedPath === '') {
-                            continue;
-                        }
-                        $imageSrc = htmlspecialchars($trimmedPath, ENT_QUOTES, 'UTF-8');
-                        $fileNameRaw = basename($trimmedPath);
-                        $extension = pathinfo($trimmedPath, PATHINFO_EXTENSION);
-                        $thumbSrc = pathinfo($trimmedPath, PATHINFO_DIRNAME) . '/'
-                            . pathinfo($trimmedPath, PATHINFO_FILENAME)
-                            . (".thumb")
-                            . ($extension !== '' ? ('.' . $extension) : '');
-                        $fileName = $fileNameRaw !== '' ? $fileNameRaw : $trimmedPath;
-                        $caption = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
-                        $altSourcesRaw = array_filter([
-                            $rawEffectiveTitle !== '' ? trim($rawEffectiveTitle) : null,
-                            $fileNameRaw !== '' ? trim($fileNameRaw) : null,
-                        ], static fn ($value) => $value !== null && $value !== '');
-                        $altSources = array_values(array_unique($altSourcesRaw));
-                        $altText = !empty($altSources)
-                            ? implode(' – ', $altSources)
-                            : 'Náhled obrázku';
-                        $alt = htmlspecialchars($altText, ENT_QUOTES, 'UTF-8');
-                        ?>
-                        <li class="component-image-list-item">
-                          <figure class="component-image-thumb">
-                            <div class="component-image-thumb-media">
-                              <img
-                                src="<?= $thumbSrc ?>"
-                                alt="<?= $alt ?>"
-                                width="48px"
-                                height="48px"
-                                loading="lazy"
-                                decoding="async"
-                              >
-                            </div>
-                          </figure>
-                        </li>
-                        <?php
-                    }
-                    ?>
-                  </ul>
-                </dd>
-              </div>
-            <?php endif; ?>
-            <?php if ($color !== '') : ?>
-              <div>
-                <dt>Barva</dt>
-                <dd>
-                  <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
-                  <?= $color ?>
-                </dd>
-              </div>
-            <?php endif; ?>
-            <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
-          </dl>
-        <?php endif; ?>
+        <div class="component-actions">
+          <button
+            type="button"
+            class="component-action"
+            data-action="create-child"
+            data-parent-id="<?= $id ?>"
+            data-parent-title="<?= $effectiveTitle ?>"
+            data-parent-children="<?= $childCount ?>"
+          >Přidat podkomponentu</button>
+          <button
+            type="button"
+            class="component-action"
+            data-action="edit"
+            data-component-id="<?= $id ?>"
+            data-title="<?= $effectiveTitle ?>"
+            data-definition-id="<?= $definitionId ?>"
+            data-alternate-title="<?= htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') ?>"
+            data-description="<?= htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') ?>"
+            data-image="<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>"
+            data-images='<?= $imagesJson ?>'
+            data-color="<?= htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') ?>"
+            data-media-type="<?= $mediaType ?>"
+            data-position="<?= $position ?>"
+            data-price-amount="<?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>"
+            data-price-currency="<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?>"
+            data-price-history="<?= $priceHistoryJson ?>"
+          >Upravit</button>
+          <button
+            type="button"
+            class="component-action component-action--danger"
+            data-action="delete"
+            data-id="<?= $id ?>"
+            data-title="<?= $effectiveTitle ?>"
+          >Smazat</button>
+        </div>
       </div>
     </li>
     <?php

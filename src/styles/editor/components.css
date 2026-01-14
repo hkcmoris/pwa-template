@@ -29,6 +29,7 @@
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .component-action:hover,
@@ -78,7 +79,7 @@
     padding: 0.6rem 0.75rem;
     background: rgb(0 0 0 / 2%);
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
     gap: 0.6rem;
     box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
 }
@@ -86,6 +87,17 @@
 [data-theme='dark'] .component-node {
     border-color: rgb(255 255 255 / 20%);
     background: rgb(255 255 255 / 5%);
+}
+
+.component-position {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #555;
+    margin: -0.6rem 0 -0.6rem -0.75rem;
+    padding: 0.4rem 0.25rem;
+    border-right: 1px solid var(--border);
+    background: rgb(from var(--border) r g b / 10%);
 }
 
 .component-node-header {
@@ -98,7 +110,6 @@
 
 .component-node-info {
     display: flex;
-    flex-direction: column;
     gap: 0.25rem;
 }
 
@@ -123,6 +134,7 @@
 
 .component-actions {
     display: flex;
+    align-items: center;
     flex-wrap: wrap;
     gap: 0.35rem;
 }
