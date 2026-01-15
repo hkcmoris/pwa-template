@@ -27,13 +27,15 @@ export const setupNodeActions = (
 
         const id = item.dataset.id;
         if (!id) return;
-        
+
         const title = item.dataset.title ?? '';
 
         if (action === 'create-child') {
             const parentId = id;
             const parentTitle = title;
-            const childCount = item.querySelectorAll(':scope > ul > .definition-item').length;
+            const childCount = item.querySelectorAll(
+                ':scope > ul > .definition-item'
+            ).length;
 
             openCreateModal({
                 parentId,
