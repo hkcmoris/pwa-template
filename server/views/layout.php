@@ -211,7 +211,6 @@ foreach ($viewStyles as $styleId => $entry) {
     <header id="main-header">
       <div class="logo">
         <svg
-          xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 130 29.8"
           width="130"
           height="29.8"

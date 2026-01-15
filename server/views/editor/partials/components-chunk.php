@@ -206,14 +206,36 @@ foreach ($items as $node) {
             data-price-amount="<?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>"
             data-price-currency="<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?>"
             data-price-history="<?= $priceHistoryJson ?>"
-          >Upravit</button>
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-edit"></use>
+            </svg>
+          </button>
           <button
             type="button"
             class="component-action component-action--danger"
             data-action="delete"
             data-id="<?= $id ?>"
             data-title="<?= $effectiveTitle ?>"
-          >Smazat</button>
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-trash"></use>
+            </svg>
+          </button>
         </div>
       </div>
     </li>

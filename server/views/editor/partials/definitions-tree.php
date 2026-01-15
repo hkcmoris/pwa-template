@@ -160,21 +160,41 @@ if (!function_exists('render_definition_nodes')) {
             echo '</div>';
             echo '<div class="definition-actions">';
             if ($range === null) {
-                echo '<button type="button" class="definition-action" draggable="false"'
+                echo '<button type="button" class="definition-action"'
                     . ' data-action="create-child"'
                     . '>Přidat poduzel</button>';
             }
             $rangeButtonLabel = $range === null ? 'Nastavit rozsah' : 'Upravit rozsah';
-            echo '<button type="button" class="definition-action" draggable="false"'
+            echo '<button type="button" class="definition-action"'
                 . ' data-action="configure-range"'
                 . '>' . $rangeButtonLabel . '</button>';
-            echo '<button type="button" class="definition-action" draggable="false"'
+            echo '<button type="button" class="definition-action"'
                 . ' data-action="rename"'
-                . '>Přejmenovat</button>';
-            echo '<button type="button" class="definition-action definition-action--danger" draggable="false"'
+                . '>'
+                . '<svg'
+                . ' fill="currentColor"'
+                . ' width="16px"'
+                . ' height="16px"'
+                . ' display="block"'
+                . ' style="display: block;"'
+                . '>'
+                . '<use href="#icon-edit"></use>'
+                . '</svg>'
+                . '</button>';
+            echo '<button type="button" class="definition-action definition-action--danger"'
                 . ' data-action="delete"'
-                . '>Smazat</button>';
-            echo '<span class="definition-drag-indicator" draggable="false" aria-hidden="true">⋮⋮</span>';
+                . '>'
+                . '<svg'
+                . ' fill="currentColor"'
+                . ' width="16px"'
+                . ' height="16px"'
+                . ' display="block"'
+                . ' style="display: block;"'
+                . '>'
+                . '<use href="#icon-trash"></use>'
+                . '</svg>'
+                . '</button>';
+            echo '<span class="definition-drag-indicator" aria-hidden="true">⋮⋮</span>';
             echo '</div>';
             echo '</div>';
             if (!empty($children)) {
