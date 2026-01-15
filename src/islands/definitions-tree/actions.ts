@@ -22,33 +22,32 @@ export const setupNodeActions = (
 
         if (!action) return;
 
+        const item = button.closest<HTMLElement>(listSelectors.item);
+        if (!item) return;
+
+        const id = item.dataset.id;
+        if (!id) return;
+        
+        const title = item.dataset.title ?? '';
+
         if (action === 'create-child') {
-            const parentId = button.dataset.parentId ?? '';
-            const parentTitle = button.dataset.parentTitle ?? '';
-            const childCountRaw = button.dataset.parentChildren;
-            const childCount =
-                childCountRaw !== undefined
-                    ? Number.parseInt(childCountRaw, 10)
-                    : undefined;
+            const parentId = id;
+            const parentTitle = title;
+            const childCount = item.querySelectorAll(':scope > ul > .definition-item').length;
 
             openCreateModal({
                 parentId,
                 parentTitle,
-                childCount: Number.isNaN(childCount) ? undefined : childCount,
+                childCount,
             });
 
             return;
         }
 
-        const id = button.dataset.id;
-
-        if (!id) return;
-
         if (action === 'configure-range') {
-            const title = button.dataset.title ?? '';
-            const hasRange = button.dataset.hasRange === 'true';
-            const currentMin = button.dataset.valueMin ?? '';
-            const currentMax = button.dataset.valueMax ?? '';
+            const hasRange = item.dataset.hasRange === 'true';
+            const currentMin = item.dataset.valueMin ?? '';
+            const currentMax = item.dataset.valueMax ?? '';
             const form = document.createElement('form');
             form.className = 'definition-form definition-form--modal';
             const safeTitle = escapeHtml(title);
@@ -136,14 +135,13 @@ export const setupNodeActions = (
         }
 
         if (action === 'rename') {
-            const currentTitle = button.dataset.title || '';
             const form = document.createElement('form');
             form.className = 'definition-form definition-form--modal';
             form.innerHTML = `
                 <div class="definition-field">
                   <label>Nový název
                     <input type="text" name="title" value="${escapeHtml(
-                        currentTitle
+                        title
                     )}" maxlength="191" required>
                   </label>
                 </div>
@@ -167,7 +165,7 @@ export const setupNodeActions = (
 
                 const value = input?.value.trim() ?? '';
 
-                if (!value || value === currentTitle) {
+                if (!value || value === title) {
                     modal.close();
                     return;
                 }
@@ -189,7 +187,6 @@ export const setupNodeActions = (
         }
 
         if (action === 'delete') {
-            const title = button.dataset.title || '';
             const container = document.createElement('div');
             container.className = 'definition-modal-body';
             container.innerHTML = `
@@ -224,7 +221,6 @@ export const setupNodeActions = (
         }
 
         if (action === 'toggle-children') {
-            const item = button.closest<HTMLElement>(listSelectors.item);
             item?.classList.toggle('definition-item--collapsed');
         }
     });

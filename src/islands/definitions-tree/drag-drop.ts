@@ -92,7 +92,12 @@ export const setupDragAndDrop = (
         targetNode.classList.add('definition-node--dragging');
         item.classList.add('definition-item--dragging');
         event.dataTransfer?.setData('text/plain', dragContext.id);
-        event.dataTransfer?.setDragImage(targetNode, 10, 10);
+
+        const rect = targetNode.getBoundingClientRect();
+        const offsetX = (event.clientX ?? rect.left) - rect.left;
+        const offsetY = (event.clientY ?? rect.top) - rect.top;
+
+        event.dataTransfer?.setDragImage(targetNode, offsetX, offsetY);
     });
 
     root.addEventListener('dragend', () => {

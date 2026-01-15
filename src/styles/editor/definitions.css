@@ -104,7 +104,7 @@
     font-weight: 600;
 }
 
-.definition-meta {
+.definition-position {
     display: flex;
     align-items: center;
     font-size: 0.75rem;
@@ -115,7 +115,23 @@
     background: rgb(from var(--border) r g b / 10%);
 }
 
-[data-theme='dark'] .definition-meta {
+[data-theme='dark'] .definition-position {
+    color: #cbd5e1;
+}
+
+.definition-node-info {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.definition-range-label {
+    font-size: 0.75rem;
+    color: #555;
+}
+
+[data-theme='dark'] .definition-range-label {
     color: #cbd5e1;
 }
 

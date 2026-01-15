@@ -127,7 +127,6 @@ if (!function_exists('render_definition_nodes')) {
             $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
             $position = (int) $node['position'];
             $children = $node['children'] ?? [];
-            $childCount = count($children);
             $nodePath = ltrim(($path === '' ? '' : $path . '/') . $id, '/');
             $range = definitions_extract_value_range($node['meta'] ?? null);
             $rangeLabel = definitions_format_value_range($range);
@@ -139,72 +138,42 @@ if (!function_exists('render_definition_nodes')) {
                 if ($range['max'] !== null) {
                     $rangeAttributes .= ' data-value-max="' . (int) $range['max'] . '"';
                 }
-                if ($rangeLabel !== null) {
-                    $rangeAttributes .= ' data-value-range="'
-                        . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8')
-                        . '"';
-                }
             }
             echo '<li class="definition-item"'
                 . ' data-id="' . $id . '"'
-                . ' data-parent="' . htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-parent="' . $parentId . '"'
                 . ' data-position="' . $position . '"'
                 . ' data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '"'
-                . ' data-children-count="' . $childCount . '"'
-                . ($range !== null ? ' data-has-value-range="true"' : '')
-                . $rangeAttributes
-                . '">';
-            echo '<div class="definition-node" draggable="true"'
-                . ' data-id="' . $id . '"'
                 . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
-                . ($range !== null ? ' data-has-value-range="true"' : '')
-                . '">';
-            $metaParts = [];
-            $metaParts['ID'] = $id;
-            $metaParts['position'] = $position;
-            if ($rangeLabel !== null) {
-                $metaParts[] = 'rozsah ' . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8');
-            }
-            echo '<div class="definition-meta">' . $metaParts['position'] . '</div>';
+                . ($range !== null ? ' data-has-range="true"' : '')
+                . $rangeAttributes
+                . '>';
+            echo '<div class="definition-node" draggable="true">';
+            echo '<div class="definition-position">' . $position . '</div>';
             echo '<div class="definition-node-info">';
             echo '<strong>' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '</strong>';
+            if ($rangeLabel !== null) {
+                echo ' <span class="definition-range-label">Rozsah: [ '
+                    . htmlspecialchars($rangeLabel, ENT_QUOTES, 'UTF-8')
+                    . ' ]</span>';
+            }
             echo '</div>';
             echo '<div class="definition-actions">';
             if ($range === null) {
                 echo '<button type="button" class="definition-action" draggable="false"'
                     . ' data-action="create-child"'
-                    . ' data-parent-id="' . $id . '"'
-                    . ' data-parent-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
-                    . ' data-parent-children="' . $childCount . '"'
-                    . '">Přidat poduzel</button>';
+                    . '>Přidat poduzel</button>';
             }
             $rangeButtonLabel = $range === null ? 'Nastavit rozsah' : 'Upravit rozsah';
-            $rangeButtonAttributes = '';
-            if ($range !== null) {
-                if ($range['min'] !== null) {
-                    $rangeButtonAttributes .= ' data-value-min="' . (int) $range['min'] . '"';
-                }
-                if ($range['max'] !== null) {
-                    $rangeButtonAttributes .= ' data-value-max="' . (int) $range['max'] . '"';
-                }
-            }
             echo '<button type="button" class="definition-action" draggable="false"'
                 . ' data-action="configure-range"'
-                . ' data-id="' . $id . '"'
-                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
-                . ' data-has-range="' . ($range !== null ? 'true' : 'false') . '"'
-                . $rangeButtonAttributes
-                . '">' . $rangeButtonLabel . '</button>';
+                . '>' . $rangeButtonLabel . '</button>';
             echo '<button type="button" class="definition-action" draggable="false"'
                 . ' data-action="rename"'
-                . ' data-id="' . $id . '"'
-                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
-                . '">Přejmenovat</button>';
+                . '>Přejmenovat</button>';
             echo '<button type="button" class="definition-action definition-action--danger" draggable="false"'
                 . ' data-action="delete"'
-                . ' data-id="' . $id . '"'
-                . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
-                . '">Smazat</button>';
+                . '>Smazat</button>';
             echo '<span class="definition-drag-indicator" draggable="false" aria-hidden="true">⋮⋮</span>';
             echo '</div>';
             echo '</div>';
