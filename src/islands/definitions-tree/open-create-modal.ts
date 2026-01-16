@@ -27,7 +27,9 @@ export const createOpenCreateModal = ({
 
         const form = fragment.querySelector('form');
 
-        if (!form) return;
+        if (!form) {
+            return;
+        }
 
         const { parentId: rawParentId, parentTitle, childCount } = options;
 

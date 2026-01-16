@@ -294,8 +294,8 @@ foreach ($viewStyles as $styleId => $entry) {
           </a>
           <a
             id="configurator-link"
-            href="<?= htmlspecialchars($BASE) ?>/konfigurator"
-            hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator"
+            href="<?= htmlspecialchars($BASE) ?>/konfigurator-manager"
+            hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator-manager"
             hx-push-url="true"
             hx-target="#content"
             hx-select="#content"

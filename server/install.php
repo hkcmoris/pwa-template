@@ -229,10 +229,10 @@ SQL;
     $configurationsTableSql = <<<'SQL'
     CREATE TABLE IF NOT EXISTS configurations (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
-        user_id BIGINT NOT NULL,
+        user_id INT NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        CONSTRAINT fk_configurations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        CONSTRAINT fk_configurations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         KEY idx_configurations_user (user_id),
         KEY idx_configurations_updated (updated_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -243,10 +243,10 @@ SQL;
     CREATE TABLE IF NOT EXISTS configuration_options (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         configuration_id BIGINT NOT NULL,
-        component_id BIGINT NOT NULL,
+        component_id BIGINT UNSIGNED NOT NULL,
         position INT UNSIGNED NOT NULL DEFAULT 0,
-        CONSTRAINT fk_conf_options_configurations FOREIGN KEY (configuration_id) REFERENCES configurations(id) ON DELETE CASCADE
-        CONSTRAINT fk_conf_options_components FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE
+        CONSTRAINT fk_conf_options_configurations FOREIGN KEY (configuration_id) REFERENCES configurations(id) ON DELETE CASCADE,
+        CONSTRAINT fk_conf_options_components FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE,
         UNIQUE KEY uq_conf_options_configuration_position (configuration_id, position)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     SQL;
