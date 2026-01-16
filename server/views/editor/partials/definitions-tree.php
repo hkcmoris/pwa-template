@@ -162,7 +162,17 @@ if (!function_exists('render_definition_nodes')) {
             if ($range === null) {
                 echo '<button type="button" class="definition-action"'
                     . ' data-action="create-child"'
-                    . '>Přidat poduzel</button>';
+                    . '>'
+                    . '<svg'
+                    . ' fill="currentColor"'
+                    . ' width="16px"'
+                    . ' height="16px"'
+                    . ' display="block"'
+                    . ' style="display: block;"'
+                    . '>'
+                    . '<use href="#icon-add"></use>'
+                    . '</svg>'
+                    . '</button>';
             }
             $rangeButtonLabel = $range === null ? 'Nastavit rozsah' : 'Upravit rozsah';
             echo '<button type="button" class="definition-action"'

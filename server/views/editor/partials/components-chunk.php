@@ -188,7 +188,18 @@ foreach ($items as $node) {
             data-parent-id="<?= $id ?>"
             data-parent-title="<?= $effectiveTitle ?>"
             data-parent-children="<?= $childCount ?>"
-          >Přidat podkomponentu</button>
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-add"></use>
+            </svg>
+          </button>
           <button
             type="button"
             class="component-action"
