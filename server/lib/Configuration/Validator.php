@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Configuration;
 
 use Components\Repository as ComponentsRepository;
-use RuntimeException;
 
 final class Validator
 {
@@ -19,15 +18,19 @@ final class Validator
         $this->queries = $queries;
     }
 
-    public function assertConfigurationExists(int $configurationId, string $message = 'Vybraná konfigurace neexistuje.'): void
-    {
+    public function assertConfigurationExists(
+        int $configurationId,
+        string $message = 'Vybraná konfigurace neexistuje.'
+    ): void {
         if (!$this->queries->find($configurationId)) {
             throw new ValidationException($message);
         }
     }
 
-    public function assertComponentExists(int $componentId, string $message = 'Vybraná komponenta neexistuje.'): void
-    {
+    public function assertComponentExists(
+        int $componentId,
+        string $message = 'Vybraná komponenta neexistuje.'
+    ): void {
         if (!$this->components->find($componentId)) {
             throw new ValidationException($message);
         }
@@ -44,7 +47,13 @@ final class Validator
      */
     public function assertComponentCanBeInserted(array $configuration, int $componentId): void
     {
-        $this->assertConfigurationExists($configuration['id'], 'Komponentu nelze vložit, protože konfigurace neexistuje.');
-        $this->assertComponentExists($componentId, 'Komponentu nelze vložit, protože neexistuje.');
+        $this->assertConfigurationExists(
+            $configuration['id'],
+            'Komponentu nelze vložit, protože konfigurace neexistuje.'
+        );
+        $this->assertComponentExists(
+            $componentId,
+            'Komponentu nelze vložit, protože neexistuje.'
+        );
     }
 }

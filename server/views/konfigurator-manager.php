@@ -2,6 +2,11 @@
 
 use Configuration\Repository;
 
+// Normalize base path for view usage.
+$baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
+$BASE = rtrim($BASE, '/');
+
 if (!isset($role) || $role === 'guest') {
     echo '<h1>Access denied</h1><p>Please sign in to view your configurations.</p>';
     return;

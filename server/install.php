@@ -245,7 +245,10 @@ SQL;
         configuration_id BIGINT NOT NULL,
         component_id BIGINT UNSIGNED NOT NULL,
         position INT UNSIGNED NOT NULL DEFAULT 0,
-        CONSTRAINT fk_conf_options_configurations FOREIGN KEY (configuration_id) REFERENCES configurations(id) ON DELETE CASCADE,
+        CONSTRAINT fk_conf_options_configurations
+            FOREIGN KEY (configuration_id)
+            REFERENCES configurations(id)
+            ON DELETE CASCADE,
         CONSTRAINT fk_conf_options_components FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE,
         UNIQUE KEY uq_conf_options_configuration_position (configuration_id, position)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4

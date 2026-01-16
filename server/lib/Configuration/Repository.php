@@ -118,7 +118,7 @@ final class Repository
      *     user_id: int,
      *     created_at: string,
      *     updated_at: string
-     * }|null
+     * }
      */
     public function create(int $userId): array
     {

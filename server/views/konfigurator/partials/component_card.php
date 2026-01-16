@@ -1,5 +1,7 @@
 <?php
 
+/** @var string $option */
+$option = isset($option) ? (string) $option : '';
 ?>
 <div class="component-card">
     <div class="options-card-inner">
