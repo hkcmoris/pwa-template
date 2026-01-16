@@ -68,10 +68,10 @@ final class Repository
         return (int) $stmt->fetchColumn();
     }
 
-    public function userExists(string $userId): bool
+    public function userExists(int $userId): bool
     {
         $stmt = $this->pdo->prepare('SELECT 1 FROM users WHERE id = :id');
-        $stmt->bindValue(':id', $userId, PDO::PARAM_STR);
+        $stmt->bindValue(':id', $userId, PDO::PARAM_INT);
         $stmt->execute();
         /** @var array<string, mixed>|false $row */
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -120,20 +120,20 @@ final class Repository
      *     updated_at: string
      * }|null
      */
-    public function create(string $userId): array
+    public function create(int $userId): array
     {
         $message = 'Creating configuration for user=' . $userId;
         log_message($message, 'DEBUG');
         $this->pdo->beginTransaction();
         try {
-            if ($userId !== null && !$this->userExists($userId)) {
+            if (!$this->userExists($userId)) {
                 log_message('User ID ' . $userId . ' does not exist.', 'ERROR');
                 throw new RuntimeException('Vybraný uživatel neexistuje.');
             }
             $stmt = $this->pdo->prepare(
                 'INSERT INTO configurations (user_id) VALUES (:user_id)'
             );
-            $stmt->bindValue(':user_id', $userId, PDO::PARAM_STR);
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
             log_message('Insert query: ' . $stmt->queryString, 'DEBUG');
             $stmt->execute();
             $id = (int) $this->pdo->lastInsertId();
@@ -147,6 +147,53 @@ final class Repository
         } catch (Throwable $e) {
             log_message('Error during configuration creation: ' . $e->getMessage(), 'ERROR');
             $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * @param list<int> $componentIds
+     */
+    public function replaceOptions(int $configurationId, array $componentIds): void
+    {
+        $this->validator->assertConfigurationExists($configurationId);
+
+        $this->pdo->beginTransaction();
+        try {
+            $delete = $this->pdo->prepare(
+                'DELETE FROM configuration_options WHERE configuration_id = :configuration_id'
+            );
+            $delete->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
+            $delete->execute();
+
+            if (!empty($componentIds)) {
+                $insert = $this->pdo->prepare(
+                    'INSERT INTO configuration_options (configuration_id, component_id, position)
+                     VALUES (:configuration_id, :component_id, :position)'
+                );
+
+                foreach ($componentIds as $index => $componentId) {
+                    $this->validator->assertComponentExists(
+                        $componentId,
+                        'Nelze uložit konfiguraci, protože jedna z komponent neexistuje.'
+                    );
+                    $insert->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
+                    $insert->bindValue(':component_id', $componentId, PDO::PARAM_INT);
+                    $insert->bindValue(':position', (int) $index, PDO::PARAM_INT);
+                    $insert->execute();
+                }
+            }
+
+            $touch = $this->pdo->prepare(
+                'UPDATE configurations SET updated_at = CURRENT_TIMESTAMP WHERE id = :id'
+            );
+            $touch->bindValue(':id', $configurationId, PDO::PARAM_INT);
+            $touch->execute();
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            log_message('Failed to update configuration options: ' . $e->getMessage(), 'ERROR');
             throw $e;
         }
     }

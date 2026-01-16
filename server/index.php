@@ -112,6 +112,11 @@ $controllerRoutes = [
     'POST editor/images/move'                    => __DIR__ . '/controllers/editor/images/move.php',
     'POST editor/images/rename'                  => __DIR__ . '/controllers/editor/images/rename.php',
     'POST editor/images/upload'                  => __DIR__ . '/controllers/editor/images/upload.php',
+
+    'POST configurator/configuration/create'     => __DIR__ . '/controllers/configurator/configuration/create.php',
+    'POST configurator/configuration/update'     => __DIR__ . '/controllers/configurator/configuration/update.php',
+    'POST configurator/configuration/delete'     => __DIR__ . '/controllers/configurator/configuration/delete.php',
+    'GET configurator/configuration/page'        => __DIR__ . '/controllers/configurator/configuration/page.php',
 ];
 
 $key = $method . ' ' . $route;

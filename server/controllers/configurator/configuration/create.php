@@ -1,8 +1,6 @@
 <?php
 
-use Configuration\Formatter;
 use Configuration\Repository;
-use Components\Repository as ComponentsRepository;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 
@@ -23,37 +21,44 @@ if (!in_array($role, ['user', 'admin', 'superadmin'], true)) {
     return;
 }
 
-$pdo = get_db_connection();
-
-$formatter = new Formatter();
-$componentsRepository = new ComponentsRepository($pdo);
-$repository = new Repository($pdo, $formatter, $componentsRepository);
-$errors = [];
-
-if (!empty($errors)) {
-    http_response_code(422);
-    $viewModel = $presenter->presentInitial([
-        'message' => implode(' ', $errors),
-        'message_type' => 'error',
-    ]);
-    // components_render_fragments($viewModel);
+$userId = isset($user['id']) ? (int) $user['id'] : 0;
+if ($userId <= 0) {
+    http_response_code(403);
+    echo '<div id="configurations-list-wrapper"></div>';
+    echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
+        'Nelze určit uživatele pro uložení konfigurace.' .
+        '</div>';
     return;
 }
 
+$pdo = get_db_connection();
+$repository = new Repository($pdo);
+
+$renderList = static function (Repository $repository, int $userId): string {
+    $configurations = $repository->fetch(null, 0, $userId);
+    ob_start();
+    include __DIR__ . '/../../../views/konfigurator/partials/configurations-list.php';
+    $listHtml = ob_get_clean();
+    if ($listHtml === false) {
+        return '';
+    }
+    return $listHtml;
+};
+
 try {
-    $repository->create((int) $user['id']);
+    $repository->create($userId);
     http_response_code(201);
-    $viewModel = $presenter->presentInitial([
-        'message' => 'Konfigurace byla uložena.',
-        'message_type' => 'success',
-    ]);
-    // components_render_fragments($viewModel);
+    $listHtml = $renderList($repository, $userId);
+    echo '<div id="configurations-list-wrapper" hx-swap-oob="true">' . $listHtml . '</div>';
+    echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--success" role="status" aria-live="polite">' .
+        'Konfigurace byla uložena.' .
+        '</div>';
 } catch (Throwable $e) {
     log_message('Configuration creation failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
-    $viewModel = $presenter->presentInitial([
-        'message' => 'Konfiguraci se nepodařilo uložit.',
-        'message_type' => 'error',
-    ]);
-    // components_render_fragments($viewModel);
+    $listHtml = $renderList($repository, $userId);
+    echo '<div id="configurations-list-wrapper" hx-swap-oob="true">' . $listHtml . '</div>';
+    echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error" role="status" aria-live="polite">' .
+        'Konfiguraci se nepodařilo uložit.' .
+        '</div>';
 }

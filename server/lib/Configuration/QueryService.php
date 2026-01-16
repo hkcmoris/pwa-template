@@ -39,7 +39,7 @@ final class QueryService
             $sql .= ' WHERE c.user_id = :user_id';
         }
         $sql .= <<<'SQL'
-        ORDER BY c.updated_at, c.created_at, c.id
+        ORDER BY c.updated_at DESC, c.created_at DESC, c.id DESC
         SQL;
 
         if ($limit !== null) {
@@ -66,7 +66,7 @@ final class QueryService
         }
 
         $stmt->execute();
-        log_message('Fetched ' . $stmt->rowCount() . ' definitions from database', 'DEBUG');
+        log_message('Fetched ' . $stmt->rowCount() . ' configurations from database', 'DEBUG');
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -89,7 +89,7 @@ final class QueryService
             configuration_id,
             component_id,
             position
-        FROM configuration_components
+        FROM configuration_options
         WHERE configuration_id = :configuration_id
         ORDER BY position, id
         SQL;
