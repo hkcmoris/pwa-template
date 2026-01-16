@@ -34,35 +34,30 @@ if ($userId <= 0) {
 $pdo = get_db_connection();
 $repository = new Repository($pdo);
 
-$errors = [];
-
-if (!empty($errors)) {
-    http_response_code(422);
-    echo '<div id="configurations-list-wrapper"></div>';
-    echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
-        htmlspecialchars(implode(' ', $errors), ENT_QUOTES, 'UTF-8') .
-        '</div>';
-    return;
-}
-
-try {
-    $repository->create($userId);
-    http_response_code(201);
+$renderList = static function (Repository $repository, int $userId): string {
     $configurations = $repository->fetch(null, 0, $userId);
     ob_start();
     include __DIR__ . '/../../../views/konfigurator/partials/configurations-list.php';
     $listHtml = ob_get_clean();
     if ($listHtml === false) {
-        $listHtml = '';
+        return '';
     }
-    echo '<div id="configurations-list-wrapper">' . $listHtml . '</div>';
+    return $listHtml;
+};
+
+try {
+    $repository->create($userId);
+    http_response_code(201);
+    $listHtml = $renderList($repository, $userId);
+    echo '<div id="configurations-list-wrapper" hx-swap-oob="true">' . $listHtml . '</div>';
     echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--success" role="status" aria-live="polite">' .
         'Konfigurace byla uložena.' .
         '</div>';
 } catch (Throwable $e) {
     log_message('Configuration creation failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
-    echo '<div id="configurations-list-wrapper"></div>';
+    $listHtml = $renderList($repository, $userId);
+    echo '<div id="configurations-list-wrapper" hx-swap-oob="true">' . $listHtml . '</div>';
     echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error" role="status" aria-live="polite">' .
         'Konfiguraci se nepodařilo uložit.' .
         '</div>';

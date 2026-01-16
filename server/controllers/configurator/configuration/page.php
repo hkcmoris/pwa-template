@@ -22,6 +22,15 @@ if (!in_array($role, ['user', 'admin', 'superadmin'], true)) {
 }
 
 $userId = isset($user['id']) ? (int) $user['id'] : 0;
+if ($userId <= 0) {
+    http_response_code(403);
+    echo json_encode([
+        'configurations' => [],
+        'nextOffset' => 0,
+        'hasMore' => false,
+    ]);
+    return;
+}
 $limitParam = isset($_GET['limit']) ? (string) $_GET['limit'] : '20';
 $offsetParam = isset($_GET['offset']) ? (string) $_GET['offset'] : '0';
 
