@@ -12,6 +12,7 @@ require_once __DIR__ . '/lib/assets.php';
 
 $namespaces = [
     'Components\\' => __DIR__ . '/lib/Components/',
+    'Configuration\\' => __DIR__ . '/lib/Configuration/',
     'Definitions\\' => __DIR__ . '/lib/Definitions/',
     'Images\\' => __DIR__ . '/lib/Images/',
     'Editor\\' => __DIR__ . '/lib/Editor/',
