@@ -50,7 +50,9 @@ try {
     http_response_code(201);
     $listHtml = $renderList($repository, $userId);
     echo '<div id="configurations-list-wrapper" hx-swap-oob="true">' . $listHtml . '</div>';
-    echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--success" role="status" aria-live="polite">' .
+    echo '<div id="configurations-form-errors" hx-swap-oob="true" ' .
+        'class="form-feedback form-feedback--success" role="status" ' .
+        'aria-live="polite">' .
         'Konfigurace byla uložena.' .
         '</div>';
 } catch (Throwable $e) {
@@ -58,7 +60,9 @@ try {
     http_response_code(500);
     $listHtml = $renderList($repository, $userId);
     echo '<div id="configurations-list-wrapper" hx-swap-oob="true">' . $listHtml . '</div>';
-    echo '<div id="configurations-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error" role="status" aria-live="polite">' .
+    echo '<div id="configurations-form-errors" hx-swap-oob="true" ' .
+        'class="form-feedback form-feedback--error" role="status" ' .
+        'aria-live="polite">' .
         'Konfiguraci se nepodařilo uložit.' .
         '</div>';
 }

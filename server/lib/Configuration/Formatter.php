@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace Configuration;
 
-use function log_message;
-
 final class Formatter
 {
     /**
-     * @param array{id: int,user_id: int,created_at: string,updated_at: string} $parent
+     * @param array{
+     *     id: int,
+     *     user_id: int,
+     *     created_at: string,
+     *     updated_at: string
+     * } $meta
      * @param list<array{id: int,configuration_id: int,component_id: int,position: int}> $rows
-     * @return array{id: int,user_id: int,created_at: string,updated_at: string,configuration_id: int,component_id: int,position: int,children: list<array>}
+     * @return array{
+     *     id: int,
+     *     user_id: int,
+     *     created_at: string,
+     *     updated_at: string,
+     *     children: list<array{id: int,configuration_id: int,component_id: int,position: int}>
+     * }
      */
     public function buildConfiguration(array $meta, array $rows): array
     {
