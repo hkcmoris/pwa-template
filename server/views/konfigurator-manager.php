@@ -1,5 +1,7 @@
 <?php
 
+use Configuration\Repository;
+
 if (!isset($role) || $role === 'guest') {
     echo '<h1>Access denied</h1><p>Please sign in to view your configurations.</p>';
     return;
@@ -12,16 +14,9 @@ if ($userId <= 0) {
 }
 
 $pdo = get_db_connection();
-$stmt = $pdo->prepare(
-    'SELECT id, created_at, updated_at
-     FROM configurations
-     WHERE user_id = :user_id
-     ORDER BY updated_at DESC, created_at DESC, id DESC'
-);
-$stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-$stmt->execute();
+$repository = new Repository($pdo);
 /** @var array<int, array<string, mixed>> $configurations */
-$configurations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$configurations = $repository->fetch(null, 0, $userId);
 ?>
 
 <h1>Konfigurace</h1>
@@ -32,19 +27,7 @@ $configurations = $stmt->fetchAll(PDO::FETCH_ASSOC);
   hx-select="#content"
   hx-swap="outerHTML"
 >Vytvořit novou konfiguraci</button>
-<?php if (!$configurations) : ?>
-  <p>Nemáte žádné uložené konfigurace.</p>
-<?php else : ?>
-  <ul>
-    <?php foreach ($configurations as $configuration) : ?>
-      <li>
-        <span>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></span>
-        <?php if (!empty($configuration['updated_at'])) : ?>
-          <time datetime="<?= htmlspecialchars((string) $configuration['updated_at']) ?>">
-            <?= htmlspecialchars((string) $configuration['updated_at']) ?>
-          </time>
-        <?php endif; ?>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-<?php endif; ?>
+<div id="configurations-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
+<div id="configurations-list-wrapper">
+  <?php include __DIR__ . '/konfigurator/partials/configurations-list.php'; ?>
+</div>
