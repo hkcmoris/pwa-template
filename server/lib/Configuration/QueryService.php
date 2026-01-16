@@ -35,8 +35,10 @@ final class QueryService
             c.updated_at
         FROM configurations c
         SQL;
+        $params = [];
         if ($userId !== null) {
             $sql .= ' WHERE c.user_id = :user_id';
+            $params['user_id'] = $userId;
         }
         $sql .= <<<'SQL'
         ORDER BY c.updated_at DESC, c.created_at DESC, c.id DESC
@@ -56,16 +58,12 @@ final class QueryService
 
         $stmt = $this->pdo->prepare($sql);
 
-        if ($userId !== null) {
-            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-        }
-
         if ($limit !== null) {
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $params['limit'] = $limit;
+            $params['offset'] = $offset;
         }
 
-        $stmt->execute();
+        $stmt->execute($params);
         log_message('Fetched ' . $stmt->rowCount() . ' configurations from database', 'DEBUG');
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
