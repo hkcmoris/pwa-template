@@ -46,10 +46,17 @@ if ($offsetParam !== '' && preg_match('/^\d+$/', $offsetParam)) {
 $pdo = get_db_connection();
 $repository = new Repository($pdo);
 $configurations = $repository->fetch($limit, $offset, $userId);
+if ($configurations === []) {
+    echo json_encode([
+        'configurations' => [],
+        'nextOffset' => 0,
+        'hasMore' => false,
+    ]);
+    return;
+}
 $total = $repository->countByUser($userId);
 $nextOffset = $offset + count($configurations);
 $hasMore = $nextOffset < $total;
-
 echo json_encode([
     'configurations' => $configurations,
     'nextOffset' => $nextOffset,
