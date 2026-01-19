@@ -16,6 +16,7 @@ export default async function init(el: HTMLElement) {
             email: string;
             role?: string;
             created_at: string;
+            configurations_total: number;
         }>
     ) => {
         if (!list) return;
@@ -42,6 +43,7 @@ export default async function init(el: HTMLElement) {
                     <td>${u.username}</td>
                     <td>${u.email}</td>
                     <td>${roleCell}</td>
+                    <td>${u.configurations_total}</td>
                     <td>${new Date(u.created_at).toLocaleString()}</td>
                 </tr>`;
             })
@@ -60,6 +62,7 @@ export default async function init(el: HTMLElement) {
                     email: string;
                     role?: string;
                     created_at: string;
+                    configurations_total: number;
                 }>;
                 error?: string;
             };
