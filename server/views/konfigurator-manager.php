@@ -8,13 +8,15 @@ $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
 
 if (!isset($role) || $role === 'guest') {
-    echo '<h1>Access denied</h1><p>Please sign in to view your configurations.</p>';
+    echo '<h1>Přístup odepřen</h1>'
+      . '<p>Prosím přihlaste se pro zobrazení vašich konfigurací.</p>';
     return;
 }
 
 $userId = isset($currentUser['id']) ? (int) $currentUser['id'] : 0;
 if ($userId <= 0) {
-    echo '<h1>Access denied</h1><p>Unable to resolve your account.</p>';
+    echo '<h1>Přístup odepřen</h1>'
+      . '<p>Nelze získat informace o vašem účtu.</p>';
     return;
 }
 
