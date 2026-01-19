@@ -5,9 +5,9 @@ export type ComponentApiClient = {
 };
 
 type CreateApiClientOptions = {
-    deleteUrl: string;
     listTarget: string;
     htmx: HTMX | null;
+    base: string;
 };
 
 const deleteViaForm = (deleteUrl: string, componentId: string) => {
@@ -31,9 +31,9 @@ const deleteViaForm = (deleteUrl: string, componentId: string) => {
 };
 
 export const createComponentApiClient = ({
-    deleteUrl,
     listTarget,
     htmx,
+    base,
 }: CreateApiClientOptions): ComponentApiClient => ({
     deleteComponent(componentId) {
         if (!componentId) {
@@ -41,7 +41,7 @@ export const createComponentApiClient = ({
         }
 
         if (htmx && typeof htmx.ajax === 'function') {
-            htmx.ajax('POST', deleteUrl, {
+            htmx.ajax('POST', `${base}/editor/components/delete`, {
                 source: listTarget,
                 target: listTarget,
                 select: listTarget,
@@ -51,6 +51,6 @@ export const createComponentApiClient = ({
             return;
         }
 
-        deleteViaForm(deleteUrl, componentId);
+        deleteViaForm(`${base}/editor/components/delete`, componentId);
     },
 });

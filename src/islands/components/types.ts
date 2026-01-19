@@ -50,3 +50,8 @@ export type ComponentModalOptions = {
 };
 
 export type MediaMode = 'image' | 'color';
+
+export type SelectedImageEntry = {
+    value: string;
+    label: string | null;
+};

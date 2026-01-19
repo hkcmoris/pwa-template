@@ -14,7 +14,7 @@ export const setupNodeActions = (
 ) => {
     root.addEventListener('click', (event) => {
         const button = (event.target as HTMLElement).closest<HTMLButtonElement>(
-            '.definition-action'
+            listSelectors.action
         );
 
         if (!button) return;
