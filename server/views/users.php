@@ -14,6 +14,7 @@ if (!isset($role) || !in_array($role, ['admin','superadmin'], true)) {
                 <th>Uživatelské jméno</th>
                 <th>E‑mail</th>
                 <th>Role</th>
+                <th>Počet konfigurací</th>
                 <th>Datum vytvoření</th>
             </tr>
         </thead>

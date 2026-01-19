@@ -28,7 +28,14 @@ if (!$caller || !in_array(($caller['role'] ?? 'user'), ['admin','superadmin'], t
 }
 
 log_message("Users list requested by {$caller['email']}");
-$stmt = $db->prepare('SELECT id, username, email, role, created_at FROM users');
+$stmt = $db->prepare(
+    'SELECT u.id, u.username, u.email, u.role, u.created_at,' .
+    ' CAST(COUNT(c.id) AS UNSIGNED) AS configurations_total ' .
+    'FROM users u ' .
+    'LEFT JOIN configurations c ON c.user_id = u.id ' .
+    'GROUP BY u.id, u.username, u.email, u.role, u.created_at ' .
+    'ORDER BY u.id'
+);
 $stmt->execute();
 $users = $stmt->fetchAll();
 echo json_encode(['users' => $users]);
