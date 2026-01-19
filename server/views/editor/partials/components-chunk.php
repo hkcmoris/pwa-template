@@ -31,6 +31,8 @@ foreach ($items as $node) {
         ? $node['images']
         : [];
     $rawImages = [];
+    $effectiveCmp = trim(html_entity_decode($rawEffectiveTitle, ENT_QUOTES, 'UTF-8'));
+    $definitionCmp = trim(html_entity_decode($definitionTitleRaw, ENT_QUOTES, 'UTF-8'));
 
     foreach ($rawImagesValue as $entry) {
         if (!is_string($entry)) {
@@ -91,7 +93,6 @@ foreach ($items as $node) {
         'ID ' . $id,
         'definice ' . $definitionTitle . ' (#' . $definitionId . ')',
     ];
-    $metaLine = htmlspecialchars(implode(' | ', $metaParts), ENT_QUOTES, 'UTF-8');
     $depthAttr = ' data-depth="' . $depth . '" style="--component-depth:' . $depth . ';"';
     ?>
     <li
@@ -116,9 +117,13 @@ foreach ($items as $node) {
       <div class="component-node">
         <div class="component-position"><?= $position ?></div>
         <div class="component-node-header">
-          <strong><?= $effectiveTitle ?></strong>
           <div class="component-node-info">
-            <?php $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0; ?>
+            <strong><?php if ($effectiveCmp !== $definitionCmp) : ?>
+              <?= htmlspecialchars($definitionTitle, ENT_QUOTES, 'UTF-8') ?> – 
+            <?php endif; ?>
+            <?= $effectiveTitle ?>
+            </strong>
+            <?php $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0 || $latestPrice !== null; ?>
             <?php if ($hasDetails) : ?>
               <dl class="component-node-details">
                 <?php if ($description !== '') : ?>
@@ -182,6 +187,13 @@ foreach ($items as $node) {
                       <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
                       <?= $color ?>
                     </dd>
+                  </div>
+                <?php endif; ?>
+                <?php if ($latestPrice !== null) : ?>
+                  <div>
+                    <dt>Poslední cena</dt>
+                    <dd><?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>
+                      &nbsp;<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?></dd>
                   </div>
                 <?php endif; ?>
                 <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
