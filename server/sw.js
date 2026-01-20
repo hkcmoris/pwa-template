@@ -9,6 +9,15 @@ const ASSET_PREFIX = `${SCOPE_PATH}/public/assets/`;
 // User uploads live under /public/assets/images/upload and remain mutable.
 const UPLOAD_PREFIX = `${ASSET_PREFIX}images/upload/`;
 
+const NO_CACHE_PREFIXES = [
+    `${SCOPE_PATH}/editor/`,
+    `${SCOPE_PATH}/api/`,
+    `${SCOPE_PATH}/login`,
+    `${SCOPE_PATH}/login.php`,
+    `${SCOPE_PATH}/logout`,
+    `${SCOPE_PATH}/logout.php`,
+];
+
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
     event.waitUntil(
@@ -29,6 +38,18 @@ self.addEventListener('fetch', (event) => {
         return;
     }
     const url = new URL(event.request.url);
+
+    const accept = event.request.headers.get('accept') || '';
+    const isDocument =
+        event.request.mode === 'navigate' || accept.includes('text/html');
+    const isNoCache = NO_CACHE_PREFIXES.some((p) => url.pathname.startsWith(p));
+    const hasCookie = event.request.headers.has('cookie');
+
+    if (isDocument || hasCookie || isNoCache) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
     const isImmutableAsset =
         url.pathname.startsWith(ASSET_PREFIX) &&
         !url.pathname.startsWith(UPLOAD_PREFIX);
