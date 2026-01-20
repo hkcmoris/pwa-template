@@ -118,12 +118,19 @@ foreach ($items as $node) {
         <div class="component-position"><?= $position ?></div>
         <div class="component-node-header">
           <div class="component-node-info">
-            <strong><?php if ($effectiveCmp !== $definitionCmp) : ?>
-              <?= htmlspecialchars($definitionTitle, ENT_QUOTES, 'UTF-8') ?> – 
+            <strong>
+            <?php if ($effectiveCmp !== $definitionCmp) : ?>
+                <?= htmlspecialchars($definitionTitle, ENT_QUOTES, 'UTF-8') ?> – 
             <?php endif; ?>
             <?= $effectiveTitle ?>
             </strong>
-            <?php $hasDetails = $description !== '' || !empty($rawImages) || $color !== '' || $dependencyCount > 0 || $latestPrice !== null; ?>
+            <?php $hasDetails =
+              $description !== '' ||
+              !empty($rawImages) ||
+              $color !== '' ||
+              $dependencyCount > 0 ||
+              $latestPrice !== null;
+            ?>
             <?php if ($hasDetails) : ?>
               <dl class="component-node-details">
                 <?php if ($description !== '') : ?>
