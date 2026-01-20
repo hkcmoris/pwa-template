@@ -1,5 +1,7 @@
 import './select.css';
 
+let documentClickBound = false;
+
 export function setSelectValue(sel: HTMLElement, value: string) {
     const btn = sel.querySelector<HTMLButtonElement>('.select-button');
     const list = sel.querySelector<HTMLUListElement>('.select-list');
@@ -36,10 +38,13 @@ export function enhanceSelects(root: Document | HTMLElement = document) {
         });
     };
 
-    document.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        if (!target.closest('.select[data-select]')) closeAll();
-    });
+    if (!documentClickBound) {
+        document.addEventListener('click', (e) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.select[data-select]')) closeAll();
+        });
+        documentClickBound = true;
+    }
 
     selects.forEach((sel) => {
         const btn = sel.querySelector<HTMLButtonElement>('.select-button');
