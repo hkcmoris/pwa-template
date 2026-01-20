@@ -331,6 +331,10 @@ body[data-route='home'] {
     background: rgb(from var(--tint) r g b / 10%);
 }
 
+#login-message:empty {
+    display: none;
+}
+
 .app-version-badge {
     position: fixed;
     bottom: 1rem;

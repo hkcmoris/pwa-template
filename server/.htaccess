@@ -58,6 +58,14 @@ AddType application/manifest+json .webmanifest
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 
+    # For dynamic routes (no extension) like /editor/components, /api/foo, etc.
+    Header always set Cache-Control "no-store, no-cache, must-revalidate" env=MICROCACHE_BYPASS
+    Header always set Pragma "no-cache" env=MICROCACHE_BYPASS
+    Header always set Expires "0" env=MICROCACHE_BYPASS
+
+    # Optional: make caches vary by cookies if anything slips through
+    Header always merge Vary "Cookie" env=MICROCACHE_BYPASS
+
     # Micro-cache HTML/PHP responses for 5s with stale-while-revalidate on public pages
     <FilesMatch "\.(html|php)$">
         Header set Cache-Control "no-store, no-cache, must-revalidate" env=MICROCACHE_BYPASS
