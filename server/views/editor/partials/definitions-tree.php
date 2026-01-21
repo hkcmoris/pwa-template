@@ -177,7 +177,18 @@ if (!function_exists('render_definition_nodes')) {
             $rangeButtonLabel = $range === null ? 'Nastavit rozsah' : 'Upravit rozsah';
             echo '<button type="button" class="definition-action"'
                 . ' data-action="configure-range"'
-                . '>' . $rangeButtonLabel . '</button>';
+                . '>'
+                . '<svg'
+                . ' fill="currentColor"'
+                . ' width="32px"'
+                . ' height="32px"'
+                . ' display="block"'
+                . ' style="display: block; margin: -8px;"'
+                . '>'
+                . '<use href="#icon-range"></use>'
+                . '</svg>'
+                // . $rangeButtonLabel
+                . '</button>';
             echo '<button type="button" class="definition-action"'
                 . ' data-action="rename"'
                 . '>'
