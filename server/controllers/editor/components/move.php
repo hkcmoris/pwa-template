@@ -98,7 +98,7 @@ try {
     ]);
     components_render_fragments($viewModel);
 } catch (RuntimeException $e) {
-    http_response_code(404);
+    http_response_code(200);
     $viewModel = $presenter->presentInitial([
         'message' => 'Komponentu se nepodarilo najit.',
         'message_type' => 'error',
