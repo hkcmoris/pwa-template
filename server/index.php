@@ -193,6 +193,7 @@ $viewStylesMap = [
     'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
     'konfigurator' => [
         'konfigurator-breadcrumbs' => 'src/styles/konfigurator/breadcrumbs.css',
+        'konfigurator-configuration-wizard' => 'src/styles/konfigurator/configuration-wizard.css',
         'konfigurator-component-options' => 'src/styles/konfigurator/component-options.css',
     ],
 ];

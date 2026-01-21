@@ -27,6 +27,20 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     }
 }
 
+$componentStyleEntry = 'src/styles/konfigurator/configuration-wizard.css';
+if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+    $componentCssHref = vite_asset_href($componentStyleEntry, $isDevEnv ?? false, $BASE);
+    if ($componentCssHref !== null) {
+        ?>
+        <link
+            rel="stylesheet"
+            id="konfigurator-configuration-wizard"
+            href="<?= htmlspecialchars($componentCssHref, ENT_QUOTES, 'UTF-8') ?>"
+            hx-swap-oob="true">
+        <?php
+    }
+}
+
 $componentStyleEntry = 'src/styles/konfigurator/component-options.css';
 if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     $componentCssHref = vite_asset_href($componentStyleEntry, $isDevEnv ?? false, $BASE);

@@ -28,6 +28,10 @@ export default defineConfig(({ mode }) => {
                         __dirname,
                         'src/styles/konfigurator/breadcrumbs.css'
                     ),
+                    'konfigurator-configuration-wizard': resolve(
+                        __dirname,
+                        'src/styles/konfigurator/configuration-wizard.css'
+                    ),
                     'editor-definitions': resolve(
                         __dirname,
                         'src/styles/editor/definitions.css'
