@@ -594,6 +594,127 @@ final class Repository
         }
     }
 
+    public function move(int $componentId, ?int $parentId, int $position): void
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $current = $this->validator->findComponentOrFail($componentId, 'Komponentu se nepodařilo najít.');
+            $this->validator->assertParentChangeIsValid($componentId, $parentId);
+
+            $oldParentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
+            $oldPosition = isset($current['position']) ? (int) $current['position'] : 0;
+            $sameParent = ($oldParentId === null && $parentId === null)
+                || ($oldParentId !== null && $parentId !== null && $oldParentId === $parentId);
+
+            $childCount = $this->queries->childrenCount($parentId);
+
+            if ($sameParent) {
+                $childCount = max(0, $childCount - 1);
+            }
+
+            if ($position < 0) {
+                $position = $childCount;
+            } elseif ($position > $childCount) {
+                $position = $childCount;
+            }
+
+            $needsReorder = !$sameParent || $position !== $oldPosition;
+
+            if (!$needsReorder) {
+                $this->pdo->commit();
+                return;
+            }
+
+            $detach = $this->pdo->prepare(
+                'UPDATE components SET parent_id = NULL, position = NULL WHERE id = :id'
+            );
+            $detach->bindValue(':id', $componentId, PDO::PARAM_INT);
+            $detach->execute();
+
+            if (!$sameParent) {
+                $closeGap = $this->pdo->prepare(
+                    'UPDATE components SET position = position - 1 '
+                    . 'WHERE parent_id <=> :parent AND position > :position'
+                );
+
+                if ($oldParentId === null) {
+                    $closeGap->bindValue(':parent', null, PDO::PARAM_NULL);
+                } else {
+                    $closeGap->bindValue(':parent', $oldParentId, PDO::PARAM_INT);
+                }
+
+                $closeGap->bindValue(':position', $oldPosition, PDO::PARAM_INT);
+                $closeGap->execute();
+
+                $openGap = $this->pdo->prepare(
+                    'UPDATE components SET position = position + 1 '
+                    . 'WHERE parent_id <=> :parent AND position >= :position'
+                );
+
+                if ($parentId === null) {
+                    $openGap->bindValue(':parent', null, PDO::PARAM_NULL);
+                } else {
+                    $openGap->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                }
+
+                $openGap->bindValue(':position', $position, PDO::PARAM_INT);
+                $openGap->execute();
+            } elseif ($position !== $oldPosition) {
+                if ($position > $oldPosition) {
+                    $shiftDown = $this->pdo->prepare(
+                        'UPDATE components SET position = position - 1 '
+                        . 'WHERE parent_id <=> :parent AND position > :old AND position <= :new'
+                    );
+
+                    if ($parentId === null) {
+                        $shiftDown->bindValue(':parent', null, PDO::PARAM_NULL);
+                    } else {
+                        $shiftDown->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                    }
+
+                    $shiftDown->bindValue(':old', $oldPosition, PDO::PARAM_INT);
+                    $shiftDown->bindValue(':new', $position, PDO::PARAM_INT);
+                    $shiftDown->execute();
+                } else {
+                    $shiftUp = $this->pdo->prepare(
+                        'UPDATE components SET position = position + 1 '
+                        . 'WHERE parent_id <=> :parent AND position >= :new AND position < :old'
+                    );
+
+                    if ($parentId === null) {
+                        $shiftUp->bindValue(':parent', null, PDO::PARAM_NULL);
+                    } else {
+                        $shiftUp->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                    }
+
+                    $shiftUp->bindValue(':new', $position, PDO::PARAM_INT);
+                    $shiftUp->bindValue(':old', $oldPosition, PDO::PARAM_INT);
+                    $shiftUp->execute();
+                }
+            }
+
+            $update = $this->pdo->prepare(
+                'UPDATE components SET parent_id = :parent, position = :position WHERE id = :id'
+            );
+
+            if ($parentId === null) {
+                $update->bindValue(':parent', null, PDO::PARAM_NULL);
+            } else {
+                $update->bindValue(':parent', $parentId, PDO::PARAM_INT);
+            }
+
+            $update->bindValue(':position', $position, PDO::PARAM_INT);
+            $update->bindValue(':id', $componentId, PDO::PARAM_INT);
+            $update->execute();
+
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
     public function delete(int $componentId): void
     {
         $this->pdo->beginTransaction();

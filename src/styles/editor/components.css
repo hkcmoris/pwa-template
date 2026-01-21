@@ -82,6 +82,11 @@
     justify-content: space-between;
     gap: 1.6rem;
     box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
+    cursor: grab;
+}
+
+.component-node:active {
+    cursor: grabbing;
 }
 
 [data-theme='dark'] .component-node {
@@ -145,6 +150,29 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 0.35rem;
+}
+
+.component-drag-indicator {
+    font-size: 1.1rem;
+    line-height: 1;
+    opacity: 0.6;
+    cursor: grab;
+}
+
+.component-item--dragging > .component-node {
+    opacity: 0.6;
+}
+
+.component-item--drop-before > .component-node {
+    box-shadow: 0 -2px 0 0 var(--primary);
+}
+
+.component-item--drop-after > .component-node {
+    box-shadow: 0 2px 0 0 var(--primary);
+}
+
+.component-item--drop-inside > .component-node {
+    outline: 2px dashed var(--primary);
 }
 
 .component-node-details {

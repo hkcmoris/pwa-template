@@ -114,7 +114,7 @@ foreach ($items as $node) {
       data-price-history="<?= $priceHistoryJson ?>"
       <?= $depthAttr ?>
     >
-      <div class="component-node">
+      <div class="component-node" draggable="true">
         <div class="component-position"><?= $position ?></div>
         <div class="component-node-header">
           <div class="component-node-info">
@@ -257,6 +257,7 @@ foreach ($items as $node) {
               <use href="#icon-trash"></use>
             </svg>
           </button>
+          <span class="component-drag-indicator" aria-hidden="true">⋮⋮</span>
         </div>
       </div>
     </li>

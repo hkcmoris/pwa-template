@@ -5,6 +5,7 @@ import { getBasePath, getHtmx } from './utils';
 import { parseNumber } from '../shared/parser';
 import { setupNodeActions } from './actions';
 import { createOpenComponentModal } from './open-component-modal';
+import { setupDragAndDrop } from './drag-drop';
 
 const listTarget = '#components-list';
 const listWrapperTarget = '#components-list-wrapper';
@@ -162,6 +163,7 @@ export default function init(root: HTMLElement) {
 
     setupInfiniteScroll(root, base);
     setupNodeActions(root, api, modal, openComponentModal);
+    setupDragAndDrop(root, api);
 
     bindCreateButton(openCreateButton, openComponentModal);
 

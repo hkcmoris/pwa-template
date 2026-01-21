@@ -23,6 +23,19 @@ export type SelectChangeDetail = {
 
 export type ComponentModalMode = 'create' | 'edit';
 
+export type DropPosition = 'before' | 'after' | 'inside';
+
+export type DragContext = {
+    item: HTMLElement;
+    id: string;
+    parentId: string;
+};
+
+export type DropContext = {
+    item: HTMLElement | null;
+    position: DropPosition | null;
+};
+
 export type PriceHistoryItem = {
     amount?: string;
     currency?: string;
@@ -54,4 +67,13 @@ export type MediaMode = 'image' | 'color';
 export type SelectedImageEntry = {
     value: string;
     label: string | null;
+};
+
+export type ComponentApiClient = {
+    deleteComponent: (componentId: string) => void;
+    move: (options: {
+        id: string;
+        parentId: string | null;
+        position: number;
+    }) => void;
 };
