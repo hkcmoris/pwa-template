@@ -481,6 +481,27 @@ const ensureEditorStyleSlot = () => {
     head.appendChild(link);
 };
 
+const ensureKonfiguratorStyleSlots = () => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const head = document.head;
+    if (!head) {
+        return;
+    }
+    const ensureSlot = (id: string) => {
+        if (document.getElementById(id)) {
+            return;
+        }
+        const link = document.createElement('link');
+        link.id = id;
+        link.rel = 'stylesheet';
+        head.appendChild(link);
+    };
+    ensureSlot('konfigurator-breadcrumbs');
+    ensureSlot('konfigurator-component-options');
+};
+
 const cloneLinkElement = (source: HTMLLinkElement) => {
     const clone = document.createElement('link');
     clone.rel = source.rel || 'stylesheet';
@@ -570,6 +591,9 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
 
     if (path.includes('/editor/') || queryRoute.startsWith('editor')) {
         ensureEditorStyleSlot();
+    }
+    if (path.includes('/konfigurator') || queryRoute.startsWith('konfigurator')) {
+        ensureKonfiguratorStyleSlots();
     }
 });
 
