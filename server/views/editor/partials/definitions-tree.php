@@ -188,7 +188,7 @@ if (!function_exists('render_definition_nodes')) {
                 . ' display="block"'
                 . ' style="display: block;"'
                 . '>'
-                . '<use href="#icon-edit"></use>'
+                . '<use href="#icon-rename"></use>'
                 . '</svg>'
                 . '</button>';
             echo '<button type="button" class="definition-action definition-action--danger"'

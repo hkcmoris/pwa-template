@@ -230,30 +230,56 @@ SQL;
     CREATE TABLE IF NOT EXISTS configurations (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
+        status ENUM('draft', 'submitted') NOT NULL DEFAULT 'draft',
+        current_component_id INT UNSIGNED DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        CONSTRAINT fk_configurations_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        CONSTRAINT fk_configurations_user
+            FOREIGN KEY (user_id)
+            REFERENCES users(id)
+            ON DELETE CASCADE,
         KEY idx_configurations_user (user_id),
         KEY idx_configurations_updated (updated_at)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     SQL;
     $pdo->exec($configurationsTableSql);
 
-    $configurationsOptionsTableSql = <<<'SQL'
-    CREATE TABLE IF NOT EXISTS configuration_options (
+    $configurationsSelectionsTableSql = <<<'SQL'
+    CREATE TABLE IF NOT EXISTS configuration_selections (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         configuration_id BIGINT NOT NULL,
         component_id BIGINT UNSIGNED NOT NULL,
+        definition_id BIGINT UNSIGNED NOT NULL,
+        parent_component_id BIGINT UNSIGNED DEFAULT NULL,
         position INT UNSIGNED NOT NULL DEFAULT 0,
-        CONSTRAINT fk_conf_options_configurations
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+        CONSTRAINT fk_conf_selections_configurations
             FOREIGN KEY (configuration_id)
             REFERENCES configurations(id)
             ON DELETE CASCADE,
-        CONSTRAINT fk_conf_options_components FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE CASCADE,
-        UNIQUE KEY uq_conf_options_configuration_position (configuration_id, position)
+
+        CONSTRAINT fk_conf_selections_components
+            FOREIGN KEY (component_id)
+            REFERENCES components(id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT fk_conf_selections_definitions
+            FOREIGN KEY (definition_id)
+            REFERENCES definitions(id)
+            ON DELETE CASCADE,
+
+        CONSTRAINT fk_conf_selections_parent
+            FOREIGN KEY (parent_component_id)
+            REFERENCES components(id)
+            ON DELETE CASCADE,
+
+        UNIQUE KEY uq_conf_component (configuration_id, component_id),
+        KEY idx_conf_selections_config (configuration_id, position)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     SQL;
-    $pdo->exec($configurationsOptionsTableSql);
+    $pdo->exec($configurationsSelectionsTableSql);
 
     echo "Database setup complete\n";
 } catch (PDOException $e) {
