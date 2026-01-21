@@ -33,7 +33,7 @@ $definitionsRepository = new DefinitionsRepository($pdo);
 $repository = new Repository($pdo, $formatter, $definitionsRepository);
 $presenter = new ComponentPresenter($repository, $formatter, $definitionsRepository, $definitionsFormatter);
 
-$idParam = $_POST['id'] ?? '';
+$idParam = $_POST['component_id'] ?? $_POST['id'] ?? '';
 $parentParam = null;
 if (isset($_POST['parent_id'])) {
     $rawParentValue = $_POST['parent_id'];

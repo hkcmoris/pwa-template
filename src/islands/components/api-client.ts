@@ -56,6 +56,7 @@ export const createComponentApiClient = ({
 
         const payload: Record<string, unknown> = {
             id,
+            component_id: id,
             parent_id: parentId ?? '',
             position: String(Math.max(0, Math.floor(position))),
         };
