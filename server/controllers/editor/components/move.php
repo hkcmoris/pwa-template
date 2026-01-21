@@ -98,9 +98,10 @@ try {
     ]);
     components_render_fragments($viewModel);
 } catch (RuntimeException $e) {
+    log_message('Component move RuntimeException: ' . $e->getMessage(), 'ERROR');
     http_response_code(200);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Komponentu se nepodařilo najít.',
+        'message' => 'Komponentu se nepodařilo najít. ' . $e->getMessage(),
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);

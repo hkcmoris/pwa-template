@@ -9,6 +9,7 @@ export type HTMX = {
             target?: Element | string;
             swap?: string;
             select?: string;
+            headers?: Record<string, string>;
         }
     ) => XMLHttpRequest;
 };
