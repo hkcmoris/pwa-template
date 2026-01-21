@@ -62,6 +62,9 @@ function csrf_ensure_session(): void
     if ($path === '/' && $base !== '') {
         $path = '/' . $base;
     }
+    if (headers_sent($file, $line)) {
+        error_log("Headers already sent in $file on line $line");
+    }
     session_set_cookie_params([
         'lifetime' => $params['lifetime'],
         'path' => $path,

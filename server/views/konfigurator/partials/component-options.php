@@ -8,7 +8,7 @@ $options = [
 ?>
 <div id="component-options">
     <?php foreach ($options as $option) :
-        $componentCard = __DIR__ . '/component_card.php';
+        $componentCard = __DIR__ . '/component-card.php';
         if (is_file($componentCard)) {
             require $componentCard;
         } else {

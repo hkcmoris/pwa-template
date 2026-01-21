@@ -7,9 +7,6 @@ if (!isset($role) || $role === 'guest') {
 }
 ?>
 
-<h1>Konfigurátor</h1>
-<p>Vítejte v konfigurátoru.</p>
-
 <?php
     $breadcrumbs = __DIR__ . '/konfigurator/partials/breadcrumbs.php';
 if (is_file($breadcrumbs)) {
@@ -18,7 +15,7 @@ if (is_file($breadcrumbs)) {
     echo '<p>Navigační panel nebyl nalezen.</p>';
 }
 
-$options = __DIR__ . '/konfigurator/partials/options.php';
+$options = __DIR__ . '/konfigurator/partials/component-options.php';
 if (is_file($options)) {
     require $options;
 } else {
