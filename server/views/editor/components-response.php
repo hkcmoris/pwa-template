@@ -41,6 +41,10 @@ function components_render_fragments(array $viewModel): void
     $messageContent = $message['content'] ?? null;
     $messageType = $message['type'] ?? 'success';
 
+    $hxTrigger = strtolower((string) ($_SERVER['HTTP_HX_TRIGGER'] ?? ''));
+    $skipTemplateOob = $hxTrigger === 'components-move';
+    $skipSummaryOob = $hxTrigger === 'components-move';
+
     include __DIR__ . '/partials/components-list.php';
 
     ob_start();
@@ -51,9 +55,13 @@ function components_render_fragments(array $viewModel): void
         $formMarkup = '';
     }
 
-    echo '<template id="component-create-template" hx-swap-oob="true">' . $formMarkup . '</template>';
-    echo '<div id="component-summary" hx-swap-oob="true" class="component-summary">' .
-        '<p><strong>Celkem komponent:</strong> ' . $totalComponents . '</p></div>';
+    if (!$skipTemplateOob) {
+        echo '<template id="component-create-template" hx-swap-oob="true">' . $formMarkup . '</template>';
+    }
+    if (!$skipSummaryOob) {
+        echo '<div id="component-summary" hx-swap-oob="true" class="component-summary">' .
+            '<p><strong>Celkem komponent:</strong> ' . $totalComponents . '</p></div>';
+    }
 
     $class = 'form-feedback';
     if ($messageContent) {
