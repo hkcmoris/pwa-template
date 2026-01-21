@@ -93,6 +93,63 @@ final class QueryService
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function fetchChildren(?int $parentId): array
+    {
+        $sql = <<<'SQL'
+        SELECT
+            c.id,
+            c.definition_id,
+            c.parent_id,
+            c.alternate_title,
+            c.description,
+            c.images,
+            c.color,
+            c.dependency_tree,
+            c.position,
+            c.created_at,
+            c.updated_at,
+            d.title AS definition_title
+        FROM components c
+        INNER JOIN definitions d ON d.id = c.definition_id
+        WHERE c.parent_id <=> :parent_id
+        ORDER BY c.position, c.id
+        SQL;
+
+        $stmt = $this->pdo->prepare($sql);
+
+        if ($parentId === null) {
+            $stmt->bindValue(':parent_id', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':parent_id', $parentId, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $componentIds = array_map(static fn($row) => isset($row['id']) ? (int) $row['id'] : 0, $rows);
+        $priceHistoryMap = $this->fetchPriceHistory($componentIds);
+        $normalised = [];
+
+        foreach ($rows as $row) {
+            $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+            $images = $this->formatter->normaliseImages($row['images'] ?? null);
+            $row['images'] = $images;
+            $row['image'] = $images[0] ?? null;
+            $row['effective_title'] = $this->formatter->effectiveTitle($row);
+            $rowId = isset($row['id']) ? (int) $row['id'] : 0;
+            $history = $priceHistoryMap[$rowId] ?? [];
+            $row['price_history'] = $history;
+            $row['latest_price'] = $history[0] ?? null;
+            $normalised[] = $row;
+        }
+
+        log_message('Fetched ' . count($normalised) . ' component children', 'DEBUG');
+
+        return $normalised;
+    }
+
+    /**
      * @param array<int, int|string> $componentIds
      * @return array<int, array<int, array{amount: string, currency: string, created_at: string}>>
      */
