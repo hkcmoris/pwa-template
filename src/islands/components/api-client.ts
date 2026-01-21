@@ -66,6 +66,9 @@ export const createComponentApiClient = ({
             target: listTarget,
             select: listTarget,
             swap: 'outerHTML',
+            headers: {
+                'HX-Trigger': 'components-move',
+            },
             values: payload,
         });
     },
