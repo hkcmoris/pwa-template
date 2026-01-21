@@ -94,10 +94,7 @@ const getPositionForDrop = (
 };
 
 const getChildCount = (item: HTMLElement, root: HTMLElement): number => {
-    const rawChildCount = Number.parseInt(
-        item.dataset.childrenCount ?? '',
-        10
-    );
+    const rawChildCount = Number.parseInt(item.dataset.childrenCount ?? '', 10);
     if (!Number.isNaN(rawChildCount)) {
         return rawChildCount;
     }
@@ -105,9 +102,9 @@ const getChildCount = (item: HTMLElement, root: HTMLElement): number => {
     if (!id) {
         return 0;
     }
-    return Array.from(root.querySelectorAll<HTMLElement>(listSelectors.item))
-        .filter((entry) => (entry.dataset.parent ?? '') === id)
-        .length;
+    return Array.from(
+        root.querySelectorAll<HTMLElement>(listSelectors.item)
+    ).filter((entry) => (entry.dataset.parent ?? '') === id).length;
 };
 
 export const setupDragAndDrop = (
