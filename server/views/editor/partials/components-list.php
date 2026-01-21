@@ -13,8 +13,11 @@ $hasMore = isset($hasMore)
 $isHx = isset($_SERVER['HTTP_HX_REQUEST']);
 $hxTarget = isset($_SERVER['HTTP_HX_TARGET']) ? (string) $_SERVER['HTTP_HX_TARGET'] : '';
 $normalizedHxTarget = strtolower(ltrim($hxTarget, '#'));
-$shouldUseOob = $isHx && $normalizedHxTarget !== '' && $normalizedHxTarget !== 'editor-root';
-$sentinelAttrs = $shouldUseOob ? ' hx-swap-oob="true"' : '';
+$shouldUseOob = $isHx
+    && $normalizedHxTarget !== ''
+    && $normalizedHxTarget !== 'editor-root'
+    && $normalizedHxTarget !== 'components-list-wrapper';
+$sentinelAttrs = $shouldUseOob && $hasMore ? ' hx-swap-oob="true"' : '';
 ?>
 <div class="components-list-wrapper" id="components-list-wrapper">
   <?php if (empty($items)) : ?>
