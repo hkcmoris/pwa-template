@@ -20,7 +20,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
     echo '<div id="components-list-wrapper"></div>';
     echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
-        'Nemate opravneni spravovat komponenty.' .
+        'Nemáte oprávnění spravovat komponenty.' .
         '</div>';
     return;
 }
@@ -36,7 +36,7 @@ $componentParam = $_POST['component_id'] ?? '';
 if (!preg_match('/^\d+$/', (string) $componentParam)) {
     http_response_code(422);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Neplatne ID komponenty.',
+        'message' => 'Neplatné ID komponenty.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
@@ -48,14 +48,14 @@ $componentId = (int) $componentParam;
 try {
     $repository->delete($componentId);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Komponenta byla odstranena.',
+        'message' => 'Komponenta byla odstraněna.',
         'message_type' => 'success',
     ]);
     components_render_fragments($viewModel);
 } catch (RuntimeException $e) {
     http_response_code(404);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Komponentu se nepodarilo najit.',
+        'message' => 'Komponentu se nepodařilo najít.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
@@ -63,7 +63,7 @@ try {
     log_message('Component delete failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Odstraneni komponenty se nepodarilo.',
+        'message' => 'Odstranění komponenty se nepodařilo.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);

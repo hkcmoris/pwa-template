@@ -21,7 +21,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
     echo '<div id="components-list-wrapper"></div>';
     echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
-        'Nemate opravneni spravovat komponenty.' .
+        'Nemáte oprávnění spravovat komponenty.' .
         '</div>';
     return;
 }
@@ -49,7 +49,7 @@ $positionParam = $_POST['position'] ?? '';
 if (!preg_match('/^\d+$/', (string) $idParam)) {
     http_response_code(422);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Neplatne ID komponenty.',
+        'message' => 'Neplatné ID komponenty.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
@@ -62,7 +62,7 @@ if ($parentParam !== null) {
     if (!preg_match('/^\d+$/', (string) $parentParam)) {
         http_response_code(422);
         $viewModel = $presenter->presentInitial([
-            'message' => 'Neplatny rodic.',
+            'message' => 'Neplatný rodič.',
             'message_type' => 'error',
         ]);
         components_render_fragments($viewModel);
@@ -74,7 +74,7 @@ if ($parentParam !== null) {
 if (!preg_match('/^\d+$/', (string) $positionParam)) {
     http_response_code(422);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Neplatna pozice.',
+        'message' => 'Neplatná pozice.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
@@ -86,7 +86,7 @@ $position = (int) $positionParam;
 try {
     $repository->move($id, $parentId, $position);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Komponenta byla presunuta.',
+        'message' => 'Komponenta byla přesunuta.',
         'message_type' => 'success',
     ]);
     components_render_fragments($viewModel);
@@ -100,7 +100,7 @@ try {
 } catch (RuntimeException $e) {
     http_response_code(200);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Komponentu se nepodarilo najit.',
+        'message' => 'Komponentu se nepodařilo najít.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
@@ -108,7 +108,7 @@ try {
     log_message('Component move failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(500);
     $viewModel = $presenter->presentInitial([
-        'message' => 'Presun komponenty se nepodaril.',
+        'message' => 'Přesun komponenty se nepodařil.',
         'message_type' => 'error',
     ]);
     components_render_fragments($viewModel);
