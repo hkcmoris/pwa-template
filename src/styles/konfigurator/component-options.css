@@ -16,15 +16,6 @@
     margin: 0;
 }
 
-.component-options-back {
-    background: none;
-    border: 1px solid currentcolor;
-    border-radius: 999px;
-    color: inherit;
-    cursor: pointer;
-    padding: 6px 16px;
-}
-
 .component-options-grid {
     display: grid;
     gap: 16px;

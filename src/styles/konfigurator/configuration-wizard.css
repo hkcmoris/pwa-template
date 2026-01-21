@@ -3,3 +3,8 @@
     flex-direction: column;
     gap: 24px;
 }
+
+.component-options-back {
+    border-radius: 999px;
+    padding: 6px 16px;
+}
