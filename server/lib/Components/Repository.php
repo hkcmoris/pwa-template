@@ -87,6 +87,14 @@ final class Repository
         return $this->treeBuilder->fetchTree();
     }
 
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function fetchChildren(?int $parentId): array
+    {
+        return $this->queries->fetchChildren($parentId);
+    }
+
     public function countAll(): int
     {
         return $this->queries->countAll();

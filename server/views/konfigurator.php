@@ -1,5 +1,7 @@
 <?php
 
+use Configuration\ConfigurationWizard;
+
 // Require login for Konfigurátor route (status already handled in index.php)
 if (!isset($role) || $role === 'guest') {
     echo '<h1>Přístup odepřen</h1><p>Pro zobrazení konfigurátoru se prosím přihlaste.</p>';
@@ -39,16 +41,17 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     }
 }
 
-$breadcrumbs = __DIR__ . '/konfigurator/partials/breadcrumbs.php';
-if (is_file($breadcrumbs)) {
-    require $breadcrumbs;
-} else {
-    echo '<p>Navigační panel nebyl nalezen.</p>';
+$currentUser = isset($currentUser) && is_array($currentUser) ? $currentUser : app_get_current_user();
+$userId = isset($currentUser['id']) ? (int) $currentUser['id'] : 0;
+if ($userId <= 0) {
+    echo '<p>Nelze získat informace o vašem účtu.</p>';
+    return;
 }
 
-$options = __DIR__ . '/konfigurator/partials/component-options.php';
-if (is_file($options)) {
-    require $options;
+$wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+$wizardPartial = __DIR__ . '/konfigurator/partials/wizard.php';
+if (is_file($wizardPartial)) {
+    require $wizardPartial;
 } else {
-    echo '<p>Panel s volbami nebyl nalezen.</p>';
+    echo '<p>Průvodce konfigurací nebyl nalezen.</p>';
 }
