@@ -11,8 +11,6 @@ final class ConfigurationWizard
 {
     private int $configurationId;
 
-    private int $userId;
-
     private ?int $currentComponentId;
 
     /**
@@ -28,14 +26,12 @@ final class ConfigurationWizard
 
     private function __construct(
         int $configurationId,
-        int $userId,
         ?int $currentComponentId,
         WizardRepository $repository,
         ComponentsRepository $components,
         RuleEngine $rules
     ) {
         $this->configurationId = $configurationId;
-        $this->userId = $userId;
         $this->currentComponentId = $currentComponentId;
         $this->repository = $repository;
         $this->components = $components;
@@ -55,7 +51,6 @@ final class ConfigurationWizard
 
         $wizard = new self(
             (int) $draft['id'],
-            (int) $draft['user_id'],
             isset($draft['current_component_id']) ? (int) $draft['current_component_id'] : null,
             $repository,
             $components,

@@ -1,14 +1,17 @@
 <?php
 /** @var array<int, array<string, mixed>> $selectedPath */
 /** @var array<string, mixed>|null $currentComponent */
-/** @var array<int, array<string, mixed>> $availableOptions */
-/** @var array<string, mixed> $summary */
+/** @var array<int, array<string, mixed>>|null $availableOptions */
+/** @var array<string, mixed>|null $summary */
 /** @var string|null $wizardError */
 $selectedPath = $selectedPath ?? [];
 $currentComponent = $currentComponent ?? null;
 $availableOptions = $availableOptions ?? [];
 $summary = $summary ?? [];
 $wizardError = $wizardError ?? null;
+$baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
+$BASE = rtrim($BASE, '/');
 $stepTitle = $currentComponent['effective_title'] ?? $currentComponent['definition_title'] ?? 'Začněte výběrem';
 $hasSelections = !empty($selectedPath);
 ?>
@@ -51,7 +54,9 @@ $hasSelections = !empty($selectedPath);
                 <ul>
                     <?php foreach ($summary['selected_path'] as $selection) : ?>
                         <li>
-                            <?= htmlspecialchars((string) ($selection['effective_title'] ?? $selection['definition_title'] ?? '')) ?>
+                            <?= htmlspecialchars(
+                                (string) ($selection['effective_title'] ?? $selection['definition_title'] ?? '')
+                            ) ?>
                         </li>
                     <?php endforeach; ?>
                 </ul>

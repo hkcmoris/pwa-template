@@ -5,6 +5,9 @@ $option = $option ?? [];
 $optionId = isset($option['id']) ? (int) $option['id'] : 0;
 $optionTitle = (string) ($option['effective_title'] ?? $option['definition_title'] ?? '');
 $definitionTitle = (string) ($option['definition_title'] ?? '');
+$baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
+$BASE = rtrim($BASE, '/');
 ?>
 <div class="component-card">
     <form

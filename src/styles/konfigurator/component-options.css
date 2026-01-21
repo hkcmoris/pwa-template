@@ -18,7 +18,7 @@
 
 .component-options-back {
     background: none;
-    border: 1px solid currentColor;
+    border: 1px solid currentcolor;
     border-radius: 999px;
     color: inherit;
     cursor: pointer;
@@ -32,14 +32,14 @@
 }
 
 .component-options-summary {
-    background: var(--surface, rgba(0, 0, 0, 0.03));
+    background: var(--surface, rgb(0 0 0 / 3%));
     border-radius: 12px;
     padding: 16px;
 }
 
 .component-options-error {
-    background: rgba(180, 0, 0, 0.08);
-    border: 1px solid rgba(180, 0, 0, 0.3);
+    background: rgb(180 0 0 / 8%);
+    border: 1px solid rgb(180 0 0 / 30%);
     border-radius: 8px;
     color: #7a0000;
     padding: 8px 12px;
@@ -47,8 +47,8 @@
 
 .options-card-inner {
     align-items: flex-start;
-    background: var(--surface, rgba(0, 0, 0, 0.03));
-    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: var(--surface, rgb(0 0 0 / 3%));
+    border: 1px solid rgb(0 0 0 / 10%);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
