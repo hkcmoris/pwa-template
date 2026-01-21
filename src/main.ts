@@ -592,7 +592,10 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
     if (path.includes('/editor/') || queryRoute.startsWith('editor')) {
         ensureEditorStyleSlot();
     }
-    if (path.includes('/konfigurator') || queryRoute.startsWith('konfigurator')) {
+    if (
+        path.includes('/konfigurator') ||
+        queryRoute.startsWith('konfigurator')
+    ) {
         ensureKonfiguratorStyleSlots();
     }
 });
