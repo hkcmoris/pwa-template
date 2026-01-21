@@ -1,4 +1,4 @@
-import { ComponentApiClient } from './api-client';
+import type { ComponentApiClient } from './types';
 import { parsePriceHistoryDataset } from './form';
 import { ComponentModalManager } from './modal';
 import { ComponentModalOptions } from './types';
