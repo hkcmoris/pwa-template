@@ -38,6 +38,7 @@ final class Repository
         $this->definitions = $definitions ?? new DefinitionsRepository($pdo);
         $this->queries = $queries ?? new QueryService($pdo, $this->formatter);
         $this->positionService = $positionService ?? new PositionService($pdo);
+        $this->validator = $validator ?? new Validator($this->definitions, $this->queries);
         $this->writeService = $writeService ?? new WriteService(
             $pdo,
             $this->queries,
@@ -46,7 +47,6 @@ final class Repository
             $this->definitions
         );
         $this->treeBuilder = $treeBuilder ?? new TreeBuilder($this->queries, $this->formatter);
-        $this->validator = $validator ?? new Validator($this->definitions, $this->queries);
     }
 
     /**
