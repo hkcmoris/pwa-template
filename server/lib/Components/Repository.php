@@ -658,10 +658,7 @@ final class Repository
             $cleanup->execute();
 
             if ($sameParent) {
-                $siblingCount = $this->queries->childrenCount($oldParentId);
-                if ($position > $siblingCount) {
-                    $position = $siblingCount;
-                }
+                $position = max(0, $this->queries->childrenCountExcluding($oldParentId, $componentId));
                 if ($position > $oldPosition) {
                     $position -= 1;
                 }

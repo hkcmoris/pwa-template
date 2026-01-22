@@ -13,11 +13,13 @@ final class QueryService
     private PDO $pdo;
 
     private Formatter $formatter;
+    private ComponentStatsQuery $stats;
 
-    public function __construct(PDO $pdo, Formatter $formatter)
+    public function __construct(PDO $pdo, Formatter $formatter, ?ComponentStatsQuery $stats = null)
     {
         $this->pdo = $pdo;
         $this->formatter = $formatter;
+        $this->stats = $stats ?? new ComponentStatsQuery($pdo);
     }
 
     /**
@@ -68,8 +70,8 @@ final class QueryService
         $componentIds = array_map(static fn($row) => isset($row['id']) ? (int) $row['id'] : 0, $rows);
         $priceHistoryMap = $this->fetchPriceHistory($componentIds);
         $needsMetadata = $limit !== null;
-        $childrenCountMap = $needsMetadata ? $this->fetchChildrenCounts($componentIds) : [];
-        $depthMap = $needsMetadata ? $this->computeDepthMap($componentIds) : [];
+        $childrenCountMap = $needsMetadata ? $this->stats->fetchChildrenCounts($componentIds) : [];
+        $depthMap = $needsMetadata ? $this->stats->computeDepthMap($componentIds) : [];
         $normalised = [];
 
         foreach ($rows as $row) {
@@ -213,99 +215,6 @@ final class QueryService
     }
 
     /**
-     * @param array<int, int> $componentIds
-     * @return array<int, int>
-     */
-    private function fetchChildrenCounts(array $componentIds): array
-    {
-        $uniqueIds = array_values(
-            array_filter(
-                array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
-                static fn($id) => $id > 0
-            )
-        );
-
-        if ($uniqueIds === []) {
-            return [];
-        }
-
-        $placeholders = implode(',', array_fill(0, count($uniqueIds), '?'));
-        $sql = 'SELECT parent_id, COUNT(*) AS total '
-               . 'FROM components '
-               . 'WHERE parent_id IN (' . $placeholders . ') '
-               . 'GROUP BY parent_id';
-        $stmt = $this->pdo->prepare($sql);
-
-        foreach ($uniqueIds as $index => $componentId) {
-            $stmt->bindValue($index + 1, $componentId, PDO::PARAM_INT);
-        }
-
-        $stmt->execute();
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $counts = [];
-
-        foreach ($rows as $row) {
-            if (!isset($row['parent_id'])) {
-                continue;
-            }
-
-            $key = (int) $row['parent_id'];
-            $counts[$key] = isset($row['total']) ? (int) $row['total'] : 0;
-        }
-
-        return $counts;
-    }
-
-    /**
-     * @param array<int, int> $componentIds
-     * @return array<int, int>
-     */
-    private function computeDepthMap(array $componentIds): array
-    {
-        $ids = array_values(
-            array_filter(
-                array_unique(array_map(static fn($id) => (int) $id, $componentIds)),
-                static fn($id) => $id > 0
-            )
-        );
-
-        if ($ids === []) {
-            return [];
-        }
-
-        $depths = [];
-        $stmt = $this->pdo->prepare('SELECT parent_id FROM components WHERE id = :id LIMIT 1');
-
-        $computeDepth = function (int $id) use (&$depths, $stmt, &$computeDepth): int {
-            if (isset($depths[$id])) {
-                return $depths[$id];
-            }
-
-            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmt->execute();
-            $parent = $stmt->fetchColumn();
-            $stmt->closeCursor();
-
-            if ($parent === false || $parent === null) {
-                $depths[$id] = 0;
-
-                return 0;
-            }
-
-            $depth = $computeDepth((int) $parent) + 1;
-            $depths[$id] = $depth;
-
-            return $depth;
-        };
-
-        foreach ($ids as $id) {
-            $computeDepth($id);
-        }
-
-        return $depths;
-    }
-
-    /**
      * @return array<string, mixed>|null
      */
     public function find(int $id): ?array
@@ -368,6 +277,27 @@ final class QueryService
             $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
             $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function childrenCountExcluding(?int $parentId, ?int $excludeId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM components WHERE parent_id <=> :parent AND id != :excludeId');
+
+        if ($parentId === null) {
+            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+
+        if ($excludeId === null) {
+            $stmt->bindValue(':excludeId', 0, PDO::PARAM_INT);
+        } else {
+            $stmt->bindValue(':excludeId', $excludeId, PDO::PARAM_INT);
         }
 
         $stmt->execute();
