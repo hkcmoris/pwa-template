@@ -24,13 +24,13 @@ final class PositionService
     public function reorderPositions(?int $parentId): void
     {
         $bump = $this->pdo->prepare('UPDATE components SET position = position + 1000000 WHERE parent_id <=> :parent');
-
+        log_message('Phase 1: Reordering positions for parent_id ' . var_export($parentId, true), 'DEBUG');
         if ($parentId === null) {
             $bump->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
             $bump->bindValue(':parent', $parentId, PDO::PARAM_INT);
         }
-
+        log_message('Bump query: ' . $bump->queryString, 'DEBUG');
         $bump->execute();
 
         $stmt = $this->pdo->prepare('SELECT id FROM components WHERE parent_id <=> :parent ORDER BY position, id');
@@ -40,6 +40,7 @@ final class PositionService
         } else {
             $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
         }
+        log_message('Phase 2: Select query: ' . $stmt->queryString, 'DEBUG');
 
         $stmt->execute();
         $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -48,6 +49,10 @@ final class PositionService
         foreach ($ids as $index => $id) {
             $update->bindValue(':position', $index, PDO::PARAM_INT);
             $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
+            log_message(
+                'Phase 2: Update query: ' . $update->queryString . ' with position=' . $index . ' and id=' . (int) $id,
+                'DEBUG'
+            );
             $update->execute();
         }
     }

@@ -15,14 +15,20 @@ if (!headers_sent()) {
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
 }
 
+$wrapper_id = 'components-list-wrapper';
+$errors_container_id = 'component-form-errors';
+
 $user = app_get_current_user();
 $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
-    echo '<div id="components-list-wrapper"></div>';
-    echo '<div id="component-form-errors" hx-swap-oob="true" class="form-feedback form-feedback--error">' .
-        'Nemáte oprávnění spravovat komponenty.' .
-        '</div>';
+    echo '<div id="' . $wrapper_id . '"></div>';
+    echo '<div id="' . $errors_container_id . '"'
+        . ' hx-swap-oob="true"'
+        . ' class="form-feedback form-feedback--error"'
+        . '>'
+        . 'Nemáte oprávnění spravovat komponenty.'
+        . '</div>';
     return;
 }
 

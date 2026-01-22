@@ -141,15 +141,18 @@ final class Repository
         $bump->execute();
 
         $stmt = $this->pdo->prepare('SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position, id');
+
         if ($parentId === null) {
             $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
         } else {
             $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
         }
         log_message('Phase 2: Select query: ' . $stmt->queryString, 'DEBUG');
+
         $stmt->execute();
         $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
         $update = $this->pdo->prepare('UPDATE definitions SET position = :position WHERE id = :id');
+
         foreach ($ids as $index => $id) {
             $update->bindValue(':position', $index, PDO::PARAM_INT);
             $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
@@ -483,6 +486,7 @@ final class Repository
             $update->bindValue(':position', $newPosition, PDO::PARAM_INT);
             $update->bindValue(':id', $id, PDO::PARAM_INT);
             $update->execute();
+            
             $this->reorderPositions($targetParent);
             if (!$sameParent) {
                 $this->reorderPositions($oldParentId);

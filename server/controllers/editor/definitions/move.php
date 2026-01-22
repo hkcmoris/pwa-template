@@ -4,17 +4,21 @@ use Definitions\Repository;
 
 require_once __DIR__ . '/../../../bootstrap.php';
 require_once __DIR__ . '/../../../views/editor/definitions-response.php';
+
 if (!headers_sent()) {
     header('Content-Type: text/html; charset=utf-8');
     header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
 }
 
+$wrapper_id = 'definitions-list';
+$errors_container_id = 'definition-form-errors';
+
 $user = app_get_current_user();
 $role = $user['role'] ?? 'guest';
 if (!in_array($role, ['admin', 'superadmin'], true)) {
     http_response_code(403);
-    echo '<div id="definitions-list"></div>';
-    echo '<div id="definition-form-errors"'
+    echo '<div id="' . $wrapper_id . '"></div>';
+    echo '<div id="' . $errors_container_id . '"'
         . ' hx-swap-oob="true"'
         . ' class="form-feedback form-feedback--error"'
         . '>'
@@ -25,6 +29,7 @@ if (!in_array($role, ['admin', 'superadmin'], true)) {
 
 $pdo = get_db_connection();
 $repository = new Repository($pdo);
+
 $idParam = $_POST['id'] ?? '';
 $parentParam = null;
 if (isset($_POST['parent_id'])) {
@@ -37,6 +42,7 @@ if (isset($_POST['parent_id'])) {
     }
 }
 $positionParam = $_POST['position'] ?? '';
+
 if (!preg_match('/^\d+$/', (string) $idParam)) {
     http_response_code(422);
     definitions_render_fragments($pdo, [
@@ -70,6 +76,7 @@ if (!preg_match('/^\d+$/', (string) $positionParam)) {
 }
 
 $position = (int) $positionParam;
+
 try {
     $repository->move($id, $parentId, $position);
     print($id . ': [' . $parentId . ', ' . $position . ']');
