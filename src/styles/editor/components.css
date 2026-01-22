@@ -4,6 +4,56 @@
     justify-content: flex-start;
 }
 
+.components-list-wrapper {
+    position: relative;
+}
+
+.components-list-wrapper::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    /* tvoje parametry */
+    --gap: 1.25rem;
+    --line: 1px;
+    --dash: 4px;
+    --space: 2px;
+    --color: rgba(255, 0, 0, .25);
+
+    /* barva overlaye (pak ji “vyřežeme” maskou do čárek) */
+    background: var(--color);
+
+    /*
+        1) maska: svislé pruhy (1px čára každých 1.25rem)
+        2) maska: dash pattern po ose Y a obě masky se musí PROTNOUT (intersect)
+    */
+    -webkit-mask-image:
+        repeating-linear-gradient(
+        to right,
+        #000 0 var(--line),
+        transparent 0 var(--gap)
+        ),
+        repeating-linear-gradient(
+        to bottom,
+        #000 0 var(--dash),
+        transparent 0 calc(var(--dash) + var(--space))
+        );
+    -webkit-mask-composite: source-in; /* Safari/Chromium: průnik 2. masky do 1. */
+    mask-image:
+        repeating-linear-gradient(
+        to right,
+        #000 0 var(--line),
+        transparent 0 var(--gap)
+        ),
+        repeating-linear-gradient(
+        to bottom,
+        #000 0 var(--dash),
+        transparent 0 calc(var(--dash) + var(--space))
+        );
+    mask-composite: intersect; /* Firefox/modern spec */
+}
+
 .component-primary {
     border: 1px solid var(--primary);
     background: var(--primary);
@@ -73,16 +123,30 @@
     margin-left: calc(var(--component-depth, 0) * 1.25rem);
 }
 
+.component-item::before {
+    content: "";
+    position: absolute;
+    top: -4px;
+    bottom: -2px;
+    left: -2px;
+    right: -2px;
+    background: var(--bg);
+    z-index: 0;
+}
+
 .component-node {
+    position: relative;
     border: 1px solid var(--border);
     border-radius: 0.4rem;
     padding: 0.6rem 0.75rem;
+    overflow: hidden;
     background: rgb(0 0 0 / 2%);
     display: flex;
     justify-content: space-between;
     gap: 1.6rem;
     box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
     cursor: grab;
+    z-index: 1;
 }
 
 .component-node:active {

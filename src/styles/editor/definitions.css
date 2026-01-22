@@ -86,6 +86,7 @@
     border: 1px solid var(--border);
     border-radius: 0.35rem;
     padding: 0.4rem 0.5rem;
+    overflow: hidden;
     background: rgb(0 0 0 / 2%);
     cursor: grab;
     box-shadow: 0 2px 4px var(--shadow);
