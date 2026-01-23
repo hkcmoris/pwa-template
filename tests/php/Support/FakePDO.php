@@ -206,6 +206,51 @@ class FakePDO extends PDO
             return [];
         }
 
+        if (
+            $normalizedQuery ===
+            'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position ORDER BY position DESC'
+        ) {
+            $parent = $params[':parent'] ?? null;
+            $threshold = isset($params[':position']) ? (int) $params[':position'] : 0;
+
+            // DESC order simulace: posuň nejdřív ty největší, aby se ti to "nekouslo"
+            $rows = array_values($this->rows);
+            usort($rows, static fn($a, $b) => (int)$b['position'] <=> (int)$a['position']);
+
+            foreach ($rows as $row) {
+                $id = (int) $row['id'];
+                if ($this->parentMatches($this->rows[$id]['parent_id'], $parent) && (int)$this->rows[$id]['position'] >= $threshold) {
+                    $this->rows[$id]['position'] = (int)$this->rows[$id]['position'] + 1;
+                }
+            }
+
+            return [];
+        }
+
+        if (
+            $normalizedQuery ===
+            'UPDATE definitions SET position = position - 1 WHERE parent_id <=> :parent AND id <> :id AND position > :position ORDER BY position ASC'
+        ) {
+            $parent = $params[':parent'] ?? null;
+            $skipId = isset($params[':id']) ? (int) $params[':id'] : 0;
+            $threshold = isset($params[':position']) ? (int) $params[':position'] : 0;
+
+            $rows = array_values($this->rows);
+            usort($rows, static fn($a, $b) => (int)$a['position'] <=> (int)$b['position']);
+
+            foreach ($rows as $row) {
+                $id = (int) $row['id'];
+                if ($id === $skipId) continue;
+
+                if ($this->parentMatches($this->rows[$id]['parent_id'], $parent) && (int)$this->rows[$id]['position'] > $threshold) {
+                    $this->rows[$id]['position'] = (int)$this->rows[$id]['position'] - 1;
+                }
+            }
+
+            return [];
+        }
+
+
         throw new RuntimeException('Unsupported query: ' . $query);
     }
 

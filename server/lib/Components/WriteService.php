@@ -47,11 +47,12 @@ final class WriteService
             $position = 0;
         }
 
-        $this->positionService->reorderPositions($parentId);
         $count = $this->queries->childrenCount($parentId);
 
         if ($position > $count) {
             $position = $count;
+        } else {
+            $this->positionService->openGap($parentId, $position);
         }
 
         [$imagesValue, $primaryImage, $colorValue] = $this->resolveMediaInputs($images, $color);
@@ -66,20 +67,6 @@ final class WriteService
         if ($descriptionValue === '') {
             $descriptionValue = null;
         }
-
-        $shift = $this->pdo->prepare(
-            'UPDATE components SET position = position + 1 '
-            . 'WHERE parent_id <=> :parent AND position >= :position'
-        );
-
-        if ($parentId === null) {
-            $shift->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-
-        $shift->bindValue(':position', $position, PDO::PARAM_INT);
-        $shift->execute();
 
         $stmt = $this->pdo->prepare(
             <<<'SQL'
@@ -455,18 +442,18 @@ final class WriteService
         }
     }
 
-    public function delete(int $componentId): void
+    public function delete(int $id): void
     {
         $this->pdo->beginTransaction();
 
         try {
-            $current = $this->validator->findComponentOrFail($componentId, 'Komponenta nebyla nalezena.');
+            $node = $this->validator->findComponentOrFail($id, 'Komponenta nebyla nalezena.');
 
             $stmt = $this->pdo->prepare('DELETE FROM components WHERE id = :id');
-            $stmt->bindValue(':id', $componentId, PDO::PARAM_INT);
+            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
-            $parentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
-            $this->positionService->reorderPositions($parentId);
+            $parentId = $node['parent_id'] === null ? null : (int) $node['parent_id'];
+            $this->positionService->closeGap($id, $parentId, (int) $node['position']);
             $this->pdo->commit();
         } catch (Throwable $e) {
             $this->pdo->rollBack();

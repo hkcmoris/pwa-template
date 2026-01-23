@@ -91,15 +91,6 @@ describe('definitions_move integration SQL harness', () => {
         expect(parentUpdateIndex).toBeGreaterThan(-1);
         expect(parkingIndex).toBeLessThan(parentUpdateIndex);
 
-        const bumpOrders = queries.filter(
-            (entry) =>
-                entry.sql ===
-                'UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent'
-        );
-        expect(bumpOrders).toHaveLength(2);
-        expect(bumpOrders[0].params[':parent']).toBe(4);
-        expect(bumpOrders[1].params[':parent']).toBe(1);
-
         const parentFour = result.rows.filter((row) => row.parent_id === 4);
         expect(parentFour.map((row) => [row.id, row.position])).toEqual([
             [5, 0],
@@ -133,13 +124,13 @@ describe('definitions_move integration SQL harness', () => {
             [13, 2],
         ]);
 
-        const shiftQuery = result.executions.find(
+        const openGapQuery = result.executions.find(
             (entry) =>
                 normalise(entry.sql) ===
-                    'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position' &&
+                    'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position ORDER BY position DESC' &&
                 entry.params[':parent'] === 10
         );
-        expect(shiftQuery).toBeDefined();
+        expect(openGapQuery).toBeDefined();
 
         const combos = result.rows.map(
             (row) => `${row.parent_id ?? 'root'}-${row.position}`
@@ -161,23 +152,6 @@ describe('definitions_move integration SQL harness', () => {
             [23, 1],
             [22, 2],
         ]);
-
-        const bumpRoot = result.executions.filter(
-            (entry) =>
-                normalise(entry.sql) ===
-                    'UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent' &&
-                (entry.params[':parent'] === null ||
-                    entry.params[':parent'] === '')
-        );
-        expect(bumpRoot).toHaveLength(1);
-
-        const bumpOldParent = result.executions.filter(
-            (entry) =>
-                normalise(entry.sql) ===
-                    'UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent' &&
-                entry.params[':parent'] === 20
-        );
-        expect(bumpOldParent).toHaveLength(1);
 
         const combos = result.rows.map(
             (row) => `${row.parent_id ?? 'root'}-${row.position}`

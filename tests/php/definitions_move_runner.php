@@ -169,6 +169,7 @@ $sortRows = static function (array $rows): array {
     });
     return $normalized;
 };
+log_message("TEST Running scenario: {$scenario}");
 /**
  * @var list<array{id:int,parent:int|null,position:int,label?:non-empty-string}> $moves
  */
@@ -192,11 +193,13 @@ try {
         $repository->move($id, $parent, $position);
         if (isset($move['label'])) {
             $snapshots[(string) $move['label']] = $sortRows($pdo->rows);
+            log_message("TEST Snapshot taken: " . $move['label'] . " - " . json_encode($snapshots[(string) $move['label']], JSON_PRETTY_PRINT));
         }
     }
 } catch (Throwable $e) {
     $status = 'error';
     $error = $e->getMessage();
+    log_message("TEST Error occurred: {$error}");
 }
 
 $rows = $sortRows($pdo->rows);

@@ -26,10 +26,10 @@ final class PositionService
     }
 
     /**
-     * Reorders the positions of all components/definitions under the given parent ID
-     * to ensure they are sequential starting from 0.
+     * Reorders positions of all components/definitions under the given parent ID to be sequential starting from 0.
      *
      * @param int|null $parentId The ID of the parent component/definition, or null for root components/definitions.
+     * @deprecated Use openGap/closeGap methods instead for better performance.
      */
     public function reorderPositions(?int $parentId): void
     {
@@ -70,10 +70,11 @@ final class PositionService
     /**
      * Binds the parent ID parameter to the given PDO statement.
      *
-     * @param \PDOStatement $stmt The PDO statement to bind the parameter to.
+     * @param object $stmt Must provide bindValue(string $param, mixed $value, int $type): bool
+     * @phpstan-param \PDOStatement|\App\Tests\Support\FakeStatement $stmt
      * @param int|null $parentId The ID of the parent component/definition, or null for root components/definitions.
      */
-    private function bindParent(\PDOStatement $stmt, ?int $parentId): void
+    private function bindParent($stmt, ?int $parentId): void
     {
         if ($parentId === null) {
             $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
@@ -128,11 +129,11 @@ final class PositionService
             'UPDATE ' . $this->tableName . '
             SET position = position + 1
             WHERE parent_id <=> :parent
-            AND position >= :pos
+            AND position >= :position
             ORDER BY position DESC'
         );
         $this->bindParent($shift, $parentId);
-        $shift->bindValue(':pos', $fromPosition, PDO::PARAM_INT);
+        $shift->bindValue(':position', $fromPosition, PDO::PARAM_INT);
         $shift->execute();
     }
 
@@ -150,12 +151,12 @@ final class PositionService
             SET position = position - 1
             WHERE parent_id <=> :parent
             AND id <> :id
-            AND position > :pos
+            AND position > :position
             ORDER BY position ASC'
         );
         $this->bindParent($cleanup, $parentId);
         $cleanup->bindValue(':id', $id, PDO::PARAM_INT);
-        $cleanup->bindValue(':pos', $fromPosition, PDO::PARAM_INT);
+        $cleanup->bindValue(':position', $fromPosition, PDO::PARAM_INT);
         $cleanup->execute();
     }
 
@@ -185,6 +186,11 @@ final class PositionService
             // Normalize
             if ($newPosition < 0) {
                 $newPosition = 0;
+            }
+
+            if ($sameParent && $newPosition === $oldPosition) {
+                $this->pdo->commit();
+                return;
             }
 
             // Lock siblings (both sides)
@@ -230,10 +236,10 @@ final class PositionService
 
             // Final update parent + position
             $update = $this->pdo->prepare(
-                'UPDATE ' . $this->tableName . ' SET parent_id = :parent, position = :pos WHERE id = :id'
+                'UPDATE ' . $this->tableName . ' SET parent_id = :parent, position = :position WHERE id = :id'
             );
             $this->bindParent($update, $targetParent);
-            $update->bindValue(':pos', $newPosition, PDO::PARAM_INT);
+            $update->bindValue(':position', $newPosition, PDO::PARAM_INT);
             $update->bindValue(':id', $id, PDO::PARAM_INT);
             $update->execute();
 

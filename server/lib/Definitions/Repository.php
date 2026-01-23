@@ -25,6 +25,21 @@ final class Repository
     }
 
     /**
+     * Binds the parent ID parameter to the given PDO statement.
+     *
+     * @param \PDOStatement $stmt The PDO statement to bind the parameter to.
+     * @param int|null $parentId The ID of the parent component/definition, or null for root components/definitions.
+     */
+    private function bindParent(\PDOStatement $stmt, ?int $parentId): void
+    {
+        if ($parentId === null) {
+            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
+        } else {
+            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
+        }
+    }
+
+    /**
      * @return list<array<string, mixed>>
      */
     public function fetchRows(?int $limit = null, int $offset = 0): array
@@ -213,30 +228,16 @@ final class Repository
             if ($position < 0) {
                 $position = 0;
             }
-            $this->positionService->reorderPositions($parentId);
             $count = $this->childrenCount($parentId);
             if ($position > $count) {
                 $position = $count;
-            }
-            $shift = $this->pdo->prepare(
-                'UPDATE definitions SET position = position + 1 WHERE parent_id <=> :parent AND position >= :position'
-            );
-            if ($parentId === null) {
-                $shift->bindValue(':parent', null, PDO::PARAM_NULL);
             } else {
-                $shift->bindValue(':parent', $parentId, PDO::PARAM_INT);
+                $this->positionService->openGap($parentId, $position);
             }
-            $shift->bindValue(':position', $position, PDO::PARAM_INT);
-            log_message('Shift query: ' . $shift->queryString, 'DEBUG');
-            $shift->execute();
             $stmt = $this->pdo->prepare(
                 'INSERT INTO definitions (parent_id, title, position, meta) VALUES (:parent, :title, :position, NULL)'
             );
-            if ($parentId === null) {
-                $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-            } else {
-                $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
-            }
+            $this->bindParent($stmt, $parentId);
             $stmt->bindValue(':title', $title, PDO::PARAM_STR);
             $stmt->bindValue(':position', $position, PDO::PARAM_INT);
             log_message('Insert query: ' . $stmt->queryString, 'DEBUG');
