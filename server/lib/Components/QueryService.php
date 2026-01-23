@@ -8,6 +8,32 @@ use PDO;
 
 use function log_message;
 
+/**
+ * @phpstan-type PriceEntry array{
+ *   amount: string,
+ *   currency: string,
+ *   created_at: string
+ * }
+ *
+ * @phpstan-type ComponentRow array{
+ *   id: int,
+ *   definition_id: int,
+ *   parent_id: int|null,
+ *   alternate_title: string|null,
+ *   description: string|null,
+ *   images: list<string>,
+ *   color: string|null,
+ *   dependency_tree: array<string, mixed>|list<mixed>,
+ *   position: int,
+ *   created_at: string,
+ *   updated_at: string,
+ *   definition_title: string,
+ *   image: string|null,
+ *   effective_title: string,
+ *   price_history: list<PriceEntry>,
+ *   latest_price: PriceEntry|null
+ * }
+ */
 final class QueryService
 {
     private PDO $pdo;
@@ -215,7 +241,7 @@ final class QueryService
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return ComponentRow|null
      */
     public function find(int $id): ?array
     {

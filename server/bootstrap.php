@@ -15,6 +15,7 @@ csrf_ensure_session();
 require_once __DIR__ . '/lib/assets.php';
 
 $namespaces = [
+    'Shared\\' => __DIR__ . '/lib/Shared/',
     'Components\\' => __DIR__ . '/lib/Components/',
     'Configuration\\' => __DIR__ . '/lib/Configuration/',
     'Definitions\\' => __DIR__ . '/lib/Definitions/',

@@ -7,6 +7,7 @@ namespace Definitions;
 use PDO;
 use RuntimeException;
 use Throwable;
+use Shared\PositionService;
 
 use function get_db_connection;
 use function log_message;
@@ -15,9 +16,12 @@ final class Repository
 {
     private PDO $pdo;
 
+    private PositionService $positionService;
+
     public function __construct(?PDO $pdo = null)
     {
         $this->pdo = $pdo ?? get_db_connection();
+        $this->positionService = new PositionService($pdo, 'definitions');
     }
 
     /**
@@ -107,61 +111,6 @@ final class Repository
         $stmt->execute();
         $max = (int) $stmt->fetchColumn();
         return $max + 1;
-    }
-
-    /** @deprecated */
-    public function reorderPositionsDeprecated(?int $parentId): void
-    {
-        $stmt = $this->pdo->prepare('SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position, id');
-        if ($parentId === null) {
-            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-        $stmt->execute();
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        $update = $this->pdo->prepare('UPDATE definitions SET position = :position WHERE id = :id');
-        foreach ($ids as $index => $id) {
-            $update->bindValue(':position', $index, PDO::PARAM_INT);
-            $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
-            $update->execute();
-        }
-    }
-
-    public function reorderPositions(?int $parentId): void
-    {
-        $bump = $this->pdo->prepare('UPDATE definitions SET position = position + 1000000 WHERE parent_id <=> :parent');
-        log_message('Phase 1: Reordering positions for parent_id ' . var_export($parentId, true), 'DEBUG');
-        if ($parentId === null) {
-            $bump->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $bump->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-        log_message('Bump query: ' . $bump->queryString, 'DEBUG');
-        $bump->execute();
-
-        $stmt = $this->pdo->prepare('SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position, id');
-
-        if ($parentId === null) {
-            $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-        } else {
-            $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
-        }
-        log_message('Phase 2: Select query: ' . $stmt->queryString, 'DEBUG');
-
-        $stmt->execute();
-        $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        $update = $this->pdo->prepare('UPDATE definitions SET position = :position WHERE id = :id');
-
-        foreach ($ids as $index => $id) {
-            $update->bindValue(':position', $index, PDO::PARAM_INT);
-            $update->bindValue(':id', (int) $id, PDO::PARAM_INT);
-            log_message(
-                'Phase 2: Update query: ' . $update->queryString . ' with position=' . $index . ' and id=' . (int) $id,
-                'DEBUG'
-            );
-            $update->execute();
-        }
     }
 
     /**
@@ -264,7 +213,7 @@ final class Repository
             if ($position < 0) {
                 $position = 0;
             }
-            $this->reorderPositions($parentId);
+            $this->positionService->reorderPositions($parentId);
             $count = $this->childrenCount($parentId);
             if ($position > $count) {
                 $position = $count;
@@ -381,14 +330,15 @@ final class Repository
 
     public function move(int $id, ?int $newParentId, int $newPosition): void
     {
-        $this->pdo->beginTransaction();
         try {
             $node = $this->find($id);
             if (!$node) {
                 throw new RuntimeException('Definice neexistuje.');
             }
+
             $oldParentId = $node['parent_id'] !== null ? (int) $node['parent_id'] : null;
             $oldPosition = (int) $node['position'];
+
             if ($newParentId !== null && !$this->parentExists($newParentId)) {
                 throw new RuntimeException('Vybraný rodič neexistuje.');
             }
@@ -404,97 +354,15 @@ final class Repository
                     $ancestor = $this->getParentId($ancestor);
                 }
             }
-            if ($newPosition < 0) {
-                $newPosition = 0;
-            }
-            $sameParent = ($newParentId === $oldParentId);
-            if ($sameParent && $newPosition === $oldPosition) {
-                $this->pdo->commit();
-                return;
-            }
-            $lockParent = static function (PDO $pdo, ?int $parentId): void {
-                $stmt = $pdo->prepare(
-                    'SELECT id FROM definitions WHERE parent_id <=> :parent ORDER BY position FOR UPDATE'
-                );
-                if ($parentId === null) {
-                    $stmt->bindValue(':parent', null, PDO::PARAM_NULL);
-                } else {
-                    $stmt->bindValue(':parent', $parentId, PDO::PARAM_INT);
-                }
-                $stmt->execute();
-                $stmt->closeCursor();
-            };
-            $lockParent($this->pdo, $oldParentId);
-            if (!$sameParent) {
-                $lockParent($this->pdo, $newParentId);
-            }
 
-            $maxStmt = $this->pdo->prepare(
-                'SELECT COALESCE(MAX(position), -1) FROM definitions WHERE parent_id <=> :parent'
+            $this->positionService->moveNode(
+                $id,
+                $oldParentId,
+                $oldPosition,
+                $newParentId,
+                $newPosition
             );
-            $maxStmt->bindValue(':parent', $oldParentId, $oldParentId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $maxStmt->execute();
-            $parking = ((int) $maxStmt->fetchColumn()) + 1000 + $id;
-            $maxStmt->closeCursor();
-            $parkStmt = $this->pdo->prepare('UPDATE definitions SET position = :position WHERE id = :id');
-            $parkStmt->bindValue(':position', $parking, PDO::PARAM_INT);
-            $parkStmt->bindValue(':id', $id, PDO::PARAM_INT);
-            $parkStmt->execute();
-
-            $cleanup = $this->pdo->prepare('UPDATE definitions
-                     SET position = position - 1
-                   WHERE parent_id <=> :parent
-                     AND id <> :id
-                     AND position > :position');
-            $cleanup->bindValue(':parent', $oldParentId, $oldParentId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $cleanup->bindValue(':id', $id, PDO::PARAM_INT);
-            $cleanup->bindValue(':position', $oldPosition, PDO::PARAM_INT);
-            $cleanup->execute();
-            if ($sameParent) {
-                $siblingCount = $this->childrenCount($oldParentId);
-                if ($newPosition > $siblingCount) {
-                    $newPosition = $siblingCount;
-                }
-                if ($newPosition < 0) {
-                    $newPosition = 0;
-                }
-                if ($newPosition > $oldPosition) {
-                    $newPosition -= 1;
-                }
-            } else {
-                $targetCount = $this->childrenCount($newParentId);
-                if ($newPosition > $targetCount) {
-                    $newPosition = $targetCount;
-                }
-                if ($newPosition < 0) {
-                    $newPosition = 0;
-                }
-            }
-
-            $targetParent = $sameParent ? $oldParentId : $newParentId;
-            $shift = $this->pdo->prepare('UPDATE definitions
-                     SET position = position + 1
-                   WHERE parent_id <=> :parent
-                     AND position >= :position');
-            $shift->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $shift->bindValue(':position', $newPosition, PDO::PARAM_INT);
-            $shift->execute();
-            $update = $this->pdo->prepare(
-                'UPDATE definitions SET parent_id = :parent, position = :position WHERE id = :id'
-            );
-            $update->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $update->bindValue(':position', $newPosition, PDO::PARAM_INT);
-            $update->bindValue(':id', $id, PDO::PARAM_INT);
-            $update->execute();
-            
-            $this->reorderPositions($targetParent);
-            if (!$sameParent) {
-                $this->reorderPositions($oldParentId);
-            }
-
-            $this->pdo->commit();
         } catch (Throwable $e) {
-            $this->pdo->rollBack();
             throw $e;
         }
     }

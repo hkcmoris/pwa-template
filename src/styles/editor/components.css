@@ -9,7 +9,7 @@
 }
 
 .components-list-wrapper::before {
-    content: "";
+    content: '';
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -19,37 +19,25 @@
     --line: 1px;
     --dash: 4px;
     --space: 2px;
-    --color: rgba(255, 0, 0, .25);
 
     /* barva overlaye (pak ji “vyřežeme” maskou do čárek) */
-    background: var(--color);
+    background: var(--border);
 
     /*
         1) maska: svislé pruhy (1px čára každých 1.25rem)
         2) maska: dash pattern po ose Y a obě masky se musí PROTNOUT (intersect)
-    */
-    -webkit-mask-image:
-        repeating-linear-gradient(
-        to right,
-        #000 0 var(--line),
-        transparent 0 var(--gap)
-        ),
-        repeating-linear-gradient(
-        to bottom,
-        #000 0 var(--dash),
-        transparent 0 calc(var(--dash) + var(--space))
-        );
-    -webkit-mask-composite: source-in; /* Safari/Chromium: průnik 2. masky do 1. */
+    */ /* Safari/Chromium: průnik 2. masky do 1. */
+
     mask-image:
         repeating-linear-gradient(
-        to right,
-        #000 0 var(--line),
-        transparent 0 var(--gap)
+            to right,
+            #000 0 var(--line),
+            transparent 0 var(--gap)
         ),
         repeating-linear-gradient(
-        to bottom,
-        #000 0 var(--dash),
-        transparent 0 calc(var(--dash) + var(--space))
+            to bottom,
+            #000 0 var(--dash),
+            transparent 0 calc(var(--dash) + var(--space))
         );
     mask-composite: intersect; /* Firefox/modern spec */
 }
@@ -124,12 +112,9 @@
 }
 
 .component-item::before {
-    content: "";
+    content: '';
     position: absolute;
-    top: -4px;
-    bottom: -2px;
-    left: -2px;
-    right: -2px;
+    inset: -4px -2px -2px;
     background: var(--bg);
     z-index: 0;
 }
@@ -166,6 +151,7 @@
     margin: -0.6rem 0 -0.6rem -0.75rem;
     padding: 0.4rem 0.25rem;
     border-right: 1px solid var(--border);
+    border-color: inherit;
     background: rgb(from var(--border) r g b / 10%);
 }
 

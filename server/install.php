@@ -116,53 +116,21 @@ CREATE TABLE IF NOT EXISTS components (
   description TEXT NULL,
   images JSON NOT NULL DEFAULT (JSON_ARRAY()),
   color VARCHAR(21) DEFAULT NULL,
-  dependency_tree JSON NOT NULL,
+  dependency_tree JSON NOT NULL DEFAULT (JSON_ARRAY()),
   position INT UNSIGNED NOT NULL DEFAULT 0,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  CONSTRAINT fk_components_definition FOREIGN KEY (definition_id) REFERENCES definitions(id) ON DELETE CASCADE,
-  CONSTRAINT fk_components_parent FOREIGN KEY (parent_id) REFERENCES components(id) ON DELETE CASCADE,
+  CONSTRAINT fk_components_definition
+    FOREIGN KEY (definition_id) REFERENCES definitions(id) ON DELETE CASCADE,
+  CONSTRAINT fk_components_parent
+    FOREIGN KEY (parent_id) REFERENCES components(id) ON DELETE CASCADE,
   UNIQUE KEY uq_components_parent_position (parent_id, position),
   KEY idx_components_definition (definition_id),
   KEY idx_components_updated (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 SQL;
     $pdo->exec($componentsSql);
-
-    if (!columnExists($pdo, 'components', 'images')) {
-        $pdo->exec('ALTER TABLE components ADD COLUMN images JSON NOT NULL DEFAULT (JSON_ARRAY()) AFTER description');
-    }
-
-    if (columnExists($pdo, 'components', 'image')) {
-        $pdo->exec(<<<'SQL'
-UPDATE components
-SET images = CASE
-    WHEN COALESCE(JSON_LENGTH(images), 0) = 0 THEN JSON_ARRAY(image)
-    ELSE images
-END
-WHERE image IS NOT NULL AND image <> ''
-SQL
-        );
-
-        $pdo->exec('ALTER TABLE components DROP COLUMN image');
-    }
-
-    if (!columnExists($pdo, 'components', 'color')) {
-        $pdo->exec('ALTER TABLE components ADD COLUMN color VARCHAR(21) DEFAULT NULL AFTER images');
-    }
-
-    $pdo->exec('ALTER TABLE components MODIFY description TEXT NULL');
-
-    if (constraintExists($pdo, 'components', 'fk_components_parent')) {
-        $pdo->exec('ALTER TABLE components DROP FOREIGN KEY fk_components_parent');
-    }
-
-    $pdo->exec('ALTER TABLE components
-        ADD CONSTRAINT fk_components_parent
-            FOREIGN KEY (parent_id)
-            REFERENCES components(id)
-            ON DELETE CASCADE');
 
     $pricesSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS prices (

@@ -7,7 +7,34 @@ namespace Components;
 use PDO;
 use RuntimeException;
 use Definitions\Repository as DefinitionsRepository;
+use Shared\PositionService;
 
+/**
+ * @phpstan-type PriceEntry array{
+ *   amount: string,
+ *   currency: string,
+ *   created_at: string
+ * }
+ *
+ * @phpstan-type ComponentRow array{
+ *   id: int,
+ *   definition_id: int,
+ *   parent_id: int|null,
+ *   alternate_title: string|null,
+ *   description: string|null,
+ *   images: list<string>,
+ *   color: string|null,
+ *   dependency_tree: array<string, mixed>|list<mixed>,
+ *   position: int,
+ *   created_at: string,
+ *   updated_at: string,
+ *   definition_title: string,
+ *   image: string|null,
+ *   effective_title: string,
+ *   price_history: list<PriceEntry>,
+ *   latest_price: PriceEntry|null
+ * }
+ */
 final class Repository
 {
     private Formatter $formatter;
@@ -31,13 +58,12 @@ final class Repository
         ?QueryService $queries = null,
         ?TreeBuilder $treeBuilder = null,
         ?Validator $validator = null,
-        ?WriteService $writeService = null,
-        ?PositionService $positionService = null
+        ?WriteService $writeService = null
     ) {
         $this->formatter = $formatter ?? new Formatter();
         $this->definitions = $definitions ?? new DefinitionsRepository($pdo);
         $this->queries = $queries ?? new QueryService($pdo, $this->formatter);
-        $this->positionService = $positionService ?? new PositionService($pdo);
+        $this->positionService = new PositionService($pdo, 'components');
         $this->validator = $validator ?? new Validator($this->definitions, $this->queries);
         $this->writeService = $writeService ?? new WriteService(
             $pdo,
@@ -67,7 +93,7 @@ final class Repository
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return ComponentRow|null
      */
     public function find(int $id): ?array
     {
@@ -117,7 +143,7 @@ final class Repository
 
     /**
      * @param array<int, scalar|null> $images
-     * @return array<string, mixed>
+     * @return ComponentRow
      */
     public function create(
         int $definitionId,
@@ -153,7 +179,7 @@ final class Repository
 
     /**
      * @param array<int, scalar|null> $images
-     * @return array<string, mixed>
+     * @return ComponentRow
      */
     public function update(
         int $componentId,

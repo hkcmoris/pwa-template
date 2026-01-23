@@ -2,6 +2,33 @@
 
 declare(strict_types=1);
 
+/**
+ * @phpstan-type PriceEntry array{
+ *   amount: string,
+ *   currency: string,
+ *   created_at: string
+ * }
+ *
+ * @phpstan-type ComponentRow array{
+ *   id: int,
+ *   definition_id: int,
+ *   parent_id: int|null,
+ *   alternate_title: string|null,
+ *   description: string|null,
+ *   images: list<string>,
+ *   color: string|null,
+ *   dependency_tree: array<string, mixed>|list<mixed>,
+ *   position: int,
+ *   created_at: string,
+ *   updated_at: string,
+ *   definition_title: string,
+ *   image: string|null,
+ *   effective_title: string,
+ *   price_history: list<PriceEntry>,
+ *   latest_price: PriceEntry|null
+ * }
+ */
+
 require_once __DIR__ . '/bootstrap.php';
 use App\Tests\Support\FakePDO;
 use Definitions\Repository;
@@ -22,17 +49,26 @@ $scenario = (string) $data['scenario'];
 /**
  * Build a canonical row definition used across scenarios.
  *
- * @return array<string,mixed>
+ * @return ComponentRow
  */
 $makeRow = static function (int $id, ?int $parentId, int $position, string $title): array {
     return [
         'id' => $id,
+        'definition_id' => 0,
         'parent_id' => $parentId,
+        'alternate_title' => null,
+        'description' => null,
+        'images' => [],
+        'color' => null,
+        'dependency_tree' => [],
         'position' => $position,
-        'title' => $title,
-        'meta' => null,
         'created_at' => null,
         'updated_at' => null,
+        'definition_title' => '',
+        'image' => null,
+        'effective_title' => $title,
+        'price_history' => [],
+        'latest_price' => null
     ];
 };
 

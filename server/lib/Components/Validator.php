@@ -60,7 +60,7 @@ final class Validator
         $this->assertParentExists($parentId, 'Vybraný rodičovský prvek neexistuje.');
 
         if ($this->isDescendant($componentId, $parentId)) {
-            throw new ValidationException('Nelze přesunout komponentu pod jejího potomka.');
+            throw new ValidationException('Nelze přesunout komponentu pod vlastního potomka.');
         }
     }
 

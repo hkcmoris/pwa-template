@@ -7,6 +7,7 @@ namespace Components;
 use PDO;
 use Throwable;
 use Definitions\Repository as DefinitionsRepository;
+use Shared\PositionService;
 
 final class WriteService
 {
@@ -432,97 +433,22 @@ final class WriteService
         }
     }
 
-    public function move(int $componentId, ?int $parentId, int $position): void
+    public function move(int $id, ?int $newParentId, int $newPosition): void
     {
-        $this->pdo->beginTransaction();
-
         try {
-            $current = $this->validator->findComponentOrFail($componentId, 'Komponentu se nepodařilo najít.');
-            $this->validator->assertParentChangeIsValid($componentId, $parentId);
+            $node = $this->validator->findComponentOrFail($id, 'Komponentu se nepodařilo najít.');
+            $this->validator->assertParentChangeIsValid($id, $newParentId);
 
-            $oldParentId = $current['parent_id'] === null ? null : (int) $current['parent_id'];
-            $oldPosition = isset($current['position']) ? (int) $current['position'] : 0;
-            $sameParent = ($oldParentId === $parentId);
+            $oldParentId = $node['parent_id'] === null ? null : (int) $node['parent_id'];
+            $oldPosition = isset($node['position']) ? (int) $node['position'] : 0;
 
-            if ($position < 0) {
-                $position = 0;
-            }
-
-            $needsReorder = !$sameParent || $position !== $oldPosition;
-
-            if (!$needsReorder) {
-                $this->pdo->commit();
-                return;
-            }
-
-            $this->positionService->lockSiblings($oldParentId);
-            if (!$sameParent) {
-                $this->positionService->lockSiblings($parentId);
-            }
-
-            $maxStmt = $this->pdo->prepare(
-                'SELECT COALESCE(MAX(position), -1) FROM components WHERE parent_id <=> :parent'
+            $this->positionService->moveNode(
+                $id,
+                $oldParentId,
+                $oldPosition,
+                $newParentId,
+                $newPosition
             );
-            $maxStmt->bindValue(':parent', $oldParentId, $oldParentId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $maxStmt->execute();
-            $parking = ((int) $maxStmt->fetchColumn()) + 1000 + $componentId;
-            $maxStmt->closeCursor();
-            $parkStmt = $this->pdo->prepare('UPDATE components SET position = :position WHERE id = :id');
-            $parkStmt->bindValue(':position', $parking, PDO::PARAM_INT);
-            $parkStmt->bindValue(':id', $componentId, PDO::PARAM_INT);
-            $parkStmt->execute();
-
-            $cleanup = $this->pdo->prepare('UPDATE components
-                     SET position = position - 1
-                   WHERE parent_id <=> :parent
-                     AND id <> :id
-                     AND position > :position');
-            $cleanup->bindValue(':parent', $oldParentId, $oldParentId === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $cleanup->bindValue(':id', $componentId, PDO::PARAM_INT);
-            $cleanup->bindValue(':position', $oldPosition, PDO::PARAM_INT);
-            $cleanup->execute();
-
-            if ($sameParent) {
-                $position = max(0, $this->queries->childrenCountExcluding($oldParentId, $componentId));
-                if ($position > $oldPosition) {
-                    $position -= 1;
-                }
-            } else {
-                $targetCount = $this->queries->childrenCount($parentId);
-                if ($position > $targetCount) {
-                    $position = $targetCount;
-                }
-            }
-
-            $targetParent = $sameParent ? $oldParentId : $parentId;
-            $openGap = $this->pdo->prepare('UPDATE components
-                     SET position = position + 1
-                   WHERE parent_id <=> :parent
-                     AND position >= :position');
-            $openGap->bindValue(':parent', $targetParent, $targetParent === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
-            $openGap->bindValue(':position', $position, PDO::PARAM_INT);
-            $openGap->execute();
-
-            $update = $this->pdo->prepare(
-                'UPDATE components SET parent_id = :parent, position = :position WHERE id = :id'
-            );
-
-            if ($targetParent === null) {
-                $update->bindValue(':parent', null, PDO::PARAM_NULL);
-            } else {
-                $update->bindValue(':parent', $targetParent, PDO::PARAM_INT);
-            }
-
-            $update->bindValue(':position', $position, PDO::PARAM_INT);
-            $update->bindValue(':id', $componentId, PDO::PARAM_INT);
-            $update->execute();
-
-            $this->positionService->reorderPositions($targetParent);
-            if (!$sameParent) {
-                $this->positionService->reorderPositions($oldParentId);
-            }
-
-            $this->pdo->commit();
         } catch (Throwable $e) {
             $this->pdo->rollBack();
             throw $e;

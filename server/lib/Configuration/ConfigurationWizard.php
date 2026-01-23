@@ -7,6 +7,32 @@ namespace Configuration;
 use Components\Repository as ComponentsRepository;
 use RuntimeException;
 
+/**
+ * @phpstan-type PriceEntry array{
+ *   amount: string,
+ *   currency: string,
+ *   created_at: string
+ * }
+ *
+ * @phpstan-type ComponentRow array{
+ *   id: int,
+ *   definition_id: int,
+ *   parent_id: int|null,
+ *   alternate_title: string|null,
+ *   description: string|null,
+ *   images: list<string>,
+ *   color: string|null,
+ *   dependency_tree: array<string, mixed>|list<mixed>,
+ *   position: int,
+ *   created_at: string,
+ *   updated_at: string,
+ *   definition_title: string,
+ *   image: string|null,
+ *   effective_title: string,
+ *   price_history: list<PriceEntry>,
+ *   latest_price: PriceEntry|null
+ * }
+ */
 final class ConfigurationWizard
 {
     private int $configurationId;
@@ -90,7 +116,7 @@ final class ConfigurationWizard
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return ComponentRow|null
      */
     public function getCurrentComponent(): ?array
     {
@@ -146,7 +172,7 @@ final class ConfigurationWizard
             throw new RuntimeException('Tato volba není kompatibilní se současnou konfigurací.');
         }
 
-        $definitionId = isset($component['definition_id']) ? (int) $component['definition_id'] : 0;
+        $definitionId = (int) $component['definition_id'];
         $parentComponentId = $currentId !== null ? (int) $currentId : null;
 
         $this->repository->insertSelection(
