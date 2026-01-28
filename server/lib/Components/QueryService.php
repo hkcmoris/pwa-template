@@ -256,13 +256,17 @@ final class QueryService
             c.color,
             c.dependency_tree,
             c.position,
+            c.pos_path,
             c.created_at,
             c.updated_at,
             d.title AS definition_title
-        FROM components c
+        FROM component_tree c
         INNER JOIN definitions d ON d.id = c.definition_id
         WHERE c.id = :id
         SQL;
+
+        log_message('Finding component with ID ' . $id, 'DEBUG');
+        log_message('Executing SQL: ' . $sql, 'DEBUG');
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
@@ -273,7 +277,10 @@ final class QueryService
             return null;
         }
 
+        log_message('Component found: ' . json_encode($row), 'DEBUG');
+
         $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+        $row['pos_path'] = $row['pos_path'] ?? null;
         $images = $this->formatter->normaliseImages($row['images'] ?? null);
         $row['images'] = $images;
         $row['image'] = $images[0] ?? null;

@@ -1,0 +1,16 @@
+#admin-sql-query-input {
+    font-family: monospace;
+    font-size: 14px;
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    background: transparent;
+    color: inherit;
+    width: 100%;
+    text-align: left;
+}
+
+#admin-sql-query-input:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}

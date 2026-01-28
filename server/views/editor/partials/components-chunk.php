@@ -13,6 +13,7 @@ foreach ($items as $node) {
     $definitionId = isset($node['definition_id']) ? (int) $node['definition_id'] : 0;
     $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
     $position = isset($node['position']) ? (int) $node['position'] : 0;
+    $posPath = isset($node['pos_path']) ? (string) $node['pos_path'] : '';
     $rawEffectiveTitle = isset($node['effective_title']) ? (string) $node['effective_title'] : '';
     $effectiveTitle = htmlspecialchars($rawEffectiveTitle, ENT_QUOTES, 'UTF-8');
     $definitionTitleRaw = isset($node['definition_title']) ? (string) $node['definition_title'] : '';
@@ -115,7 +116,7 @@ foreach ($items as $node) {
       <?= $depthAttr ?>
     >
       <div class="component-node" draggable="true">
-        <div class="component-position"><?= $position ?></div>
+        <div class="component-position"><?= $posPath ?></div>
         <div class="component-node-header">
           <div class="component-node-info">
             <strong>

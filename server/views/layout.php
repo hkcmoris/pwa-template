@@ -58,7 +58,7 @@ foreach ($viewStyles as $styleId => $entry) {
     <title><?= htmlspecialchars($title) ?></title>
     <meta
       name="description"
-      content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.') ?>"
+      content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor') ?>"
     />
     <?php if ($csrfToken !== '') : ?>
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
@@ -292,6 +292,9 @@ foreach ($viewStyles as $styleId => $entry) {
           >
             Domů
           </a>
+          <?php
+            $__editor_allowed = in_array($role, ['admin', 'superadmin'], true);
+            ?>
           <a
             id="configurator-link"
             href="<?= htmlspecialchars($BASE) ?>/konfigurator-manager"
@@ -305,6 +308,18 @@ foreach ($viewStyles as $styleId => $entry) {
             Konfigurátor
           </a>
           <a
+            id="admin-link"
+            href="<?= htmlspecialchars($BASE) ?>/admin"
+            hx-get="<?= htmlspecialchars($BASE) ?>/admin"
+            hx-push-url="true"
+            hx-target="#content"
+            hx-select="#content"
+            hx-swap="outerHTML"
+            <?= $__editor_allowed ? '' : ' class="hidden"' ?>
+          >
+            Administrace
+          </a>
+          <a
             id="users-link"
             href="<?= htmlspecialchars($BASE) ?>/users"
             hx-get="<?= htmlspecialchars($BASE) ?>/users"
@@ -312,13 +327,10 @@ foreach ($viewStyles as $styleId => $entry) {
             hx-target="#content"
             hx-select="#content"
             hx-swap="outerHTML"
-            class="hidden"
+            <?= $__editor_allowed ? '' : ' class="hidden"' ?>
           >
             Uživatelé
           </a>
-          <?php
-            $__editor_allowed = in_array($role, ['admin', 'superadmin'], true);
-            ?>
           <a
             id="editor-link"
             data-active-root="editor"
@@ -361,10 +373,6 @@ foreach ($viewStyles as $styleId => $entry) {
               width="24px"
               height="24px"
               viewBox="0 0 24 24"
-              version="1.1"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:xlink="http://www.w3.org/1999/xlink"
-              xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"
             >
               <g
                 id="out"
@@ -372,7 +380,6 @@ foreach ($viewStyles as $styleId => $entry) {
                 stroke-width="1"
                 fill="none"
                 fill-rule="evenodd"
-                sketch:type="MSPage"
               >
                 <path
                   d="M18.1125649,13.0304195 C18.1454626,12.7672379 18.1701359,12.5040563 18.1701359,12.2244258
@@ -401,7 +408,6 @@ foreach ($viewStyles as $styleId => $entry) {
                   12.0018166,15.1029748 L12.0018166,15.1029748 L12.0018166,15.1029748 Z"
                   id="path"
                   fill="#000000"
-                  sketch:type="MSShapeGroup"
                 >
                 </path>
               </g>

@@ -158,6 +158,7 @@ $titleMap = [
   'home' => 'HAGEMANN konfigurátor',
   'login' => 'Přihlášení',
   'register' => 'Registrace',
+  'admin' => 'Administrace',
   'users' => 'Uživatelé',
   'editor' => 'Editor',
   'editor/definitions' => 'Editor - Definice',
@@ -175,6 +176,7 @@ $descMap = [
   'home' => 'HAGEMANN konfigurátor - rychlá PWA s renderováním na serveru v PHP.',
   'login' => 'Přihlášení do aplikace.',
   'register' => 'Registrace nového uživatele.',
+  'admin' => 'Administrátorské rozhraní aplikace.',
   'users' => 'Správa uživatelů (pouze pro administrátory).',
   'editor' => 'Editor konfigurátoru (pouze pro administrátory).',
   'editor/definitions' => 'Editor - definice konfigurátoru (pouze pro administrátory).',
@@ -186,9 +188,10 @@ $descMap = [
   '403' => 'Přístup na tuto stránku vyžaduje administrátorská oprávnění.',
   '404' => 'Požadovaná stránka nebyla nalezena.'
 ];
-$description = $descMap[$view] ?? 'HAGEMANN konfigurátor - rychlá PWA s PHP SSR.';
+$description = $descMap[$view] ?? 'HAGEMANN konfigurátor';
 
 $viewStylesMap = [
+    'admin' => ['admin' => 'src/styles/admin.css'],
     'editor/definitions' => ['editor-partial-style' => 'src/styles/editor/definitions.css'],
     'editor/components' => ['editor-partial-style' => 'src/styles/editor/components.css'],
     'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
