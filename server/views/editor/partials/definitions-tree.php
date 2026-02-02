@@ -123,6 +123,8 @@ if (!function_exists('render_definition_nodes')) {
         }
         echo '<ul class="definition-tree">';
         foreach ($nodes as $node) {
+            log_message($path, 'DEBUG');
+            log_message(json_encode($node, JSON_PRETTY_PRINT), 'DEBUG');
             $id = (int) $node['id'];
             $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
             $position = (int) $node['position'];
