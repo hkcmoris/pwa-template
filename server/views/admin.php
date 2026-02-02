@@ -25,7 +25,7 @@ if ($__editorRole != 'superadmin') {
 <h1>Administrace</h1>
 <textarea
   id="admin-sql-query-input"
-  style="width: 100%; height: 400px; font-family: monospace;"
+  name="sql_query"
   placeholder="SQL Query"
   ></textarea>
 <div>
@@ -34,7 +34,9 @@ if ($__editorRole != 'superadmin') {
     type="button"
     hx-post="<?= htmlspecialchars($BASE) ?>/admin/sql"
     hx-include="#admin-sql-query-input"
-    hx-target="#admin-messages"
+    hx-target="#admin-results"
     hx-swap="innerHTML"
   >Spustit SQL dotaz</button>
 </div>
+<div id="admin-messages" class="admin-feedback hidden" role="status" aria-live="polite"></div>
+<div id="admin-results"></div>
