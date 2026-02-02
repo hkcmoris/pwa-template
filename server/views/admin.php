@@ -1,4 +1,5 @@
 <?php
+
 // Normalize base path for view usage.
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
