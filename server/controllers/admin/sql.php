@@ -29,7 +29,7 @@ if ($sql === '') {
 }
 
 try {
-    $pdo = get_db_root_connection();
+    $pdo = get_db_connection();
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
     $columnCount = $stmt->columnCount();
