@@ -25,6 +25,7 @@ $titleMap = [
   'users' => 'Users',
   'about' => 'About',
   'demo' => 'Demo',
+  'admin' => 'Admin',
   '404' => 'Not Found'
 ];
 $title = $titleMap[$view] ?? ucfirst($view);
