@@ -129,7 +129,10 @@ if (!function_exists('render_definition_nodes')) {
             $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
             $position = (int) $node['position'];
             $children = $node['children'] ?? [];
-            $nodePath = ltrim(($path === '' ? '' : $path . '/') . $id, '/');
+            $nodePath = isset($node['id_path'])
+                ? (string) $node['id_path']
+                : ltrim(($path === '' ? '' : $path . '/') . $id, '/');
+            $posPath = isset($node['pos_path']) ? (string) $node['pos_path'] : (string) $position;
             $range = definitions_extract_value_range($node['meta'] ?? null);
             $rangeLabel = definitions_format_value_range($range);
             $rangeAttributes = '';
@@ -151,7 +154,7 @@ if (!function_exists('render_definition_nodes')) {
                 . $rangeAttributes
                 . '>';
             echo '<div class="definition-node" draggable="true">';
-            echo '<div class="definition-position">' . $position . '</div>';
+            echo '<div class="definition-position">' . htmlspecialchars($posPath, ENT_QUOTES, 'UTF-8') . '</div>';
             echo '<div class="definition-node-info">';
             echo '<strong>' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '</strong>';
             if ($rangeLabel !== null) {

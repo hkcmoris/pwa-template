@@ -21,7 +21,7 @@ final class Formatter
             $grouped[$key][] = $row;
         }
         log_message('Grouped definitions into ' . count($grouped) . ' parent categories', 'DEBUG');
-        return $this->buildBranch($grouped, 'root');
+        return $this->buildBranch($grouped, 'root', '', '');
     }
 
     /**
@@ -48,7 +48,7 @@ final class Formatter
      * @param array<string, list<array<string, mixed>>> $grouped
      * @return list<array<string, mixed>>
      */
-    private function buildBranch(array $grouped, string $key): array
+    private function buildBranch(array $grouped, string $key, string $idPath, string $posPath): array
     {
         if (!isset($grouped[$key])) {
             return [];
@@ -57,6 +57,10 @@ final class Formatter
         foreach ($grouped[$key] as $row) {
             $childKey = (string) $row['id'];
             $node = $row;
+            $nodeIdPath = $idPath === '' ? (string) $row['id'] : $idPath . '/' . $row['id'];
+            $nodePosPath = $posPath === '' ? (string) $row['position'] : $posPath . '-' . $row['position'];
+            $node['id_path'] = $nodeIdPath;
+            $node['pos_path'] = $nodePosPath;
             $meta = $row['meta'] ?? null;
             if (is_string($meta) && $meta !== '') {
                 $decoded = json_decode($meta, true);
@@ -66,7 +70,7 @@ final class Formatter
                     $node['meta'] = null;
                 }
             }
-            $node['children'] = $this->buildBranch($grouped, $childKey);
+            $node['children'] = $this->buildBranch($grouped, $childKey, $nodeIdPath, $nodePosPath);
             $branch[] = $node;
         }
         return $branch;
