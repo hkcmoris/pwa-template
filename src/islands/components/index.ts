@@ -55,6 +55,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         return;
     }
 
+    const rootMargin = 200;
     const observer = new IntersectionObserver(
         (entries) => {
             if (!hasMore()) {
@@ -66,10 +67,15 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
                 void fetchNext();
             }
         },
-        { rootMargin: '200px' }
+        { rootMargin: `${rootMargin}px` }
     );
 
     observer.observe(sentinelElement);
+
+    const isSentinelInView = () => {
+        const rect = sentinelElement.getBoundingClientRect();
+        return rect.top <= window.innerHeight + rootMargin;
+    };
 
     async function fetchNext() {
         if (loading || !hasMore()) {
@@ -110,6 +116,9 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             if (!payload.hasMore || nextOffset >= total) {
                 observer.disconnect();
                 sentinelElement.remove();
+            }
+            if (hasMore() && isSentinelInView()) {
+                void fetchNext();
             }
         } catch (error) {
             console.error('Failed to fetch component page', error);
