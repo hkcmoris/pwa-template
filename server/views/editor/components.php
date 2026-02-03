@@ -13,7 +13,13 @@ $formatter = new Formatter();
 $definitionsFormatter = new DefinitionsFormatter();
 $definitionsRepository = new DefinitionsRepository($pdo);
 $repository = new Repository($pdo, $formatter, $definitionsRepository);
-$presenter = new ComponentPresenter($repository, $formatter, $definitionsRepository, $definitionsFormatter);
+$presenter = new ComponentPresenter(
+    $repository,
+    $formatter,
+    $definitionsRepository,
+    $definitionsFormatter,
+    EDITOR_COMPONENT_PAGE_SIZE
+);
 
 $componentViewModel = $presenter->presentInitial();
 $componentSummaryData = $componentViewModel['summary'];

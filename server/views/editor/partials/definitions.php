@@ -11,7 +11,11 @@ $definitionsRepository = new Repository($pdo);
 $definitionsFormatter = new Formatter();
 $definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
 $definitionsFlat = $definitionsFormatter->flattenTree($definitionsTree);
-$definitionsPresenter = new DefinitionPresenter($definitionsRepository, $definitionsFormatter);
+$definitionsPresenter = new DefinitionPresenter(
+    $definitionsRepository,
+    $definitionsFormatter,
+    EDITOR_DEFINITION_PAGE_SIZE
+);
 $definitionsListData = $definitionsPresenter->buildListData($definitionsTree, 0);
 $definitionsPage = $definitionsListData['definitionsPage'];
 $definitionPageSize = $definitionsListData['definitionPageSize'];
