@@ -98,6 +98,7 @@ $controllerRoutes = [
     'POST editor/components/move'                => __DIR__ . '/controllers/editor/components/move.php',
     'POST editor/components/update'              => __DIR__ . '/controllers/editor/components/update.php',
     'GET editor/components/page'                 => __DIR__ . '/controllers/editor/components/page.php',
+    'GET editor/definitions/page'                => __DIR__ . '/controllers/editor/definitions/page.php',
 
     'POST editor/definitions/create'             => __DIR__ . '/controllers/editor/definitions/create.php',
     'POST editor/definitions/delete'             => __DIR__ . '/controllers/editor/definitions/delete.php',

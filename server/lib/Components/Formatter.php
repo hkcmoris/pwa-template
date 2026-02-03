@@ -142,8 +142,12 @@ final class Formatter
      * @param array<string, array<int, array<string, mixed>>> $grouped
      * @return array<int, array<string, mixed>>
      */
-    private function buildBranch(array $grouped, string $key): array
-    {
+    private function buildBranch(
+        array $grouped,
+        string $key,
+        string $idPath,
+        string $posPath
+    ): array {
         if (!isset($grouped[$key])) {
             return [];
         }
@@ -152,7 +156,11 @@ final class Formatter
 
         foreach ($grouped[$key] as $row) {
             $childKey = (string) $row['id'];
-            $row['children'] = $this->buildBranch($grouped, $childKey);
+            $nodeIdPath = $idPath === '' ? (string) $row['id'] : $idPath . '/' . $row['id'];
+            $nodePosPath = $posPath === '' ? (string) $row['position'] : $posPath . '.' . $row['position'];
+            $row['id_path'] = $nodeIdPath;
+            $row['pos_path'] = $nodePosPath;
+            $row['children'] = $this->buildBranch($grouped, $childKey, $nodeIdPath, $nodePosPath);
             $branch[] = $row;
         }
 
@@ -166,7 +174,7 @@ final class Formatter
     public function buildTree(array $rows): array
     {
         $grouped = $this->groupByParent($rows);
-        $tree = $this->buildBranch($grouped, 'root');
+        $tree = $this->buildBranch($grouped, 'root', '', '');
         log_message('Built component tree with ' . count($tree) . ' root nodes', 'DEBUG');
 
         return $tree;

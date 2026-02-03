@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Definitions\Formatter;
 use Definitions\Repository;
+use Editor\DefinitionPresenter;
 
 /** @param array<string, mixed> $options */
 function definitions_render_fragments(PDO $pdo, array $options = []): void
@@ -12,6 +13,13 @@ function definitions_render_fragments(PDO $pdo, array $options = []): void
     $formatter = new Formatter();
     $definitionsTree = $repository->fetchTree($formatter);
     $definitionsFlat = $formatter->flattenTree($definitionsTree);
+    $presenter = new DefinitionPresenter($repository, $formatter);
+    $definitionsListData = $presenter->buildListData($definitionsTree, 0);
+    $definitionsPage = $definitionsListData['definitionsPage'];
+    $definitionPageSize = $definitionsListData['definitionPageSize'];
+    $totalDefinitions = $definitionsListData['totalDefinitions'];
+    $nextOffset = $definitionsListData['nextOffset'];
+    $hasMore = $definitionsListData['hasMore'];
     $selectedParent = $options['selected_parent'] ?? null;
     $message = $options['message'] ?? null;
     $messageType = $options['message_type'] ?? 'success';
