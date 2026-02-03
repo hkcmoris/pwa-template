@@ -58,7 +58,7 @@ final class Formatter
             $childKey = (string) $row['id'];
             $node = $row;
             $nodeIdPath = $idPath === '' ? (string) $row['id'] : $idPath . '/' . $row['id'];
-            $nodePosPath = $posPath === '' ? (string) $row['position'] : $posPath . '-' . $row['position'];
+            $nodePosPath = $posPath === '' ? (string) $row['position'] : $posPath . '.' . $row['position'];
             $node['id_path'] = $nodeIdPath;
             $node['pos_path'] = $nodePosPath;
             $meta = $row['meta'] ?? null;
