@@ -32,7 +32,7 @@ if ($offsetParam !== '' && preg_match('/^\d+$/', $offsetParam)) {
 $pdo = get_db_connection();
 $formatter = new Formatter();
 $repository = new Repository($pdo);
-$presenter = new DefinitionPresenter($repository, $formatter);
+$presenter = new DefinitionPresenter($repository, $formatter, EDITOR_DEFINITION_PAGE_SIZE);
 
 $listData = $presenter->presentPage($offset);
 $definitionsPage = $listData['definitionsPage'];

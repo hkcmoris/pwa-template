@@ -15,6 +15,24 @@ define('DB_PASS', config_resolve_env($env, 'DB_PASS', ''));
 define('JWT_SECRET', config_resolve_env($env, 'JWT_SECRET', 'change_me'));
 define('APP_ENV', config_resolve_env($env, 'APP_ENV', 'dev'));
 
+$definitionPageSize = config_resolve_env($env, 'EDITOR_DEFINITION_PAGE_SIZE', 50);
+$definitionPageSize = is_int($definitionPageSize)
+    ? $definitionPageSize
+    : (is_numeric($definitionPageSize) ? (int) $definitionPageSize : 50);
+if ($definitionPageSize <= 0) {
+    $definitionPageSize = 50;
+}
+define('EDITOR_DEFINITION_PAGE_SIZE', $definitionPageSize);
+
+$componentPageSize = config_resolve_env($env, 'EDITOR_COMPONENT_PAGE_SIZE', 50);
+$componentPageSize = is_int($componentPageSize)
+    ? $componentPageSize
+    : (is_numeric($componentPageSize) ? (int) $componentPageSize : 50);
+if ($componentPageSize <= 0) {
+    $componentPageSize = 50;
+}
+define('EDITOR_COMPONENT_PAGE_SIZE', $componentPageSize);
+
 // Detect base path for subfolder deployments; can be overridden via env APP_BASE
 $envBase = config_resolve_env($env, 'APP_BASE');
 if (!defined('BASE_PATH')) {

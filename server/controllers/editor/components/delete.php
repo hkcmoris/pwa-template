@@ -30,7 +30,13 @@ $formatter = new Formatter();
 $definitionsFormatter = new DefinitionsFormatter();
 $definitionsRepository = new DefinitionsRepository($pdo);
 $repository = new Repository($pdo, $formatter, $definitionsRepository);
-$presenter = new ComponentPresenter($repository, $formatter, $definitionsRepository, $definitionsFormatter);
+$presenter = new ComponentPresenter(
+    $repository,
+    $formatter,
+    $definitionsRepository,
+    $definitionsFormatter,
+    EDITOR_COMPONENT_PAGE_SIZE
+);
 
 $componentParam = $_POST['component_id'] ?? '';
 if (!preg_match('/^\d+$/', (string) $componentParam)) {
