@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../../lib/db.php';
 
 use Definitions\Formatter;
 use Definitions\Repository;
+use Editor\DefinitionPresenter;
 
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
 $pdo = get_db_connection();
@@ -10,6 +11,13 @@ $definitionsRepository = new Repository($pdo);
 $definitionsFormatter = new Formatter();
 $definitionsTree = $definitionsRepository->fetchTree($definitionsFormatter);
 $definitionsFlat = $definitionsFormatter->flattenTree($definitionsTree);
+$definitionsPresenter = new DefinitionPresenter($definitionsRepository, $definitionsFormatter);
+$definitionsListData = $definitionsPresenter->buildListData($definitionsTree, 0);
+$definitionsPage = $definitionsListData['definitionsPage'];
+$definitionPageSize = $definitionsListData['definitionPageSize'];
+$totalDefinitions = $definitionsListData['totalDefinitions'];
+$nextOffset = $definitionsListData['nextOffset'];
+$hasMore = $definitionsListData['hasMore'];
 ?>
 
 <?php

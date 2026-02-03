@@ -1,6 +1,19 @@
 <?php
-$tree = $definitionsTree ?? [];
+$tree = $definitionsPage ?? $definitionsTree ?? [];
 $BASE = rtrim((defined('BASE_PATH') ? BASE_PATH : ''), '/');
+if (!isset($definitionPageSize)) {
+    $definitionPageSize = count($tree);
+}
+if (!isset($totalDefinitions)) {
+    $totalDefinitions = count($tree);
+}
+if (!isset($nextOffset)) {
+    $nextOffset = count($tree);
+}
+if (!isset($hasMore)) {
+    $hasMore = false;
+}
+$definitionsChunkOnly = $definitionsChunkOnly ?? false;
 
 if (!function_exists('definitions_normalise_meta_array')) {
     /**
@@ -116,12 +129,19 @@ if (!function_exists('render_definition_nodes')) {
     /**
      * @param array<int, array<string, mixed>> $nodes
      */
-    function render_definition_nodes(array $nodes, string $path = ''): void
+    function render_definition_nodes(
+        array $nodes,
+        string $path = '',
+        bool $wrap = true,
+        string $listAttributes = ''
+    ): void
     {
         if (empty($nodes)) {
             return;
         }
-        echo '<ul class="definition-tree">';
+        if ($wrap) {
+            echo '<ul class="definition-tree"' . $listAttributes . '>';
+        }
         foreach ($nodes as $node) {
             log_message($path, 'DEBUG');
             log_message(json_encode($node, JSON_PRETTY_PRINT), 'DEBUG');
@@ -228,14 +248,35 @@ if (!function_exists('render_definition_nodes')) {
             }
             echo '</li>';
         }
-        echo '</ul>';
+        if ($wrap) {
+            echo '</ul>';
+        }
     }
 }
 ?>
+<?php if ($definitionsChunkOnly) : ?>
+  <?php render_definition_nodes($tree, '', false); ?>
+  <?php return; ?>
+<?php endif; ?>
 <div id="definitions-list" data-island="definitions-tree" data-base="<?= htmlspecialchars($BASE) ?>">
   <?php if (empty($tree)) : ?>
     <p class="definitions-empty">Zatím nebyly vytvořeny žádné definice.</p>
   <?php else : ?>
-      <?php render_definition_nodes($tree); ?>
+      <?php
+      $listAttributes = ' id="definitions-tree"'
+          . ' data-page-size="' . (int) $definitionPageSize . '"'
+          . ' data-total="' . (int) $totalDefinitions . '"'
+          . ' data-next-offset="' . (int) $nextOffset . '"';
+      render_definition_nodes($tree, '', true, $listAttributes);
+      ?>
+      <div
+        id="definitions-list-sentinel"
+        data-definition-sentinel
+        data-next-offset="<?= (int) $nextOffset ?>"
+        data-page-size="<?= (int) $definitionPageSize ?>"
+        data-total="<?= (int) $totalDefinitions ?>"
+        data-has-more="<?= $hasMore ? '1' : '0' ?>"
+        aria-hidden="true"
+      ></div>
   <?php endif; ?>
 </div>
