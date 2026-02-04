@@ -76,7 +76,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
 
     const isSentinelInView = () => {
         const rect = sentinelElement.getBoundingClientRect();
-        return rect.top <= window.innerHeight + rootMargin;
+        return rect.top <= window.innerHeight + rootMargin && rect.bottom >= -rootMargin;
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
@@ -120,39 +120,46 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         sentinelElement.dataset.loading = '1';
 
         try {
-            const url = `${basePath}/editor/definitions/page?offset=${nextOffset}`;
-            const response = await fetch(url, {
-                headers: {
-                    Accept: 'application/json',
-                    'HX-Request': 'true',
-                },
-            });
+            // keep fetching until either:
+            // - no more pages
+            // - sentinel is no longer in view (meaning list is "long enough")
 
-            if (!response.ok) {
-                cleanup();
-                return;
-            }
+            while (hasMore() && isSentinelInView()) {
+                const url = `${basePath}/editor/definitions/page?offset=${nextOffset}`;
+                const response = await fetch(url, {
+                    headers: {
+                        Accept: 'application/json',
+                        'HX-Request': 'true',
+                    },
+                });
 
-            const payload = (await response.json()) as PageResponse;
-            const markup = (payload.html ?? '').trim();
+                if (!response.ok) {
+                    cleanup();
+                    return;
+                }
 
-            if (markup) {
-                const fragment = document
-                    .createRange()
-                    .createContextualFragment(markup);
-                listElement.appendChild(fragment);
-            }
+                const payload = (await response.json()) as PageResponse;
+                const markup = (payload.html ?? '').trim();
 
-            nextOffset = payload.nextOffset ?? nextOffset;
-            sentinelElement.dataset.nextOffset = String(nextOffset);
-            sentinelElement.dataset.hasMore = payload.hasMore ? '1' : '0';
+                if (markup) {
+                    const fragment = document
+                        .createRange()
+                        .createContextualFragment(markup);
+                    listElement.appendChild(fragment);
+                }
 
-            if (!payload.hasMore || nextOffset >= total) {
-                cleanup();
-                sentinelElement.remove();
-            }
-            if (hasMore() && isSentinelInView()) {
-                void fetchNext();
+                nextOffset = payload.nextOffset ?? nextOffset;
+                sentinelElement.dataset.nextOffset = String(nextOffset);
+                sentinelElement.dataset.hasMore = payload.hasMore ? '1' : '0';
+
+                if (!payload.hasMore || nextOffset >= total) {
+                    cleanup();
+                    sentinelElement.remove();
+                    return;
+                }
+
+                // give layout a tick so getBoundingClientRect() reflects new content
+                await new Promise(requestAnimationFrame);
             }
         } catch (error) {
             console.error('Failed to fetch definition page', error);
