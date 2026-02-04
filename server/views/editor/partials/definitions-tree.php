@@ -254,7 +254,7 @@ if (!function_exists('render_definition_items')) {
     <?php render_definition_items($tree, '', false); ?>
     <?php return; ?>
 <?php endif; ?>
-<div id="definitions-list" data-island="definitions-tree" data-base="<?= htmlspecialchars($BASE) ?>">
+<div id="definitions-list">
   <?php if (empty($tree)) : ?>
     <p class="definitions-empty">Zatím nebyly vytvořeny žádné definice.</p>
   <?php else : ?>
