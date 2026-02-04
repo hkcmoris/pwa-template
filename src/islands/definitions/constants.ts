@@ -6,3 +6,4 @@ export const listSelectors = {
 };
 
 export const definitionsTargetSelector = '#definitions-list';
+export const openModalButtonSelector = '#definition-open-create';

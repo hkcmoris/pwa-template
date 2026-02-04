@@ -1,11 +1,11 @@
 import { createDefinitionsApiClient } from './api-client';
-import { setupNodeActions } from './actions';
 import { createModalManager } from './modal';
+import { getBasePath, getHtmx } from './utils';
+import { parseNumber } from '../shared/parser';
+import { setupNodeActions } from './actions';
 import { createOpenCreateModal } from './open-create-modal';
 import { setupDragAndDrop } from './drag-drop';
-import { getBasePath, getHtmx } from './utils';
-import type { DefinitionsApiClient } from './types';
-import { parseNumber } from '../shared/parser';
+import { openModalButtonSelector } from './constants';
 
 export { isDescendantPath, setupDragAndDrop } from './drag-drop';
 
@@ -26,12 +26,9 @@ const bindCreateButton = (
     openCreateModal: () => void
 ) => {
     button?.addEventListener('click', () => {
+        console.log('openCreateModal();');
         openCreateModal();
     });
-};
-
-const initializeDragAndDrop = (el: HTMLElement, api: DefinitionsApiClient) => {
-    setupDragAndDrop(el, api);
 };
 
 const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
@@ -64,21 +61,56 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         return;
     }
 
-    const observer = new IntersectionObserver(
-        (entries: IntersectionObserverEntry[]) => {
-            if (!hasMore()) {
-                observer.disconnect();
-                return;
-            }
+    const rootMargin = 200;
+    let scrollRaf = 0;
+    let observer: IntersectionObserver | null = null;
 
-            if (entries.some((entry) => entry.isIntersecting)) {
+    const cleanup = () => {
+        observer?.disconnect();
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+        if (scrollRaf) {
+            window.cancelAnimationFrame(scrollRaf);
+            scrollRaf = 0;
+        }
+    };
+
+    const isSentinelInView = () => {
+        const rect = sentinelElement.getBoundingClientRect();
+        return rect.top <= window.innerHeight + rootMargin;
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+        if (!hasMore()) {
+            cleanup();
+            return;
+        }
+
+        if (entries.some((entry) => entry.isIntersecting)) {
+            void fetchNext();
+        }
+    };
+
+    observer = new IntersectionObserver(observerCallback, {
+        rootMargin: `${rootMargin}px`,
+    });
+
+    const handleScroll = () => {
+        if (scrollRaf) {
+            return;
+        }
+        scrollRaf = window.requestAnimationFrame(() => {
+            scrollRaf = 0;
+            if (hasMore() && isSentinelInView()) {
                 void fetchNext();
             }
-        },
-        { rootMargin: '200px' }
-    );
+        });
+    };
 
     observer.observe(sentinelElement);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    handleScroll();
 
     async function fetchNext() {
         if (loading || !hasMore()) {
@@ -98,7 +130,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             });
 
             if (!response.ok) {
-                observer.disconnect();
+                cleanup();
                 return;
             }
 
@@ -117,12 +149,15 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             sentinelElement.dataset.hasMore = payload.hasMore ? '1' : '0';
 
             if (!payload.hasMore || nextOffset >= total) {
-                observer.disconnect();
+                cleanup();
                 sentinelElement.remove();
+            }
+            if (hasMore() && isSentinelInView()) {
+                void fetchNext();
             }
         } catch (error) {
             console.error('Failed to fetch definition page', error);
-            observer.disconnect();
+            cleanup();
         } finally {
             loading = false;
             delete sentinelElement.dataset.loading;
@@ -130,12 +165,12 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
     }
 };
 
-export default function init(el: HTMLElement) {
+export default function init(root: HTMLElement) {
     const htmx = getHtmx();
 
     if (!htmx) return;
 
-    const base = getBasePath(el);
+    const base = getBasePath(root);
     const actualBase = base || '';
     const modalRoot = document.getElementById(
         'definitions-modal'
@@ -152,24 +187,23 @@ export default function init(el: HTMLElement) {
     const modal = createModalManager(modalRoot, htmx);
     const api = createDefinitionsApiClient(htmx, actualBase);
 
-    const openCreateModal = createOpenCreateModal({
+    const openModal = createOpenCreateModal({
         modal,
         createTemplate,
         getParentSelectCache,
     });
 
-    const openCreateButton = document.getElementById(
-        'definition-open-create'
+    const openCreateButton = root.querySelector<HTMLButtonElement>(
+        openModalButtonSelector
     ) as HTMLButtonElement | null;
 
-    setupNodeActions(el, api, modal, openCreateModal);
-    initializeDragAndDrop(el, api);
+    setupInfiniteScroll(root, base);
+    setupNodeActions(root, api, modal, openModal);
+    setupDragAndDrop(root, api);
 
-    bindCreateButton(openCreateButton, openCreateModal);
+    bindCreateButton(openCreateButton, openModal);
 
-    setupInfiniteScroll(el, base);
-
-    el.addEventListener('htmx:afterSwap', (event) => {
+    root.addEventListener('htmx:afterSwap', (event) => {
         const detail = (event as CustomEvent<{ target: HTMLElement | null }>)
             .detail;
         const target = detail?.target;
@@ -178,7 +212,7 @@ export default function init(el: HTMLElement) {
             target &&
             (target.matches(listTarget) || target.matches(listWrapperTarget))
         ) {
-            setupInfiniteScroll(el, base);
+            setupInfiniteScroll(root, base);
         }
     });
 }

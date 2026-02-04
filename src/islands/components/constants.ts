@@ -6,3 +6,4 @@ export const listSelectors = {
 };
 
 export const componentsTargetSelector = '#components-list';
+export const openModalButtonSelector = '#component-open-create';

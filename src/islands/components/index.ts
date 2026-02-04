@@ -6,6 +6,7 @@ import { parseNumber } from '../shared/parser';
 import { setupNodeActions } from './actions';
 import { createOpenComponentModal } from './open-component-modal';
 import { setupDragAndDrop } from './drag-drop';
+import { openModalButtonSelector } from './constants';
 
 const listTarget = '#components-list';
 const listWrapperTarget = '#components-list-wrapper';
@@ -189,21 +190,21 @@ export default function init(root: HTMLElement) {
         base: actualBase,
     });
 
-    const openComponentModal = createOpenComponentModal({
+    const openModal = createOpenComponentModal({
         modal,
         createTemplate,
         base: actualBase,
     });
 
     const openCreateButton = root.querySelector<HTMLButtonElement>(
-        '#component-open-create'
+        openModalButtonSelector
     ) as HTMLButtonElement | null;
 
     setupInfiniteScroll(root, base);
-    setupNodeActions(root, api, modal, openComponentModal);
+    setupNodeActions(root, api, modal, openModal);
     setupDragAndDrop(root, api);
 
-    bindCreateButton(openCreateButton, openComponentModal);
+    bindCreateButton(openCreateButton, openModal);
 
     root.addEventListener('htmx:afterSwap', (event) => {
         const detail = (event as CustomEvent<{ target: HTMLElement | null }>)
