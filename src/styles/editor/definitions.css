@@ -53,29 +53,16 @@
 
 .definition-tree {
     list-style: none;
-    padding-left: 1rem;
+    padding-left: 0;
     margin: 0;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
 }
 
-.definition-tree ul {
-    list-style: none;
-    padding-left: 1rem;
-    margin: 0.35rem 0 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    border-left: 1px dashed var(--border);
-}
-
-[data-theme='dark'] .definition-tree ul {
-    border-color: rgb(255 255 255 / 25%);
-}
-
 .definition-item {
     position: relative;
+    margin-left: calc(var(--definition-depth, 0) * 1.25rem);
 }
 
 .definition-node {

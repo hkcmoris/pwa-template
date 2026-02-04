@@ -33,9 +33,13 @@ export const setupNodeActions = (
         if (action === 'create-child') {
             const parentId = id;
             const parentTitle = title;
-            const childCount = item.querySelectorAll(
-                ':scope > ul > .definition-item'
-            ).length;
+            const childCountValue = Number.parseInt(
+                item.dataset.childrenCount ?? '',
+                10
+            );
+            const childCount = Number.isNaN(childCountValue)
+                ? 0
+                : childCountValue;
 
             openCreateModal({
                 parentId,

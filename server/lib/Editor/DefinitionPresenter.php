@@ -58,9 +58,10 @@ final class DefinitionPresenter
      */
     public function buildListData(array $tree, int $offset): array
     {
-        $total = count($tree);
+        $flat = $this->formatter->flattenTree($tree);
+        $total = count($flat);
         $normalisedOffset = $this->normaliseOffset($offset, $total);
-        $page = array_slice($tree, $normalisedOffset, $this->pageSize);
+        $page = array_slice($flat, $normalisedOffset, $this->pageSize);
         $nextOffset = $normalisedOffset + count($page);
         $hasMore = $nextOffset < $total;
 

@@ -19,7 +19,17 @@ const clearDropClasses = (root: HTMLElement) => {
     );
 };
 
+const getSiblingItems = (
+    root: HTMLElement,
+    parentId: string | null
+): HTMLElement[] => {
+    const desiredParent = parentId ?? '';
+    return Array.from(root.querySelectorAll<HTMLElement>(listSelectors.item))
+        .filter((item) => (item.dataset.parent ?? '') === desiredParent);
+};
+
 const getPositionForDrop = (
+    root: HTMLElement,
     item: HTMLElement,
     positionAttr: string | undefined
 ): number => {
@@ -27,16 +37,14 @@ const getPositionForDrop = (
     if (!Number.isNaN(rawPosition)) {
         return rawPosition;
     }
-    const siblings = item.parentElement?.querySelectorAll(
-        ':scope > .definition-item'
-    );
-    const siblingList = siblings ? Array.from(siblings) : [];
+    const parentId = item.dataset.parent ?? '';
+    const siblingList = getSiblingItems(root, parentId);
     const index = siblingList.indexOf(item);
     return index >= 0 ? index : siblingList.length ? siblingList.length - 1 : 0;
 };
 
-const getChildCount = (item: HTMLElement): number =>
-    item.querySelectorAll(':scope > ul > .definition-item').length;
+const getChildCount = (root: HTMLElement, parentId: string): number =>
+    getSiblingItems(root, parentId).length;
 
 export const setupDragAndDrop = (
     root: HTMLElement,
@@ -173,6 +181,7 @@ export const setupDragAndDrop = (
 
         const parentAttr = targetItem.dataset.parent ?? '';
         const targetPosition = getPositionForDrop(
+            root,
             targetItem,
             targetItem.dataset.position
         );
@@ -190,7 +199,7 @@ export const setupDragAndDrop = (
 
         if (dropPosition === 'inside') {
             parentId = targetIdRaw;
-            position = getChildCount(targetItem);
+            position = getChildCount(root, targetIdRaw);
         } else {
             position =
                 dropPosition === 'before' ? targetPosition : targetPosition + 1;
@@ -255,9 +264,7 @@ export const setupDragAndDrop = (
         event.preventDefault();
 
         const rootItems = Array.from(
-            root.querySelectorAll<HTMLElement>(
-                `${listSelectors.item}:not(${listSelectors.item} ${listSelectors.item})`
-            )
+            getSiblingItems(root, null)
         );
 
         const position = rootItems.length;

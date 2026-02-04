@@ -125,16 +125,16 @@ if (!function_exists('definitions_format_value_range')) {
     }
 }
 
-if (!function_exists('render_definition_nodes')) {
+if (!function_exists('render_definition_items')) {
     /**
      * @param array<int, array<string, mixed>> $nodes
      */
-    function render_definition_nodes(
+    function render_definition_items(
         array $nodes,
-        string $path = '',
-        bool $wrap = true,
-        string $listAttributes = ''
-    ): void {
+        string $listAttributes = '',
+        bool $wrap = true
+    ): void
+    {
         if (empty($nodes)) {
             return;
         }
@@ -142,19 +142,16 @@ if (!function_exists('render_definition_nodes')) {
             echo '<ul class="definition-tree"' . $listAttributes . '>';
         }
         foreach ($nodes as $node) {
-            log_message($path, 'DEBUG');
-            log_message(json_encode($node, JSON_PRETTY_PRINT), 'DEBUG');
             $id = (int) $node['id'];
             $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
             $position = (int) $node['position'];
-            $children = $node['children'] ?? [];
-            $nodePath = isset($node['id_path'])
-                ? (string) $node['id_path']
-                : ltrim(($path === '' ? '' : $path . '/') . $id, '/');
+            $nodePath = isset($node['id_path']) ? (string) $node['id_path'] : (string) $id;
             $posPath = isset($node['pos_path']) ? (string) $node['pos_path'] : (string) $position;
             $range = definitions_extract_value_range($node['meta'] ?? null);
             $rangeLabel = definitions_format_value_range($range);
             $rangeAttributes = '';
+            $depth = isset($node['depth']) ? (int) $node['depth'] : 0;
+            $childrenCount = isset($node['children_count']) ? (int) $node['children_count'] : 0;
             if ($range !== null) {
                 if ($range['min'] !== null) {
                     $rangeAttributes .= ' data-value-min="' . (int) $range['min'] . '"';
@@ -169,8 +166,11 @@ if (!function_exists('render_definition_nodes')) {
                 . ' data-position="' . $position . '"'
                 . ' data-path="' . htmlspecialchars($nodePath, ENT_QUOTES, 'UTF-8') . '"'
                 . ' data-title="' . htmlspecialchars($node['title'], ENT_QUOTES, 'UTF-8') . '"'
+                . ' data-depth="' . $depth . '"'
+                . ' data-children-count="' . $childrenCount . '"'
                 . ($range !== null ? ' data-has-range="true"' : '')
                 . $rangeAttributes
+                . ' style="--definition-depth:' . $depth . ';"'
                 . '>';
             echo '<div class="definition-node" draggable="true">';
             echo '<div class="definition-position">' . htmlspecialchars($posPath, ENT_QUOTES, 'UTF-8') . '</div>';
@@ -242,9 +242,6 @@ if (!function_exists('render_definition_nodes')) {
             echo '<span class="definition-drag-indicator" aria-hidden="true">⋮⋮</span>';
             echo '</div>';
             echo '</div>';
-            if (!empty($children)) {
-                render_definition_nodes($children, $nodePath);
-            }
             echo '</li>';
         }
         if ($wrap) {
@@ -254,7 +251,7 @@ if (!function_exists('render_definition_nodes')) {
 }
 ?>
 <?php if ($definitionsChunkOnly) : ?>
-    <?php render_definition_nodes($tree, '', false); ?>
+    <?php render_definition_items($tree, '', false); ?>
     <?php return; ?>
 <?php endif; ?>
 <div id="definitions-list" data-island="definitions-tree" data-base="<?= htmlspecialchars($BASE) ?>">
@@ -266,7 +263,7 @@ if (!function_exists('render_definition_nodes')) {
           . ' data-page-size="' . (int) $definitionPageSize . '"'
           . ' data-total="' . (int) $totalDefinitions . '"'
           . ' data-next-offset="' . (int) $nextOffset . '"';
-        render_definition_nodes($tree, '', true, $listAttributes);
+        render_definition_items($tree, $listAttributes);
         ?>
       <div
         id="definitions-list-sentinel"

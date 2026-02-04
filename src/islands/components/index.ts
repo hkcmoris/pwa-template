@@ -74,7 +74,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
         return rect.top <= window.innerHeight + rootMargin;
     };
 
-    const observerCallback = (entries) => {
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
         if (!hasMore()) {
             cleanup();
             return;
