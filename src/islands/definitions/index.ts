@@ -26,7 +26,6 @@ const bindCreateButton = (
     openCreateModal: () => void
 ) => {
     button?.addEventListener('click', () => {
-        console.log('openCreateModal();');
         openCreateModal();
     });
 };
