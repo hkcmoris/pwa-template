@@ -36,6 +36,7 @@ final class Formatter
             $copy = $node;
             unset($copy['children']);
             $copy['depth'] = $depth;
+            $copy['children_count'] = is_array($children) ? count($children) : 0;
             $flat[] = $copy;
             if (!empty($children)) {
                 $flat = array_merge($flat, $this->flattenTree($children, $depth + 1));

@@ -65,7 +65,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
     }
 
     const observer = new IntersectionObserver(
-        (entries) => {
+        (entries: IntersectionObserverEntry[]) => {
             if (!hasMore()) {
                 observer.disconnect();
                 return;
