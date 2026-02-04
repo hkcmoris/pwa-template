@@ -1,5 +1,5 @@
-import init from './definitions-tree/index';
+import init from './definitions/index';
 
 export default init;
 
-export { isDescendantPath, setupDragAndDrop } from './definitions-tree/index';
+export { isDescendantPath, setupDragAndDrop } from './definitions/index';
