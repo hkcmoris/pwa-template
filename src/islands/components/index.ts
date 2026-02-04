@@ -56,26 +56,55 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
     }
 
     const rootMargin = 200;
-    const observer = new IntersectionObserver(
-        (entries) => {
-            if (!hasMore()) {
-                observer.disconnect();
-                return;
-            }
+    let scrollRaf = 0;
+    let observer: IntersectionObserver | null = null;
 
-            if (entries.some((entry) => entry.isIntersecting)) {
-                void fetchNext();
-            }
-        },
-        { rootMargin: `${rootMargin}px` }
-    );
-
-    observer.observe(sentinelElement);
+    const cleanup = () => {
+        observer?.disconnect();
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+        if (scrollRaf) {
+            window.cancelAnimationFrame(scrollRaf);
+            scrollRaf = 0;
+        }
+    };
 
     const isSentinelInView = () => {
         const rect = sentinelElement.getBoundingClientRect();
         return rect.top <= window.innerHeight + rootMargin;
     };
+
+    const observerCallback = (entries) => {
+        if (!hasMore()) {
+            cleanup();
+            return;
+        }
+
+        if (entries.some((entry) => entry.isIntersecting)) {
+            void fetchNext();
+        }
+    };
+
+    observer = new IntersectionObserver(observerCallback, {
+        rootMargin: `${rootMargin}px`,
+    });
+
+    const handleScroll = () => {
+        if (scrollRaf) {
+            return;
+        }
+        scrollRaf = window.requestAnimationFrame(() => {
+            scrollRaf = 0;
+            if (hasMore() && isSentinelInView()) {
+                void fetchNext();
+            }
+        });
+    };
+
+    observer.observe(sentinelElement);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
+    handleScroll();
 
     async function fetchNext() {
         if (loading || !hasMore()) {
@@ -95,7 +124,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             });
 
             if (!response.ok) {
-                observer.disconnect();
+                cleanup();
                 return;
             }
 
@@ -114,7 +143,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             sentinelElement.dataset.hasMore = payload.hasMore ? '1' : '0';
 
             if (!payload.hasMore || nextOffset >= total) {
-                observer.disconnect();
+                cleanup();
                 sentinelElement.remove();
             }
             if (hasMore() && isSentinelInView()) {
@@ -122,7 +151,7 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
             }
         } catch (error) {
             console.error('Failed to fetch component page', error);
-            observer.disconnect();
+            cleanup();
         } finally {
             loading = false;
             delete sentinelElement.dataset.loading;

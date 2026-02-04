@@ -134,8 +134,7 @@ if (!function_exists('render_definition_nodes')) {
         string $path = '',
         bool $wrap = true,
         string $listAttributes = ''
-    ): void
-    {
+    ): void {
         if (empty($nodes)) {
             return;
         }
@@ -255,20 +254,20 @@ if (!function_exists('render_definition_nodes')) {
 }
 ?>
 <?php if ($definitionsChunkOnly) : ?>
-  <?php render_definition_nodes($tree, '', false); ?>
-  <?php return; ?>
+    <?php render_definition_nodes($tree, '', false); ?>
+    <?php return; ?>
 <?php endif; ?>
 <div id="definitions-list" data-island="definitions-tree" data-base="<?= htmlspecialchars($BASE) ?>">
   <?php if (empty($tree)) : ?>
     <p class="definitions-empty">Zatím nebyly vytvořeny žádné definice.</p>
   <?php else : ?>
       <?php
-      $listAttributes = ' id="definitions-tree"'
+        $listAttributes = ' id="definitions-tree"'
           . ' data-page-size="' . (int) $definitionPageSize . '"'
           . ' data-total="' . (int) $totalDefinitions . '"'
           . ' data-next-offset="' . (int) $nextOffset . '"';
-      render_definition_nodes($tree, '', true, $listAttributes);
-      ?>
+        render_definition_nodes($tree, '', true, $listAttributes);
+        ?>
       <div
         id="definitions-list-sentinel"
         data-definition-sentinel

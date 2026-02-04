@@ -34,3 +34,9 @@ if (!defined('DB_A_PASS')) {
 if (!defined('JWT_SECRET')) {
     define('JWT_SECRET', 'phpstan_fallback_secret');
 }
+if (!defined('EDITOR_DEFINITION_PAGE_SIZE')) {
+    define('EDITOR_DEFINITION_PAGE_SIZE', 50);
+}
+if (!defined('EDITOR_COMPONENT_PAGE_SIZE')) {
+    define('EDITOR_COMPONENT_PAGE_SIZE', 50);
+}
