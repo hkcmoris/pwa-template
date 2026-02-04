@@ -24,8 +24,9 @@ const getSiblingItems = (
     parentId: string | null
 ): HTMLElement[] => {
     const desiredParent = parentId ?? '';
-    return Array.from(root.querySelectorAll<HTMLElement>(listSelectors.item))
-        .filter((item) => (item.dataset.parent ?? '') === desiredParent);
+    return Array.from(
+        root.querySelectorAll<HTMLElement>(listSelectors.item)
+    ).filter((item) => (item.dataset.parent ?? '') === desiredParent);
 };
 
 const getPositionForDrop = (
@@ -263,9 +264,7 @@ export const setupDragAndDrop = (
 
         event.preventDefault();
 
-        const rootItems = Array.from(
-            getSiblingItems(root, null)
-        );
+        const rootItems = Array.from(getSiblingItems(root, null));
 
         const position = rootItems.length;
 

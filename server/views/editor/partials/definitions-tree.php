@@ -133,8 +133,7 @@ if (!function_exists('render_definition_items')) {
         array $nodes,
         string $listAttributes = '',
         bool $wrap = true
-    ): void
-    {
+    ): void {
         if (empty($nodes)) {
             return;
         }

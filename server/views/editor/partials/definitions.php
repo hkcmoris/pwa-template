@@ -73,8 +73,8 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
       style="display: none"
     >
       <?php $definitionsParentSwap = false;
-      $selectedParent = null;
-      include __DIR__ . '/definitions-parent-select.php'; ?>
+        $selectedParent = null;
+        include __DIR__ . '/definitions-parent-select.php'; ?>
     </div>
   </div>
 

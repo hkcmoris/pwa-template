@@ -76,7 +76,10 @@ const setupInfiniteScroll = (root: HTMLElement, basePath: string) => {
 
     const isSentinelInView = () => {
         const rect = sentinelElement.getBoundingClientRect();
-        return rect.top <= window.innerHeight + rootMargin && rect.bottom >= -rootMargin;
+        return (
+            rect.top <= window.innerHeight + rootMargin &&
+            rect.bottom >= -rootMargin
+        );
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
