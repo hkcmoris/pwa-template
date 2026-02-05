@@ -23,6 +23,57 @@ if ($__editorRole != 'superadmin') {
 }
 ?>
 <h1>Administrace</h1>
+<section class="admin-transfer" data-island="admin">
+  <h2>Import a export databáze</h2>
+  <p>Vyberte, která data chcete importovat nebo exportovat.</p>
+  <div class="admin-transfer-actions">
+    <button type="button" class="admin-action" data-admin-modal="export">
+      Export databáze
+    </button>
+    <button type="button" class="admin-action admin-action--danger" data-admin-modal="import">
+      Import databáze
+    </button>
+  </div>
+  <div id="admin-transfer-modal" class="admin-modal hidden" aria-hidden="true">
+    <div class="admin-modal-overlay" data-admin-modal-close></div>
+    <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-transfer-title">
+      <header class="admin-modal-header">
+        <h3 id="admin-transfer-title">Export databáze</h3>
+        <button type="button" class="admin-modal-close" data-admin-modal-close aria-label="Zavřít">×</button>
+      </header>
+      <form id="admin-transfer-form" class="admin-modal-body">
+        <fieldset>
+          <legend>Vyberte data</legend>
+          <label class="admin-checkbox">
+            <input type="checkbox" name="definitions" checked>
+            <span>Definice</span>
+          </label>
+          <label class="admin-checkbox">
+            <input type="checkbox" name="components" checked>
+            <span>Komponenty</span>
+          </label>
+          <label class="admin-checkbox">
+            <input type="checkbox" name="users" checked>
+            <span>Uživatelé</span>
+          </label>
+        </fieldset>
+        <fieldset class="admin-modal-confirm hidden" data-admin-confirm>
+          <legend>Potvrzení importu</legend>
+          <label class="admin-checkbox">
+            <input type="checkbox" name="confirm_overwrite">
+            <span>Chci přepsat aktuální data importem.</span>
+          </label>
+        </fieldset>
+        <div class="admin-modal-actions">
+          <button type="button" class="admin-action" data-admin-modal-close>Storno</button>
+          <button type="submit" class="admin-action admin-action--primary" data-admin-submit>
+            Exportovat
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
 <textarea
   id="admin-sql-query-input"
   name="sql_query"
