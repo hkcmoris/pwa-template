@@ -1,6 +1,8 @@
 <?php
 
 require_once __DIR__ . '/../../bootstrap.php';
+require_once __DIR__ . '/../../config/config-root.php';
+require_once __DIR__ . '/../../lib/db-root.php';
 
 if (!headers_sent()) {
     header('Content-Type: application/json; charset=UTF-8');
