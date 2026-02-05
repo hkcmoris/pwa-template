@@ -363,12 +363,12 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    max-width: 320px;
 }
 
 .component-price-input input {
-    flex: 1;
+    flex: auto;
     text-align: right;
+    width: 100%;
 }
 
 .component-price-suffix {
