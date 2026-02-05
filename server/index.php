@@ -122,12 +122,19 @@ $controllerRoutes = [
     'POST configurator/wizard/select'            => __DIR__ . '/controllers/configurator/wizard/select.php',
     'POST configurator/wizard/back'              => __DIR__ . '/controllers/configurator/wizard/back.php',
     'POST admin/sql'                             => __DIR__ . '/controllers/admin/sql.php',
+    'POST admin/export'                          => __DIR__ . '/controllers/admin/export.php',
+    'POST admin/import'                          => __DIR__ . '/controllers/admin/import.php',
+];
+
+$nonHtmxControllers = [
+    'POST admin/export',
+    'POST admin/import',
 ];
 
 $key = $method . ' ' . $route;
 if (isset($controllerRoutes[$key])) {
     // Optional: enforce HTMX only
-    if (!$isHx) {
+    if (!$isHx && !in_array($key, $nonHtmxControllers, true)) {
         http_response_code(400);
         exit;
     }

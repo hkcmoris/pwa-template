@@ -186,6 +186,40 @@
     font-size: 0.95rem;
 }
 
+.admin-modal-file.hidden {
+    display: none;
+}
+
+.admin-modal-confirm.hidden {
+    display: none;
+}
+
+.admin-file {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.95rem;
+}
+
+.admin-file input[type='file'] {
+    border: 1px dashed var(--border);
+    border-radius: 0.4rem;
+    padding: 0.4rem;
+    background: var(--bg);
+    color: inherit;
+}
+
+.admin-file input[type='file']:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.admin-file-hint {
+    margin: 0;
+    color: color-mix(in srgb, var(--fg) 70%, transparent);
+    font-size: 0.85rem;
+}
+
 .admin-modal-actions {
     display: flex;
     justify-content: flex-end;
