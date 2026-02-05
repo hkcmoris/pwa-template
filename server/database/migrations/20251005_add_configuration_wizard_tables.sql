@@ -1,6 +1,6 @@
 ALTER TABLE configurations
-    ADD COLUMN status ENUM('draft', 'submitted') NOT NULL DEFAULT 'draft' AFTER user_id,
-    ADD COLUMN current_component_id BIGINT UNSIGNED NULL AFTER status;
+    ADD COLUMN IF NOT EXISTS status ENUM('draft', 'submitted') NOT NULL DEFAULT 'draft' AFTER user_id,
+    ADD COLUMN IF NOT EXISTS current_component_id BIGINT UNSIGNED NULL AFTER status;
 
 CREATE TABLE IF NOT EXISTS configuration_selections (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
