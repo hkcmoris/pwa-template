@@ -92,21 +92,6 @@ CREATE TABLE IF NOT EXISTS definitions (
 SQL;
     $pdo->exec($definitionsTableSql);
 
-    $definitionComponentsSql = <<<'SQL'
-CREATE TABLE IF NOT EXISTS definition_components (
-  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  definition_id BIGINT UNSIGNED NOT NULL,
-  component_key VARCHAR(191) NOT NULL,
-  props JSON NULL,
-  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_component_definition_key (definition_id, component_key),
-  CONSTRAINT fk_definition_components_def FOREIGN KEY (definition_id) REFERENCES definitions(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-SQL;
-    $pdo->exec($definitionComponentsSql);
-
     $componentsSql = <<<'SQL'
 CREATE TABLE IF NOT EXISTS components (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,

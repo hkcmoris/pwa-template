@@ -137,10 +137,7 @@ export default (root: HTMLElement) => {
 
     const updateOptionAvailability = (availableTables: Set<string>) => {
         const optionMapping = [
-            {
-                input: definitionsInput,
-                tables: ['definitions', 'definition_components'],
-            },
+            { input: definitionsInput, tables: ['definitions'] },
             { input: componentsInput, tables: ['components'] },
             { input: pricesInput, tables: ['prices'] },
             { input: usersInput, tables: ['users'] },

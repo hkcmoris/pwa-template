@@ -66,7 +66,7 @@ if ($componentsSelected) {
 }
 
 $tableGroups = [
-    'definitions' => ['definitions', 'definition_components'],
+    'definitions' => ['definitions'],
     'components' => ['components'],
     'prices' => ['prices'],
     'users' => ['users'],
@@ -92,13 +92,7 @@ if (empty($selectedTables)) {
 }
 
 $selectedTables = array_values(array_unique($selectedTables));
-$allowedTables = [
-    'definitions',
-    'definition_components',
-    'components',
-    'prices',
-    'users',
-];
+$allowedTables = ['definitions', 'components', 'prices', 'users'];
 
 $statementChunks = preg_split(
     '/^-- HAGEMANN-STATEMENT\\s*$/m',

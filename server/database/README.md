@@ -4,7 +4,7 @@ This directory collects SQL migrations and helper snippets that can be executed 
 
 ## Definitions domain
 
-- `migrations/20250919_create_definitions.sql` provisions the hierarchical `definitions` table, the `definition_components` bridge for UI islands, and the `definition_tree` recursive view for reads.
+- `migrations/20250919_create_definitions.sql` provisions the hierarchical `definitions` table and the `definition_tree` recursive view for reads.
 - `seeds/definitions.sample.sql` inserts the sample "Nástavba" hierarchy from the product brief.
 - `queries/select_definition_tree.sql` shows how to pull a full tree (ordered) for a given root.
 
