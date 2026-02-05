@@ -175,7 +175,6 @@ final class Formatter
     {
         $grouped = $this->groupByParent($rows);
         $tree = $this->buildBranch($grouped, 'root', '', '');
-        log_message('Built component tree with ' . count($tree) . ' root nodes', 'DEBUG');
 
         return $tree;
     }

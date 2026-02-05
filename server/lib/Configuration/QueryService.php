@@ -56,23 +56,15 @@ final class QueryService
 
         $stmt = $this->pdo->prepare($sql);
 
-        log_message('Executing fetch configurations query', 'DEBUG');
-        log_message('SQL: ' . $sql, 'DEBUG');
-
         if ($userId !== null) {
             $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            log_message('Binding user_id: ' . $userId, 'DEBUG');
         }
         if ($limit !== null) {
             $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            log_message('Binding limit: ' . $limit, 'DEBUG');
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-            log_message('Binding offset: ' . $offset, 'DEBUG');
         }
 
-        log_message('Executing statement', 'DEBUG');
         $stmt->execute();
-        log_message('Fetched ' . $stmt->rowCount() . ' configurations from database', 'DEBUG');
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -103,7 +95,6 @@ final class QueryService
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':configuration_id', $id, PDO::PARAM_INT);
         $stmt->execute();
-        log_message('Fetched ' . $stmt->rowCount() . ' configuration components from database', 'DEBUG');
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 

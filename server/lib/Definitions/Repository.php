@@ -70,7 +70,6 @@ final class Repository
         }
 
         $stmt->execute();
-        log_message('Fetched ' . $stmt->rowCount() . ' definitions from database', 'DEBUG');
         /** @var list<array<string, mixed>> $rows */
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $rows;
@@ -218,7 +217,6 @@ final class Repository
         $message = 'Creating definition with title=' . $title
             . ', parentId=' . var_export($parentId, true)
             . ', position=' . $position;
-        log_message($message, 'DEBUG');
         $this->pdo->beginTransaction();
         try {
             if ($parentId !== null && !$this->parentExists($parentId)) {
@@ -240,7 +238,6 @@ final class Repository
             $this->bindParent($stmt, $parentId);
             $stmt->bindValue(':title', $title, PDO::PARAM_STR);
             $stmt->bindValue(':position', $position, PDO::PARAM_INT);
-            log_message('Insert query: ' . $stmt->queryString, 'DEBUG');
             $stmt->execute();
             $id = (int) $this->pdo->lastInsertId();
             $this->pdo->commit();

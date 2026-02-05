@@ -123,7 +123,6 @@ final class Repository
     public function create(int $userId): array
     {
         $message = 'Creating configuration for user=' . $userId;
-        log_message($message, 'DEBUG');
         $this->pdo->beginTransaction();
         try {
             if (!$this->userExists($userId)) {
@@ -134,7 +133,6 @@ final class Repository
                 'INSERT INTO configurations (user_id) VALUES (:user_id)'
             );
             $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
-            log_message('Insert query: ' . $stmt->queryString, 'DEBUG');
             $stmt->execute();
             $id = (int) $this->pdo->lastInsertId();
             $this->pdo->commit();
@@ -203,6 +201,5 @@ final class Repository
         $stmt = $this->pdo->prepare('DELETE FROM configurations WHERE id = :id');
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
-        log_message('Deleted configuration with ID ' . $id, 'DEBUG');
     }
 }

@@ -115,8 +115,6 @@ final class QueryService
             $normalised[] = $row;
         }
 
-        log_message('Fetched ' . count($normalised) . ' components from database', 'DEBUG');
-
         return $normalised;
     }
 
@@ -171,8 +169,6 @@ final class QueryService
             $row['latest_price'] = $history[0] ?? null;
             $normalised[] = $row;
         }
-
-        log_message('Fetched ' . count($normalised) . ' component children', 'DEBUG');
 
         return $normalised;
     }
@@ -265,9 +261,6 @@ final class QueryService
         WHERE c.id = :id
         SQL;
 
-        log_message('Finding component with ID ' . $id, 'DEBUG');
-        log_message('Executing SQL: ' . $sql, 'DEBUG');
-
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -276,8 +269,6 @@ final class QueryService
         if (!$row) {
             return null;
         }
-
-        log_message('Component found: ' . json_encode($row), 'DEBUG');
 
         $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
         $row['pos_path'] = $row['pos_path'] ?? null;

@@ -20,7 +20,6 @@ final class Formatter
             $key = $row['parent_id'] === null ? 'root' : (string) $row['parent_id'];
             $grouped[$key][] = $row;
         }
-        log_message('Grouped definitions into ' . count($grouped) . ' parent categories', 'DEBUG');
         return $this->buildBranch($grouped, 'root', '', '');
     }
 

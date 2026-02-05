@@ -41,7 +41,6 @@ final class PositionService
             'DEBUG'
         );
         $this->bindParent($bump, $parentId);
-        log_message('Bump query: ' . $bump->queryString, 'DEBUG');
 
         $bump->execute();
 
@@ -49,7 +48,6 @@ final class PositionService
             'SELECT id FROM ' . $this->tableName . ' WHERE parent_id <=> :parent ORDER BY position, id'
         );
         $this->bindParent($stmt, $parentId);
-        log_message('Phase 2: Select query: ' . $stmt->queryString, 'DEBUG');
 
         $stmt->execute();
 
@@ -110,7 +108,6 @@ final class PositionService
             'SELECT id FROM ' . $this->tableName . ' WHERE parent_id <=> :parent ORDER BY position FOR UPDATE'
         );
         $this->bindParent($stmt, $parentId);
-        log_message('Locking siblings with query: ' . $stmt->queryString, 'DEBUG');
 
         $stmt->execute();
         $stmt->closeCursor();
