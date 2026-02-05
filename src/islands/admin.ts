@@ -9,16 +9,19 @@ const updateSubmitState = (
     submitButton: HTMLButtonElement | null,
     mode: 'import' | 'export',
     fileInput?: HTMLInputElement | null,
-    confirmInput?: HTMLInputElement | null
+    confirmInput?: HTMLInputElement | null,
+    selectionActive = true
 ) => {
     if (!submitButton) {
         return;
     }
     if (mode === 'import') {
         submitButton.disabled =
-            !fileInput?.files?.length || !confirmInput?.checked;
+            !fileInput?.files?.length ||
+            !confirmInput?.checked ||
+            !selectionActive;
     } else {
-        submitButton.disabled = false;
+        submitButton.disabled = !selectionActive;
     }
 };
 
@@ -32,6 +35,7 @@ export default (root: HTMLElement) => {
         '#admin-transfer-title'
     );
     const form = modal.querySelector<HTMLFormElement>('#admin-transfer-form');
+    const dataFieldset = modal.querySelector<HTMLElement>('[data-admin-data]');
     const fileFieldset = modal.querySelector<HTMLElement>('[data-admin-file]');
     const fileInput = modal.querySelector<HTMLInputElement>(
         'input[name="sql_file"]'
@@ -53,6 +57,9 @@ export default (root: HTMLElement) => {
     );
     const componentsInput = modal.querySelector<HTMLInputElement>(
         'input[name="components"]'
+    );
+    const pricesInput = modal.querySelector<HTMLInputElement>(
+        'input[name="prices"]'
     );
     const usersInput = modal.querySelector<HTMLInputElement>(
         'input[name="users"]'
@@ -89,7 +96,17 @@ export default (root: HTMLElement) => {
         Boolean(
             definitionsInput?.checked ||
             componentsInput?.checked ||
+            pricesInput?.checked ||
             usersInput?.checked
+        );
+
+    const refreshSubmitState = () =>
+        updateSubmitState(
+            submitButton,
+            currentMode,
+            fileInput,
+            confirmInput,
+            hasSelection()
         );
 
     const syncDefinitionDependency = () => {
@@ -102,6 +119,72 @@ export default (root: HTMLElement) => {
         } else {
             definitionsInput.disabled = false;
         }
+    };
+
+    const getAvailableTables = (sql: string) => {
+        const tables = new Set<string>();
+        const truncateRegex = /TRUNCATE\s+TABLE\s+`?([a-z0-9_]+)`?/gi;
+        const insertRegex = /INSERT\s+INTO\s+`?([a-z0-9_]+)`?/gi;
+        let match: RegExpExecArray | null;
+        while ((match = truncateRegex.exec(sql)) !== null) {
+            tables.add(match[1]);
+        }
+        while ((match = insertRegex.exec(sql)) !== null) {
+            tables.add(match[1]);
+        }
+        return tables;
+    };
+
+    const updateOptionAvailability = (availableTables: Set<string>) => {
+        const optionMapping = [
+            {
+                input: definitionsInput,
+                tables: ['definitions', 'definition_components'],
+            },
+            { input: componentsInput, tables: ['components'] },
+            { input: pricesInput, tables: ['prices'] },
+            { input: usersInput, tables: ['users'] },
+        ];
+
+        optionMapping.forEach(({ input, tables }) => {
+            if (!input) {
+                return;
+            }
+            const isAvailable = tables.some((table) => availableTables.has(table));
+            input.disabled = !isAvailable;
+            if (!isAvailable) {
+                input.checked = false;
+            } else {
+                input.checked = true;
+            }
+        });
+        syncDefinitionDependency();
+    };
+
+    const resetOptionState = () => {
+        [definitionsInput, componentsInput, pricesInput, usersInput].forEach(
+            (input) => {
+                if (!input) {
+                    return;
+                }
+                input.disabled = false;
+                input.checked = true;
+            }
+        );
+        syncDefinitionDependency();
+    };
+
+    const clearOptionState = () => {
+        [definitionsInput, componentsInput, pricesInput, usersInput].forEach(
+            (input) => {
+                if (!input) {
+                    return;
+                }
+                input.disabled = true;
+                input.checked = false;
+            }
+        );
+        syncDefinitionDependency();
     };
 
     const openModal = (mode: 'import' | 'export') => {
@@ -120,6 +203,14 @@ export default (root: HTMLElement) => {
         if (fileFieldset) {
             fileFieldset.classList.toggle('hidden', mode !== 'import');
         }
+        if (dataFieldset) {
+            dataFieldset.classList.toggle('hidden', mode === 'import');
+        }
+        if (mode === 'export') {
+            resetOptionState();
+        } else {
+            clearOptionState();
+        }
         if (fileInput) {
             fileInput.value = '';
             fileInput.required = mode === 'import';
@@ -131,7 +222,13 @@ export default (root: HTMLElement) => {
             confirmInput.checked = false;
             confirmInput.required = mode === 'import';
         }
-        updateSubmitState(submitButton, mode, fileInput, confirmInput);
+        updateSubmitState(
+            submitButton,
+            mode,
+            fileInput,
+            confirmInput,
+            hasSelection()
+        );
         hideFeedback();
         requestAnimationFrame(() => {
             if (mode === 'import') {
@@ -167,13 +264,57 @@ export default (root: HTMLElement) => {
         });
 
     fileInput?.addEventListener('change', () => {
-        updateSubmitState(submitButton, currentMode, fileInput, confirmInput);
+        refreshSubmitState();
+        if (currentMode !== 'import') {
+            return;
+        }
+        if (!fileInput.files?.length) {
+            dataFieldset?.classList.add('hidden');
+            return;
+        }
+        const [file] = fileInput.files;
+        file
+            .text()
+            .then((contents) => {
+                if (!contents.includes('-- HAGEMANN APP EXPORT v1')) {
+                    showFeedback(
+                        'Soubor není exportem této aplikace.',
+                        'error'
+                    );
+                    dataFieldset?.classList.add('hidden');
+                    return;
+                }
+                const tables = getAvailableTables(contents);
+                if (tables.size === 0) {
+                    showFeedback(
+                        'SQL soubor neobsahuje žádné tabulky k importu.',
+                        'error'
+                    );
+                    dataFieldset?.classList.add('hidden');
+                    return;
+                }
+                updateOptionAvailability(tables);
+                dataFieldset?.classList.remove('hidden');
+                hideFeedback();
+                refreshSubmitState();
+            })
+            .catch(() => {
+                showFeedback('SQL soubor se nepodařilo načíst.', 'error');
+                dataFieldset?.classList.add('hidden');
+                refreshSubmitState();
+            });
     });
     confirmInput?.addEventListener('change', () => {
-        updateSubmitState(submitButton, currentMode, fileInput, confirmInput);
+        refreshSubmitState();
     });
 
-    componentsInput?.addEventListener('change', syncDefinitionDependency);
+    componentsInput?.addEventListener('change', () => {
+        syncDefinitionDependency();
+        refreshSubmitState();
+    });
+    definitionsInput?.addEventListener('change', refreshSubmitState);
+    pricesInput?.addEventListener('change', refreshSubmitState);
+    usersInput?.addEventListener('change', refreshSubmitState);
     syncDefinitionDependency();
 
     const downloadBlob = (blob: Blob, filename: string) => {

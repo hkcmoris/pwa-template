@@ -58,6 +58,7 @@ if (strpos($rawSql, '-- HAGEMANN APP EXPORT v1') === false) {
 
 $definitionsSelected = isset($_POST['definitions']);
 $componentsSelected = isset($_POST['components']);
+$pricesSelected = isset($_POST['prices']);
 $usersSelected = isset($_POST['users']);
 
 if ($componentsSelected) {
@@ -66,7 +67,8 @@ if ($componentsSelected) {
 
 $tableGroups = [
     'definitions' => ['definitions', 'definition_components'],
-    'components' => ['components', 'prices'],
+    'components' => ['components'],
+    'prices' => ['prices'],
     'users' => ['users'],
 ];
 
@@ -76,6 +78,9 @@ if ($definitionsSelected) {
 }
 if ($componentsSelected) {
     $selectedTables = array_merge($selectedTables, $tableGroups['components']);
+}
+if ($pricesSelected) {
+    $selectedTables = array_merge($selectedTables, $tableGroups['prices']);
 }
 if ($usersSelected) {
     $selectedTables = array_merge($selectedTables, $tableGroups['users']);
