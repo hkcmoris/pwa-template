@@ -25,7 +25,7 @@ if ($componentsSelected) {
 }
 
 $tableGroups = [
-    'definitions' => ['definitions', 'definition_components'],
+    'definitions' => ['definitions'],
     'components' => ['components'],
     'prices' => ['prices'],
     'users' => ['users'],
@@ -100,13 +100,7 @@ $buildInsertStatements = static function (
 
 try {
     $pdo = get_db_connection();
-    $insertOrder = [
-        'definitions',
-        'definition_components',
-        'components',
-        'prices',
-        'users',
-    ];
+    $insertOrder = ['definitions', 'components', 'prices', 'users'];
     $truncateOrder = array_reverse($insertOrder);
     $statements = [];
     $statements[] = 'SET FOREIGN_KEY_CHECKS=0';
