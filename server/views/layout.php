@@ -108,7 +108,7 @@ foreach ($viewStyles as $styleId => $entry) {
         text-decoration: underline;
       }
 
-      header {
+      header#main-header {
         display: flex;
         align-items: center;
         gap: 0.75rem;
