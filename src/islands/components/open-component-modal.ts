@@ -206,6 +206,19 @@ export const createOpenComponentModal = ({
                 selectedImages.forEach((item, index) => {
                     const entry = document.createElement('li');
                     entry.className = 'component-image-entry';
+                    const thumb = document.createElement('figure');
+                    thumb.className = 'component-image-thumb';
+                    const media = document.createElement('div');
+                    media.className = 'component-image-thumb-media component-image-thumb-media--tiny';
+                    const image = document.createElement('image') as HTMLImageElement;
+                    image.src = item.label ?? '/public/assets/images/missing-image.thumb.webp';
+                    image.width = 20;
+                    image.height = 20;
+                    image.loading = 'lazy';
+                    image.decoding = 'async';
+                    media.appendChild(image);
+                    thumb.appendChild(media);
+                    entry.appendChild(thumb);
                     const label = document.createElement('span');
                     label.className = 'component-image-path';
                     label.textContent = item.label;
@@ -213,10 +226,15 @@ export const createOpenComponentModal = ({
                     const removeButton = document.createElement('button');
                     removeButton.type = 'button';
                     removeButton.className =
-                        'component-action component-image-remove';
+                        'component-action component-action--danger component-image-remove';
                     removeButton.dataset.imageRemove = 'true';
                     removeButton.dataset.index = String(index);
-                    removeButton.textContent = 'Odebrat';
+                    // removeButton.textContent = 'Odebrat';
+                    removeButton.innerHTML = `
+                    <svg fill="currentColor" width="16px" height="16px" display="block" style="display: block;" aria-hidden="true">
+                        <use href="#icon-trash"></use>
+                    </svg>
+                    `;
                     entry.appendChild(removeButton);
                     imageList.appendChild(entry);
                 });
