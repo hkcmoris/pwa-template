@@ -43,7 +43,7 @@ if ($__editorRole != 'superadmin') {
       </header>
       <form id="admin-transfer-form" class="admin-modal-body" enctype="multipart/form-data">
         <?= csrf_field(); ?>
-        <fieldset>
+        <fieldset data-admin-data>
           <legend>Vyberte data</legend>
           <label class="admin-checkbox">
             <input type="checkbox" name="definitions" checked>
@@ -52,6 +52,10 @@ if ($__editorRole != 'superadmin') {
           <label class="admin-checkbox">
             <input type="checkbox" name="components" checked>
             <span>Komponenty</span>
+          </label>
+          <label class="admin-checkbox">
+            <input type="checkbox" name="prices" checked>
+            <span>Ceníky</span>
           </label>
           <label class="admin-checkbox">
             <input type="checkbox" name="users" checked>
