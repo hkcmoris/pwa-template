@@ -105,7 +105,7 @@
 }
 
 [data-theme='dark'] .definition-position {
-    color: #cbd5e1;
+    color: var(--fg-muted);
 }
 
 .definition-node-info {
@@ -121,7 +121,7 @@
 }
 
 [data-theme='dark'] .definition-range-label {
-    color: #cbd5e1;
+    color: var(--fg-muted);
 }
 
 .definition-actions {

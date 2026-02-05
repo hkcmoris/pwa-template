@@ -80,7 +80,7 @@ header nav a:hover,
 
 [data-theme='dark'] header nav a:not(.active),
 [data-theme='dark'] .subnav a:not(.active) {
-    color: #cbd5e1;
+    color: var(--fg-muted);
 }
 
 [data-theme='dark'] header nav a:not(.active):hover,

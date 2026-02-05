@@ -156,7 +156,7 @@
 }
 
 [data-theme='dark'] .component-position {
-    color: #cbd5e1;
+    color: var(--fg-muted);
 }
 
 .component-node-header {
@@ -187,7 +187,7 @@
 }
 
 [data-theme='dark'] .component-alias {
-    color: #cbd5e1;
+    color: var(--fg-muted);
 }
 
 .component-meta {
@@ -420,17 +420,17 @@
 }
 
 [data-theme='dark'] .component-price-history-item time {
-    color: var(--fg-muted, #cbd5e1);
+    color: var(--fg-muted);
 }
 
 .component-price-history-empty {
     font-size: 0.85rem;
     font-style: italic;
-    color: var(--fg-muted, #6b7280);
+    color: var(--fg-muted);
 }
 
 [data-theme='dark'] .component-price-history-empty {
-    color: var(--fg-muted, #94a3b8);
+    color: var(--fg-muted);
 }
 
 .component-field--media {
