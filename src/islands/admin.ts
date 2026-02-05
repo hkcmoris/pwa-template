@@ -42,8 +42,9 @@ export default (root: HTMLElement) => {
     const confirmInput = modal.querySelector<HTMLInputElement>(
         'input[name="confirm_overwrite"]'
     );
-    const submitButton =
-        modal.querySelector<HTMLButtonElement>('[data-admin-submit]');
+    const submitButton = modal.querySelector<HTMLButtonElement>(
+        '[data-admin-submit]'
+    );
     const focusTarget = modal.querySelector<HTMLInputElement>(
         'input[name="definitions"]'
     );
@@ -66,13 +67,19 @@ export default (root: HTMLElement) => {
         }
         feedback.textContent = message;
         feedback.classList.remove('hidden');
-        feedback.classList.toggle('admin-feedback--success', status === 'success');
+        feedback.classList.toggle(
+            'admin-feedback--success',
+            status === 'success'
+        );
         feedback.classList.toggle('admin-feedback--error', status === 'error');
     };
 
     const hideFeedback = () => {
         feedback?.classList.add('hidden');
-        feedback?.classList.remove('admin-feedback--success', 'admin-feedback--error');
+        feedback?.classList.remove(
+            'admin-feedback--success',
+            'admin-feedback--error'
+        );
         if (feedback) {
             feedback.textContent = '';
         }
@@ -81,8 +88,8 @@ export default (root: HTMLElement) => {
     const hasSelection = () =>
         Boolean(
             definitionsInput?.checked ||
-                componentsInput?.checked ||
-                usersInput?.checked
+            componentsInput?.checked ||
+            usersInput?.checked
         );
 
     const syncDefinitionDependency = () => {
@@ -153,11 +160,11 @@ export default (root: HTMLElement) => {
         }
     );
 
-    modal.querySelectorAll<HTMLElement>('[data-admin-modal-close]').forEach(
-        (button) => {
+    modal
+        .querySelectorAll<HTMLElement>('[data-admin-modal-close]')
+        .forEach((button) => {
             button.addEventListener('click', () => closeModal());
-        }
-    );
+        });
 
     fileInput?.addEventListener('change', () => {
         updateSubmitState(submitButton, currentMode, fileInput, confirmInput);
@@ -234,10 +241,12 @@ export default (root: HTMLElement) => {
                 const blob = await response.blob();
                 const disposition = response.headers.get('content-disposition');
                 const match = disposition?.match(/filename="?([^";]+)"?/i);
-                const filename =
-                    match?.[1] || 'admin-export.sql';
+                const filename = match?.[1] || 'admin-export.sql';
                 downloadBlob(blob, filename);
-                showFeedback('Export byl úspěšně připraven ke stažení.', 'success');
+                showFeedback(
+                    'Export byl úspěšně připraven ke stažení.',
+                    'success'
+                );
             } else {
                 const payload = (await response.json().catch(() => null)) as {
                     message?: string;
