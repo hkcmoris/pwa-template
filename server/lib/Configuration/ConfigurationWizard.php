@@ -92,6 +92,12 @@ final class ConfigurationWizard
                     $wizard->currentComponentId = $componentId;
                     $wizard->repository->updateCurrentComponent($wizard->configurationId, $componentId);
                 }
+            } else {
+                $rootComponent = $wizard->findStartRootComponent();
+                if ($rootComponent !== null) {
+                    $wizard->currentComponentId = (int) $rootComponent['id'];
+                    $wizard->repository->updateCurrentComponent($wizard->configurationId, $wizard->currentComponentId);
+                }
             }
         }
 
@@ -132,6 +138,10 @@ final class ConfigurationWizard
      */
     public function getAvailableOptions(): array
     {
+        if ($this->currentComponentId === null) {
+            $this->ensureStartRootComponent();
+        }
+
         $children = $this->components->fetchChildren($this->currentComponentId);
         if ($children === []) {
             return [];
@@ -151,6 +161,10 @@ final class ConfigurationWizard
 
     public function selectComponent(int $componentId): void
     {
+        if ($this->currentComponentId === null) {
+            $this->ensureStartRootComponent();
+        }
+
         $component = $this->components->find($componentId);
         if ($component === null) {
             throw new RuntimeException('Vybraná komponenta nebyla nalezena.');
@@ -184,6 +198,11 @@ final class ConfigurationWizard
 
         $this->repository->updateCurrentComponent($this->configurationId, $componentId);
         $this->currentComponentId = $componentId;
+        $nextRoot = $this->maybeAdvanceToNextRootComponent($componentId);
+        if ($nextRoot !== null) {
+            $this->currentComponentId = (int) $nextRoot['id'];
+            $this->repository->updateCurrentComponent($this->configurationId, $this->currentComponentId);
+        }
         $this->selectedPath = null;
     }
 
@@ -203,6 +222,9 @@ final class ConfigurationWizard
         if (!empty($remaining)) {
             $lastSelection = end($remaining);
             $newCurrent = isset($lastSelection['component_id']) ? (int) $lastSelection['component_id'] : null;
+        } else {
+            $rootComponent = $this->findStartRootComponent();
+            $newCurrent = $rootComponent !== null ? (int) $rootComponent['id'] : null;
         }
 
         $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
@@ -225,5 +247,89 @@ final class ConfigurationWizard
             'current_component' => $current,
             'is_complete' => $isComplete,
         ];
+    }
+
+    private function ensureStartRootComponent(): void
+    {
+        if ($this->currentComponentId !== null) {
+            return;
+        }
+
+        $rootComponent = $this->findStartRootComponent();
+        if ($rootComponent === null) {
+            return;
+        }
+
+        $this->currentComponentId = (int) $rootComponent['id'];
+        $this->repository->updateCurrentComponent($this->configurationId, $this->currentComponentId);
+    }
+
+    /**
+     * @return ComponentRow|null
+     */
+    private function findStartRootComponent(): ?array
+    {
+        $roots = $this->components->fetchChildren(null);
+        if ($roots === []) {
+            return null;
+        }
+
+        foreach ($roots as $root) {
+            if ((int) ($root['position'] ?? -1) === 0) {
+                return $root;
+            }
+        }
+
+        return $roots[0];
+    }
+
+    /**
+     * @return ComponentRow|null
+     */
+    private function maybeAdvanceToNextRootComponent(int $componentId): ?array
+    {
+        $children = $this->components->fetchChildren($componentId);
+        if ($children !== []) {
+            return null;
+        }
+
+        $rootComponent = $this->resolveRootComponent($componentId);
+        if ($rootComponent === null) {
+            return null;
+        }
+
+        $roots = $this->components->fetchChildren(null);
+        if ($roots === []) {
+            return null;
+        }
+
+        $rootId = (int) $rootComponent['id'];
+        foreach ($roots as $index => $root) {
+            if ((int) $root['id'] === $rootId) {
+                return $roots[$index + 1] ?? null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ComponentRow|null
+     */
+    private function resolveRootComponent(int $componentId): ?array
+    {
+        $component = $this->components->find($componentId);
+        if ($component === null) {
+            return null;
+        }
+
+        while (!empty($component['parent_id'])) {
+            $component = $this->components->find((int) $component['parent_id']);
+            if ($component === null) {
+                return null;
+            }
+        }
+
+        return $component;
     }
 }
