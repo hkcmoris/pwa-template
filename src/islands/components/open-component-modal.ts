@@ -209,14 +209,24 @@ export const createOpenComponentModal = ({
                     const thumb = document.createElement('figure');
                     thumb.className = 'component-image-thumb';
                     const media = document.createElement('div');
-                    media.className = 'component-image-thumb-media component-image-thumb-media--tiny';
-                    const image = document.createElement('image') as HTMLImageElement;
-                    image.src = item.label ?? '/public/assets/images/missing-image.thumb.webp';
-                    image.width = 20;
-                    image.height = 20;
-                    image.loading = 'lazy';
-                    image.decoding = 'async';
-                    media.appendChild(image);
+                    media.className =
+                        'component-image-thumb-media component-image-thumb-media--tiny';
+                    const img = document.createElement(
+                        'img'
+                    ) as HTMLImageElement;
+                    img.src =
+                        item.value ?? '/public/assets/images/missing-image.svg';
+                    img.alt =
+                        item.label ?? 'Thumbnail image preview of component.';
+                    img.width = 20;
+                    img.height = 20;
+                    img.loading = 'lazy';
+                    img.decoding = 'async';
+                    img.onerror = () => {
+                        img.onerror = null; // prevent infinite loop
+                        img.src = '/public/assets/images/missing-image.svg';
+                    };
+                    media.appendChild(img);
                     thumb.appendChild(media);
                     entry.appendChild(thumb);
                     const label = document.createElement('span');

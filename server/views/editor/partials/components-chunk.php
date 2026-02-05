@@ -177,6 +177,7 @@ foreach ($items as $node) {
                                     height="48px"
                                     loading="lazy"
                                     decoding="async"
+                                    onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
                                   >
                                 </div>
                               </figure>
