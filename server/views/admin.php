@@ -41,7 +41,8 @@ if ($__editorRole != 'superadmin') {
         <h3 id="admin-transfer-title">Export databáze</h3>
         <button type="button" class="admin-modal-close" data-admin-modal-close aria-label="Zavřít">×</button>
       </header>
-      <form id="admin-transfer-form" class="admin-modal-body">
+      <form id="admin-transfer-form" class="admin-modal-body" enctype="multipart/form-data">
+        <?= csrf_field(); ?>
         <fieldset>
           <legend>Vyberte data</legend>
           <label class="admin-checkbox">
@@ -56,6 +57,16 @@ if ($__editorRole != 'superadmin') {
             <input type="checkbox" name="users" checked>
             <span>Uživatelé</span>
           </label>
+        </fieldset>
+        <fieldset class="admin-modal-file hidden" data-admin-file>
+          <legend>SQL soubor</legend>
+          <label class="admin-file">
+            <input type="file" name="sql_file" accept=".sql">
+            <span class="admin-file-label">Vyberte SQL soubor k importu</span>
+          </label>
+          <p class="admin-file-hint">
+            Import podporuje pouze export z této aplikace.
+          </p>
         </fieldset>
         <fieldset class="admin-modal-confirm hidden" data-admin-confirm>
           <legend>Potvrzení importu</legend>
