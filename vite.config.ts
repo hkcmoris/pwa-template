@@ -5,7 +5,8 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
     const rawBase = (env.APP_BASE || process.env.APP_BASE || '').trim();
     const normalized = rawBase ? `/${rawBase.replace(/^\/+|\/+$/g, '')}` : '';
-    const base = mode === 'production' ? `${normalized}/public/assets/` : '/';
+    const isProdLike = mode === 'production' || mode === 'staging';
+    const base = isProdLike ? `${normalized}/public/assets/` : '/';
 
     console.log(
         `Vite config: mode=${mode}, APP_BASE='${rawBase}' => base='${base}'`

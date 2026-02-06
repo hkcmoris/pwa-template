@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 function loadServerEnvForProductionBuild(mode) {
     try {
         const file = resolve(process.cwd(), `.env.${mode}`);
+        console.log(`env file loaded: ${file}`);
         if (!existsSync(file)) return;
         const preferred = new Set(['APP_BASE', 'VITE_API_BASE_URL']);
         const lines = readFileSync(file, 'utf8').split(/\r?\n/);
