@@ -3,9 +3,9 @@ import { execSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-function loadServerEnvForProductionBuild() {
+function loadServerEnvForProductionBuild(mode) {
     try {
-        const file = resolve(process.cwd(), '.env.production');
+        const file = resolve(process.cwd(), `.env.${mode}`);
         if (!existsSync(file)) return;
         const preferred = new Set(['APP_BASE', 'VITE_API_BASE_URL']);
         const lines = readFileSync(file, 'utf8').split(/\r?\n/);
@@ -32,14 +32,16 @@ function loadServerEnvForProductionBuild() {
     }
 }
 
-// Ensure Vite sees APP_BASE and VITE_API_BASE_URL from server/.env.production
-loadServerEnvForProductionBuild();
+const mode = process.argv[2] || 'production';
+
+// Ensure Vite sees APP_BASE and VITE_API_BASE_URL from server/.env.<mode>
+loadServerEnvForProductionBuild(mode);
 
 // type-check without emitting files
 execSync('tsc --noEmit', { stdio: 'inherit' });
 
 // run vite build
-execSync('vite build', { stdio: 'inherit' });
+execSync(`vite build --mode ${mode}`, { stdio: 'inherit' });
 
 // After build, version the Service Worker by copying to sw-<BUILD_HASH>.js
 import { readdirSync, writeFileSync } from 'node:fs';
@@ -103,6 +105,7 @@ importScripts(new URL('sw/sw-${buildHash}.js', self.location).toString());
     `.trim();
     writeFileSync(swLoaderPath, loader, 'utf-8');
 
+    console.log(`[build] Mode: ${mode}`);
     console.log(`[build] Service Worker written: ${swDest}`);
     console.log(`[build] SW loader written: ${swLoaderPath}`);
 } catch (e) {
