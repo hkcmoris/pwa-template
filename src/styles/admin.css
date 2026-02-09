@@ -188,7 +188,7 @@
     font-size: 0.95rem;
 }
 
-.admin-checkbox input[type="checkbox"]:disabled + span {
+.admin-checkbox input[type='checkbox']:disabled + span {
     color: var(--fg-muted);
 }
 

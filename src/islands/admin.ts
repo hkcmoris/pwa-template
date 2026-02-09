@@ -147,7 +147,9 @@ export default (root: HTMLElement) => {
             if (!input) {
                 return;
             }
-            const isAvailable = tables.some((table) => availableTables.has(table));
+            const isAvailable = tables.some((table) =>
+                availableTables.has(table)
+            );
             input.disabled = !isAvailable;
             if (!isAvailable) {
                 input.checked = false;
@@ -270,8 +272,7 @@ export default (root: HTMLElement) => {
             return;
         }
         const [file] = fileInput.files;
-        file
-            .text()
+        file.text()
             .then((contents) => {
                 if (!contents.includes('-- HAGEMANN APP EXPORT v1')) {
                     showFeedback(
