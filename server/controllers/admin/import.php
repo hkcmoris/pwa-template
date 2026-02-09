@@ -135,7 +135,7 @@ foreach ($statementChunks as $chunk) {
         $seenTables[$table] = true;
         if (in_array($table, $selectedTables, true)) {
             $selectedSeenTables[$table] = true;
-            $statements[] = ['sql' => $clean, 'table' => $table];
+            $statements[] = ['sql' => $clean, 'table' => $table, 'type' => 'truncate'];
         }
         continue;
     }
@@ -156,7 +156,7 @@ foreach ($statementChunks as $chunk) {
         $seenTables[$table] = true;
         if (in_array($table, $selectedTables, true)) {
             $selectedSeenTables[$table] = true;
-            $statements[] = ['sql' => $clean, 'table' => $table];
+            $statements[] = ['sql' => $clean, 'table' => $table, 'type' => 'insert'];
         }
         continue;
     }
@@ -189,7 +189,11 @@ try {
     $pdo->beginTransaction();
     $executed = 0;
     foreach ($statements as $statement) {
-        $pdo->exec($statement['sql']);
+        $sql = $statement['sql'];
+        if (($statement['type'] ?? null) === 'truncate') {
+            $sql = 'DELETE FROM `' . $statement['table'] . '`';
+        }
+        $pdo->exec($sql);
         $executed++;
     }
     $pdo->commit();
