@@ -48,17 +48,17 @@ $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
       hx-target="#content"
       hx-select="#content"
       hx-swap="outerHTML"
-    >Pokračovat v posledním draftu (#<?= htmlspecialchars((string) $latestDraftId) ?>)</button>
+    >Pokračovat v posledním návrhu (#<?= htmlspecialchars((string) $latestDraftId) ?>)</button>
   <?php endif; ?>
 </div>
 
 <?php if ($drafts !== []) : ?>
-  <h2>Rozpracované drafty</h2>
-  <ul>
+  <h2>Rozpracované návrhy</h2>
+  <ul class="draft-list">
     <?php foreach ($drafts as $draft) : ?>
         <?php $draftId = (int) $draft['id']; ?>
       <li>
-        <span>Draft #<?= htmlspecialchars((string) $draftId) ?></span>
+        <span>Návrh #<?= htmlspecialchars((string) $draftId) ?></span>
         <?php if (!empty($draft['updated_at'])) : ?>
           <time datetime="<?= htmlspecialchars((string) $draft['updated_at']) ?>">
             <?= htmlspecialchars((string) $draft['updated_at']) ?>
