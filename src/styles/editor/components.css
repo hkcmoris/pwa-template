@@ -353,6 +353,73 @@
 .component-field label {
     font-weight: 600;
     font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+}
+
+.component-help {
+    display: none;
+    white-space: nowrap;
+    position: absolute;
+    bottom: calc(100% + 10px); /* ⬆ above icon */
+    left: 50%;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    padding: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+    z-index: 10;
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease;
+}
+
+.component-help::after {
+    content: '';
+    position: absolute;
+    top: 100%; /* bottom of tooltip */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--bg);
+}
+
+.component-help::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid var(--border);
+}
+
+[data-theme='dark'] .component-help {
+    color: #cbd5e1;
+}
+
+.info-wrapper:hover .component-help,
+.info-wrapper:focus-within .component-help {
+    display: block;
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 .component-field--price {
@@ -718,16 +785,6 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-}
-
-.component-help {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin: 0;
-}
-
-[data-theme='dark'] .component-help {
-    color: #cbd5e1;
 }
 
 .form-feedback {

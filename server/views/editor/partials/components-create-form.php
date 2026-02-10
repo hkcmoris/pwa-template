@@ -21,7 +21,13 @@ $parentPlaceholder = 'Kořenová komponenta';
   <fieldset>
     <legend>Přidat novou komponentu</legend>
     <div class="component-field">
-      <label id="component-modal-definition-label" for="component-modal-definition">Definice</label>
+      <label id="component-modal-definition-label" for="component-modal-definition">
+        Definice
+        <span class="info-wrapper">
+          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+          <span class="component-help">Povinné pole. Každá komponenta vychází z konkrétní definice.</span>
+        </span>
+      </label>
       <div class="component-select" data-select-wrapper>
         <input type="hidden" id="component-modal-definition" name="definition_id" value="">
         <div
@@ -67,10 +73,15 @@ $parentPlaceholder = 'Kořenová komponenta';
           </ul>
         </div>
       </div>
-      <p class="component-help">Povinné pole. Každá komponenta vychází z konkrétní definice.</p>
     </div>
     <div class="component-field">
-      <label for="component-modal-title">Alternativní název</label>
+      <label for="component-modal-title">
+        Alternativní název
+        <span class="info-wrapper">
+          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+          <span class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</span>
+        </span>
+      </label>
       <input
         type="text"
         id="component-modal-title"
@@ -78,10 +89,15 @@ $parentPlaceholder = 'Kořenová komponenta';
         maxlength="191"
         placeholder="např. Střešní spojler"
       >
-      <p class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</p>
     </div>
     <div class="component-field">
-      <label id="component-modal-parent-label" for="component-modal-parent">Rodič</label>
+      <label id="component-modal-parent-label" for="component-modal-parent">
+        Rodič
+        <span class="info-wrapper">
+          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+          <span class="component-help">Volitelné. Zvolte rodičovskou komponentu pro vytvoření hierarchie.</span>
+        </span>
+      </label>
       <div class="component-select" data-select-wrapper>
         <input type="hidden" id="component-modal-parent" name="parent_id" value="">
         <div
@@ -126,10 +142,15 @@ $parentPlaceholder = 'Kořenová komponenta';
           </ul>
         </div>
       </div>
-      <p class="component-help">Volitelné. Zvolte rodičovskou komponentu pro vytvoření hierarchie.</p>
     </div>
     <div class="component-field">
-      <label for="component-modal-position">Pozice</label>
+      <label for="component-modal-position">
+        Pozice
+        <span class="info-wrapper">
+          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+          <span class="component-help">Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.</span>
+        </span>
+      </label>
       <input
         type="number"
         id="component-modal-position"
@@ -138,7 +159,6 @@ $parentPlaceholder = 'Kořenová komponenta';
         step="1"
         placeholder="automaticky"
       >
-      <p class="component-help">Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.</p>
     </div>
     <div class="component-field component-field--full">
       <label for="component-modal-description">Popis</label>
@@ -150,7 +170,13 @@ $parentPlaceholder = 'Kořenová komponenta';
       ></textarea>
     </div>
     <div class="component-field component-field--price component-field--full">
-      <label for="component-modal-price">Cena</label>
+      <label for="component-modal-price">
+        Cena
+        <span class="info-wrapper">
+          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+          <span class="component-help">Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).</span>
+        </span>
+      </label>
       <div class="component-price-input">
         <input
           type="text"
@@ -163,7 +189,6 @@ $parentPlaceholder = 'Kořenová komponenta';
         >
         <span class="component-price-suffix" data-price-currency>CZK</span>
       </div>
-      <p class="component-help">Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).</p>
       <div class="component-price-history" data-price-history-wrapper>
         <span class="component-price-history-label">Historie cen</span>
         <ul class="component-price-history-list" data-price-history-list>
@@ -178,7 +203,13 @@ $parentPlaceholder = 'Kořenová komponenta';
         <label><input type="radio" name="media_type" value="color" data-media-choice="color"> Barva</label>
       </div>
       <div class="component-media-panel" data-media-panel="image">
-        <label for="component-modal-image">Obrazek</label>
+        <label for="component-modal-image">
+          Obrázek
+          <span class="info-wrapper">
+            <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+            <span class="component-help">Vyberte obrázek z galerie (volitelné).</span>
+          </span>
+        </label>
         <div class="component-image-picker" data-image-picker>
           <input
             type="hidden"
@@ -201,10 +232,15 @@ $parentPlaceholder = 'Kořenová komponenta';
             >Odebrat vše</button>
           </div>
         </div>
-        <p class="component-help">Vyberte obrázek z galerie (volitelné).</p>
       </div>
       <div class="component-media-panel hidden" data-media-panel="color">
-        <label for="component-modal-color">Barva</label>
+        <label for="component-modal-color">
+          Barva
+          <span class="info-wrapper">
+            <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+            <span class="component-help">Hex format (#RGB nebo #RRGGBB). Swatch pomuze s vyberem.</span>
+          </span>
+        </label>
         <div class="component-color-picker">
           <input
             type="text"
@@ -222,7 +258,6 @@ $parentPlaceholder = 'Kořenová komponenta';
             aria-label="Vybrat barvu komponenty"
           >
         </div>
-        <p class="component-help">Hex format (#RGB nebo #RRGGBB). Swatch pomuze s vyberem.</p>
       </div>
     </div>
   </fieldset>
