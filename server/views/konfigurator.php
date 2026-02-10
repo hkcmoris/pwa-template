@@ -62,7 +62,13 @@ if ($userId <= 0) {
     return;
 }
 
-$wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+$requestedDraftId = isset($_GET['draft']) ? (int) $_GET['draft'] : null;
+if ($requestedDraftId !== null && $requestedDraftId <= 0) {
+    $requestedDraftId = null;
+}
+$forceCreateNewDraft = isset($_GET['new']) && $_GET['new'] === '1';
+
+$wizard = ConfigurationWizard::loadOrCreateDraft($userId, $requestedDraftId, $forceCreateNewDraft);
 $wizardPartial = __DIR__ . '/konfigurator/partials/wizard.php';
 if (is_file($wizardPartial)) {
     require $wizardPartial;

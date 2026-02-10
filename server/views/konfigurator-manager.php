@@ -1,6 +1,7 @@
 <?php
 
 use Configuration\Repository;
+use Configuration\WizardRepository;
 
 // Normalize base path for view usage.
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
@@ -22,18 +23,59 @@ if ($userId <= 0) {
 
 $pdo = get_db_connection();
 $repository = new Repository($pdo);
+$wizardRepository = new WizardRepository($pdo);
 /** @var array<int, array<string, mixed>> $configurations */
 $configurations = $repository->fetch(null, 0, $userId);
+/** @var array<int, array<string, mixed>> $drafts */
+$drafts = $wizardRepository->findDraftsByUser($userId);
+$latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
 ?>
 
 <h1>Konfigurace</h1>
-<button
-  hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator"
-  hx-push-url="true"
-  hx-target="#content"
-  hx-select="#content"
-  hx-swap="outerHTML"
->Vytvořit novou konfiguraci</button>
+<div class="konfigurator-manager-actions">
+  <button
+    hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?new=1"
+    hx-push-url="true"
+    hx-target="#content"
+    hx-select="#content"
+    hx-swap="outerHTML"
+  >Vytvořit novou konfiguraci</button>
+
+  <?php if ($latestDraftId !== null) : ?>
+    <button
+      hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $latestDraftId) ?>"
+      hx-push-url="true"
+      hx-target="#content"
+      hx-select="#content"
+      hx-swap="outerHTML"
+    >Pokračovat v posledním draftu (#<?= htmlspecialchars((string) $latestDraftId) ?>)</button>
+  <?php endif; ?>
+</div>
+
+<?php if ($drafts !== []) : ?>
+  <h2>Rozpracované drafty</h2>
+  <ul>
+    <?php foreach ($drafts as $draft) : ?>
+      <?php $draftId = (int) $draft['id']; ?>
+      <li>
+        <span>Draft #<?= htmlspecialchars((string) $draftId) ?></span>
+        <?php if (!empty($draft['updated_at'])) : ?>
+          <time datetime="<?= htmlspecialchars((string) $draft['updated_at']) ?>">
+            <?= htmlspecialchars((string) $draft['updated_at']) ?>
+          </time>
+        <?php endif; ?>
+        <button
+          hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $draftId) ?>"
+          hx-push-url="true"
+          hx-target="#content"
+          hx-select="#content"
+          hx-swap="outerHTML"
+        >Pokračovat</button>
+      </li>
+    <?php endforeach; ?>
+  </ul>
+<?php endif; ?>
+
 <div id="configurations-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
 <div id="configurations-list-wrapper">
   <?php include __DIR__ . '/konfigurator/partials/configurations-list.php'; ?>

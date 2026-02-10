@@ -54,6 +54,51 @@ final class WizardRepository
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    public function findDraftByIdForUser(int $configurationId, int $userId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, user_id, status, current_component_id, created_at, updated_at
+             FROM configurations
+             WHERE id = :id AND user_id = :user_id AND status = :status
+             LIMIT 1'
+        );
+        $stmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':status', 'draft');
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            return null;
+        }
+
+        return $row;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function findDraftsByUser(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT id, user_id, status, current_component_id, created_at, updated_at
+             FROM configurations
+             WHERE user_id = :user_id AND status = :status
+             ORDER BY updated_at DESC, id DESC'
+        );
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':status', 'draft');
+        $stmt->execute();
+
+        /** @var array<int, array<string, mixed>> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $rows;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function createDraft(int $userId): array
