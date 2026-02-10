@@ -4,6 +4,20 @@
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
+
+$componentStyleEntry = 'src/styles/admin.css';
+if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+    $componentCssHref = vite_asset_href($componentStyleEntry, $isDevEnv ?? false, $BASE);
+    if ($componentCssHref !== null) {
+        ?>
+        <link
+            rel="stylesheet"
+            id="admin"
+            href="<?= htmlspecialchars($componentCssHref, ENT_QUOTES, 'UTF-8') ?>"
+            hx-swap-oob="true">
+        <?php
+    }
+}
 // Access control: only admin or superadmin may access the editor
 $__editorUser = isset($currentUser) && is_array($currentUser) ? $currentUser : app_get_current_user();
 $__editorRole = isset($__editorUser['role']) ? $__editorUser['role'] : (isset($role) ? $role : 'guest');
