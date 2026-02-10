@@ -33,8 +33,8 @@
 
 .form-feedback.form-feedback--error {
     background: rgb(220 38 38 / 12%);
-    border: 1px solid #dc2626;
-    color: #dc2626;
+    border: 1px solid var(--danger);
+    color: var(--danger);
 }
 
 .form-feedback.form-feedback--success {
@@ -148,13 +148,13 @@
 }
 
 .definition-action--danger {
-    border-color: #dc2626;
-    color: #dc2626;
+    border-color: var(--danger);
+    color: var(--danger);
 }
 
 .definition-action--danger:hover,
 .definition-action--danger:focus-visible {
-    background: #dc2626;
+    background: var(--danger);
     color: #fff;
 }
 

@@ -320,7 +320,7 @@ body[data-route='home'] {
 }
 
 #login-message {
-    --tint: red;
+    --tint: var(--danger);
 
     color: var(--tint);
     max-width: 300px;

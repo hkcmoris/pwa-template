@@ -86,8 +86,8 @@
 .upload-errors {
     margin: 0.25rem 0;
     padding: 0.5rem;
-    border: 1px solid #dc2626;
-    color: #dc2626;
+    border: 1px solid var(--danger);
+    color: var(--danger);
     border-radius: 0.25rem;
     background: rgb(220 38 38 / 8%);
 }

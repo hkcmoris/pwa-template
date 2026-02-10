@@ -71,6 +71,7 @@ foreach ($viewStyles as $styleId => $entry) {
         --primary: #2563eb;
         --primary-contrast: #fff;
         --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
+        --danger: #dc2626;
         --fg-muted: #4b5563;
         --home-bg-light: none;
         --home-bg-dark: none;

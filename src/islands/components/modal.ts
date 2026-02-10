@@ -66,10 +66,10 @@ export const createComponentModalManager = (
     const open = (title: string, body: HTMLElement) => {
         modalRoot.innerHTML = `
             <div class="components-modal-overlay" data-modal-close></div>
-            <div class="components-modal-panel" role="dialog" aria-modal="true">
+            <div class="components-modal-panel components-modal-panel--wide" role="dialog" aria-modal="true">
               <header>
                 <h3>${escapeHtml(title)}</h3>
-                <button type="button" class="component-action" data-modal-close aria-label="Zavřít">×</button>
+                <button type="button" class="component-action component-action--danger" data-modal-close aria-label="Zavřít">×</button>
               </header>
               <div class="components-modal-body"></div>
             </div>

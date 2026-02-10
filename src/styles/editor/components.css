@@ -77,13 +77,13 @@
 }
 
 .component-action--danger {
-    border-color: #dc2626;
-    color: #dc2626;
+    border-color: var(--danger);
+    color: var(--danger);
 }
 
 .component-action--danger:hover,
 .component-action--danger:focus-visible {
-    background: #dc2626;
+    background: var(--danger);
     color: #fff;
 }
 
@@ -656,6 +656,13 @@
     outline: 2px solid var(--primary);
     outline-offset: 1px;
 }
+.component-form--modal .component-select[data-select-invalid] .select-button:focus {
+    outline: 2px solid var(--danger);
+    outline-offset: 1px;
+}
+.component-form--modal .component-select[data-select-invalid] .select-button:hover {
+    background: var(--danger);
+}
 
 .component-color-picker {
     display: flex;
@@ -722,8 +729,8 @@
 
 .form-feedback.form-feedback--error {
     background: rgb(220 38 38 / 12%);
-    border: 1px solid #dc2626;
-    color: #dc2626;
+    border: 1px solid var(--danger);
+    color: var(--danger);
 }
 
 .form-feedback.form-feedback--success {
@@ -737,5 +744,5 @@
 }
 
 .component-select[data-select-invalid] .select-button {
-    border-color: #dc2626;
+    border-color: var(--danger);
 }

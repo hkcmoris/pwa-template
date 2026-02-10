@@ -193,7 +193,7 @@ $parentPlaceholder = 'Kořenová komponenta';
           </div>
           <div class="component-image-actions">
             <button type="button" class="component-action" data-image-select-open>Vybrat obrázek</button>
-            <button type="button" class="component-action" data-image-clear disabled>Odebrat vše</button>
+            <button type="button" class="component-action component-action--danger" data-image-clear disabled>Odebrat vše</button>
           </div>
         </div>
         <p class="component-help">Vyberte obrázek z galerie (volitelné).</p>
