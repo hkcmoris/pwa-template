@@ -34,6 +34,10 @@ export default defineConfig(({ mode }) => {
                         __dirname,
                         'src/styles/konfigurator/configuration-wizard.css'
                     ),
+                    'konfigurator-manager': resolve(
+                        __dirname,
+                        'src/styles/konfigurator/manager.css'
+                    ),
                     'editor-definitions': resolve(
                         __dirname,
                         'src/styles/editor/definitions.css'
