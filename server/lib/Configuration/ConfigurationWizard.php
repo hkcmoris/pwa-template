@@ -64,15 +64,30 @@ final class ConfigurationWizard
         $this->rules = $rules;
     }
 
-    public static function loadOrCreateDraft(int $userId): self
-    {
+    public static function loadOrCreateDraft(
+        int $userId,
+        ?int $draftId = null,
+        bool $forceCreateNew = false
+    ): self {
         $repository = new WizardRepository();
         $components = new ComponentsRepository($repository->getPdo());
         $rules = new RuleEngine();
 
-        $draft = $repository->findDraftByUser($userId);
-        if ($draft === null) {
+        if ($forceCreateNew) {
             $draft = $repository->createDraft($userId);
+        } elseif ($draftId !== null) {
+            $draft = $repository->findDraftByIdForUser($draftId, $userId);
+            if ($draft === null) {
+                $draft = $repository->findDraftByUser($userId);
+            }
+            if ($draft === null) {
+                $draft = $repository->createDraft($userId);
+            }
+        } else {
+            $draft = $repository->findDraftByUser($userId);
+            if ($draft === null) {
+                $draft = $repository->createDraft($userId);
+            }
         }
 
         $wizard = new self(
