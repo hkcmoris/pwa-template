@@ -2,20 +2,29 @@
 
 /** @var array<int, array<string, mixed>> $configurations */
 $configurations = $configurations ?? [];
+
+$finishedConfigurations = array_values(array_filter(
+    $configurations,
+    static function (array $configuration): bool {
+        return ($configuration['status'] ?? '') !== 'draft';
+    }
+));
 ?>
 
-<?php if (!$configurations) : ?>
-  <p>Nemáte žádné uložené konfigurace.</p>
+<?php if (!$finishedConfigurations) : ?>
+  <p class="configurations-empty">Nemáte žádné dokončené konfigurace.</p>
 <?php else : ?>
-  <ul>
-    <?php foreach ($configurations as $configuration) : ?>
+  <ul class="configurations-list">
+    <?php foreach ($finishedConfigurations as $configuration) : ?>
       <li>
-        <span>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></span>
-        <?php if (!empty($configuration['updated_at'])) : ?>
-          <time datetime="<?= htmlspecialchars((string) $configuration['updated_at']) ?>">
-            <?= htmlspecialchars((string) $configuration['updated_at']) ?>
-          </time>
-        <?php endif; ?>
+        <div class="configuration-entry-main">
+          <strong>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></strong>
+          <?php if (!empty($configuration['updated_at'])) : ?>
+            <time datetime="<?= htmlspecialchars((string) $configuration['updated_at']) ?>">
+              <?= htmlspecialchars((string) $configuration['updated_at']) ?>
+            </time>
+          <?php endif; ?>
+        </div>
       </li>
     <?php endforeach; ?>
   </ul>

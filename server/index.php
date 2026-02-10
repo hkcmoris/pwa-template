@@ -176,6 +176,7 @@ $titleMap = [
   'about' => 'O aplikaci',
   'demo' => 'Demo',
   'konfigurator' => 'Konfigurátor',
+  'konfigurator-manager' => 'Správa konfigurací',
   '403' => 'Přístup zamítnut',
   '404' => 'Stránka nenalezena'
 ];
@@ -194,6 +195,7 @@ $descMap = [
   'about' => 'Informace o aplikaci a jejích možnostech.',
   'demo' => 'Ukázková stránka aplikace.',
   'konfigurator' => 'Konfigurátor produktu s postupným výběrem.',
+  'konfigurator-manager' => 'Přehled rozpracovaných a dokončených konfigurací uživatele.',
   '403' => 'Přístup na tuto stránku vyžaduje administrátorská oprávnění.',
   '404' => 'Požadovaná stránka nebyla nalezena.'
 ];
@@ -208,6 +210,9 @@ $viewStylesMap = [
         'konfigurator-breadcrumbs' => 'src/styles/konfigurator/breadcrumbs.css',
         'konfigurator-configuration-wizard' => 'src/styles/konfigurator/configuration-wizard.css',
         'konfigurator-component-options' => 'src/styles/konfigurator/component-options.css',
+    ],
+    'konfigurator-manager' => [
+        'konfigurator-manager' => 'src/styles/konfigurator/manager.css',
     ],
 ];
 
