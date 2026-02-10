@@ -247,6 +247,7 @@ SQL;
     CREATE TABLE IF NOT EXISTS configurations (
         id BIGINT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
+        title VARCHAR(191) NULL,
         status ENUM('draft', 'submitted') NOT NULL DEFAULT 'draft',
         current_component_id BIGINT UNSIGNED NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

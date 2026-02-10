@@ -501,6 +501,7 @@ const ensureKonfiguratorStyleSlots = () => {
     ensureSlot('konfigurator-breadcrumbs');
     ensureSlot('konfigurator-configuration-wizard');
     ensureSlot('konfigurator-component-options');
+    ensureSlot('konfigurator-manager');
 };
 
 const ensureAdminStyleSlot = () => {

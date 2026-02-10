@@ -35,7 +35,7 @@ final class WizardRepository
     public function findDraftByUser(int $userId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
              FROM configurations
              WHERE user_id = :user_id AND status = :status
              ORDER BY updated_at DESC, id DESC
@@ -59,7 +59,7 @@ final class WizardRepository
     public function findDraftByIdForUser(int $configurationId, int $userId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
              FROM configurations
              WHERE id = :id AND user_id = :user_id AND status = :status
              LIMIT 1'
@@ -83,7 +83,7 @@ final class WizardRepository
     public function findDraftsByUser(int $userId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
              FROM configurations
              WHERE user_id = :user_id AND status = :status
              ORDER BY updated_at DESC, id DESC'
@@ -106,10 +106,11 @@ final class WizardRepository
         $this->pdo->beginTransaction();
         try {
             $stmt = $this->pdo->prepare(
-                'INSERT INTO configurations (user_id, status, current_component_id)
-                 VALUES (:user_id, :status, NULL)'
+                'INSERT INTO configurations (user_id, title, status, current_component_id)
+                 VALUES (:user_id, :title, :status, NULL)'
             );
             $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->bindValue(':title', null, PDO::PARAM_NULL);
             $stmt->bindValue(':status', 'draft');
             $stmt->execute();
             $id = (int) $this->pdo->lastInsertId();
@@ -128,13 +129,43 @@ final class WizardRepository
         return $draft;
     }
 
+    public function renameDraft(int $configurationId, int $userId, string $title): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE configurations
+             SET title = :title, updated_at = CURRENT_TIMESTAMP
+             WHERE id = :id AND user_id = :user_id AND status = :status'
+        );
+        $stmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':title', $title);
+        $stmt->bindValue(':status', 'draft');
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
+    public function deleteDraft(int $configurationId, int $userId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'DELETE FROM configurations
+             WHERE id = :id AND user_id = :user_id AND status = :status'
+        );
+        $stmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':status', 'draft');
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
     /**
      * @return array<string, mixed>|null
      */
     private function findConfiguration(int $configurationId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
              FROM configurations
              WHERE id = :id'
         );
