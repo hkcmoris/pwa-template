@@ -21,7 +21,7 @@ $finishedConfigurations = array_values(array_filter(
           <strong>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></strong>
           <?php if (!empty($configuration['updated_at'])) : ?>
             <time datetime="<?= htmlspecialchars((string) $configuration['updated_at']) ?>">
-              <?= htmlspecialchars((string) $configuration['updated_at']) ?>
+                <?= htmlspecialchars((string) $configuration['updated_at']) ?>
             </time>
           <?php endif; ?>
         </div>

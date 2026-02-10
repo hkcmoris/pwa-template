@@ -14,6 +14,20 @@ if (!isset($role) || $role === 'guest') {
     return;
 }
 
+if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+    $managerCssHref = vite_asset_href('src/styles/konfigurator/manager.css', $isDevEnv ?? false, $BASE);
+    if ($managerCssHref !== null) {
+        ?>
+<link
+  rel="stylesheet"
+  id="konfigurator-manager"
+  href="<?= htmlspecialchars($managerCssHref, ENT_QUOTES, 'UTF-8') ?>"
+  hx-swap-oob="true"
+>
+        <?php
+    }
+}
+
 $userId = isset($currentUser['id']) ? (int) $currentUser['id'] : 0;
 if ($userId <= 0) {
     echo '<h1>Přístup odepřen</h1>'
@@ -53,33 +67,10 @@ $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
 </div>
 
 <h2>Rozpracované návrhy</h2>
-<?php if ($drafts !== []) : ?>
-  <ul id="draft-list" class="configurations-list">
-    <?php foreach ($drafts as $draft) : ?>
-      <?php $draftId = (int) $draft['id']; ?>
-      <li>
-        <div class="configuration-entry-main">
-          <strong>Návrh #<?= htmlspecialchars((string) $draftId) ?></strong>
-          <?php if (!empty($draft['updated_at'])) : ?>
-            <time datetime="<?= htmlspecialchars((string) $draft['updated_at']) ?>">
-              <?= htmlspecialchars((string) $draft['updated_at']) ?>
-            </time>
-          <?php endif; ?>
-        </div>
-        <button
-          class="configuration-entry-action"
-          hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $draftId) ?>"
-          hx-push-url="true"
-          hx-target="#content"
-          hx-select="#content"
-          hx-swap="outerHTML"
-        >Pokračovat</button>
-      </li>
-    <?php endforeach; ?>
-  </ul>
-<?php else : ?>
-  <p class="configurations-empty">Nemáte žádné rozpracované návrhy.</p>
-<?php endif; ?>
+<div id="draft-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
+<div id="draft-list-wrapper">
+  <?php include __DIR__ . '/konfigurator/partials/drafts-list.php'; ?>
+</div>
 
 <h2>Dokončené konfigurace</h2>
 <div id="configurations-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>

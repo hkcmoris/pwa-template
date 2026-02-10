@@ -1,0 +1,2 @@
+ALTER TABLE configurations
+    ADD COLUMN IF NOT EXISTS title VARCHAR(191) NULL AFTER user_id;

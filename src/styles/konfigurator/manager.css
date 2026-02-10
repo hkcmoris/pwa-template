@@ -63,6 +63,30 @@
     font-size: 0.85rem;
 }
 
+.configuration-entry-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.configuration-inline-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.configuration-rename-input {
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent);
+    border-radius: 0.3rem;
+    padding: 0.28rem 0.45rem;
+    min-width: 10rem;
+    background: var(--bg);
+    color: var(--fg);
+}
+
 .configuration-entry-action {
     border: 1px solid var(--primary);
     background: transparent;
@@ -78,6 +102,17 @@
 .configuration-entry-action:focus-visible {
     background: var(--primary);
     color: var(--primary-contrast);
+}
+
+.configuration-entry-action--danger {
+    border-color: var(--danger, #dc2626);
+    color: var(--danger, #dc2626);
+}
+
+.configuration-entry-action--danger:hover,
+.configuration-entry-action--danger:focus-visible {
+    background: var(--danger, #dc2626);
+    color: #fff;
 }
 
 .configurations-empty {
