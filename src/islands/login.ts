@@ -16,7 +16,7 @@ type LoginResponse = {
 
 export default function init(el: HTMLElement) {
     const form = el.querySelector('#login-form') as HTMLFormElement | null;
-    const message = el.querySelector('#login-message');
+    const message = el.querySelector('#login-message') as HTMLElement | null;
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const formData = new FormData(form);
