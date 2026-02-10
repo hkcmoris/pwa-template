@@ -366,10 +366,10 @@
 }
 
 .component-help {
-    display: none;
+    visibility: hidden;
     white-space: nowrap;
     position: absolute;
-    bottom: calc(100% + 10px); /* ⬆ above icon */
+    bottom: calc(100% + 10px); 
     left: 50%;
     font-size: 0.75rem;
     color: #6b7280;
@@ -390,7 +390,7 @@
 .component-help::after {
     content: '';
     position: absolute;
-    top: 100%; /* bottom of tooltip */
+    top: 100%; 
     left: 50%;
     transform: translateX(-50%);
     width: 0;
@@ -417,7 +417,7 @@
 
 .info-wrapper:hover .component-help,
 .info-wrapper:focus-within .component-help {
-    display: block;
+    visibility: visible;
     opacity: 1;
     transform: translateX(-50%) translateY(0);
 }
