@@ -100,11 +100,16 @@ const setupHelpTooltipClamp = (form: HTMLElement) => {
             return;
         }
 
+        const previousTransition = tooltip.style.transition;
         const previousVisibility = tooltip.style.visibility;
         const previousOpacity = tooltip.style.opacity;
+
+        tooltip.style.transition = 'none';
         tooltip.style.visibility = 'visible';
         tooltip.style.opacity = '0';
         tooltip.style.setProperty('--tooltip-shift', '0px');
+
+        void tooltip.offsetWidth;
 
         const rect = tooltip.getBoundingClientRect();
         const viewportPadding = 8;
@@ -117,6 +122,8 @@ const setupHelpTooltipClamp = (form: HTMLElement) => {
         }
 
         tooltip.style.setProperty('--tooltip-shift', `${shift}px`);
+        void tooltip.offsetWidth;
+        tooltip.style.transition = previousTransition;
         tooltip.style.visibility = previousVisibility;
         tooltip.style.opacity = previousOpacity;
     };
