@@ -26,8 +26,13 @@ if ($userId <= 0) {
     return;
 }
 
+$draftId = isset($_POST['draft_id']) ? (int) $_POST['draft_id'] : null;
+if ($draftId !== null && $draftId <= 0) {
+    $draftId = null;
+}
+
 try {
-    $wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+    $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $wizard->goBack();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
@@ -35,7 +40,7 @@ try {
     log_message('Wizard back failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(400);
     $wizardError = 'Návrat zpět se nezdařil.';
-    $wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+    $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 }
