@@ -1,6 +1,7 @@
 <?php
 
 /** @var array<string, mixed> $option */
+/** @var array<string, mixed>|null $summary */
 $option = $option ?? [];
 log_message(json_encode($option, JSON_PRETTY_PRINT), 'DEBUG');
 $optionId = isset($option['id']) ? (int) $option['id'] : 0;
@@ -10,6 +11,7 @@ $definitionTitle = (string) ($option['definition_title'] ?? '');
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
+$configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 ?>
 <div class="component-card">
     <form
@@ -20,6 +22,7 @@ $BASE = rtrim($BASE, '/');
         hx-swap="outerHTML"
     >
         <input type="hidden" name="component_id" value="<?= $optionId ?>">
+        <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
         <?php if (isset($optionImage)) : ?>
             <img
                 src="<?=  $optionImage ?>" 
