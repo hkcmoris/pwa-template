@@ -199,7 +199,7 @@ $parentPlaceholder = 'Kořenová komponenta';
     <div class="component-field component-field--media component-field--full">
       <span class="component-media-label">Reprezentace</span>
       <div class="component-media-toggle" data-media-toggle>
-        <label><input type="radio" name="media_type" value="image" checked data-media-choice="image"> Obrazek</label>
+        <label><input type="radio" name="media_type" value="image" checked data-media-choice="image"> Obrázek</label>
         <label><input type="radio" name="media_type" value="color" data-media-choice="color"> Barva</label>
       </div>
       <div class="component-media-panel" data-media-panel="image">
@@ -238,7 +238,7 @@ $parentPlaceholder = 'Kořenová komponenta';
           Barva
           <span class="info-wrapper">
             <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-            <span class="component-help">Hex format (#RGB nebo #RRGGBB). Swatch pomuze s vyberem.</span>
+            <span class="component-help">Hex formát (#RGB nebo #RRGGBB). Swatch pomůže s výběrem.</span>
           </span>
         </label>
         <div class="component-color-picker">
