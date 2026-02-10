@@ -373,6 +373,7 @@
     position: absolute;
     bottom: calc(100% + 10px); 
     left: 50%;
+    width: max-content;
     max-width: min(24rem, calc(100vw - 16px));
     font-size: 0.75rem;
     color: #6b7280;
