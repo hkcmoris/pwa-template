@@ -3,10 +3,11 @@
 /** @var array<string, mixed> $option */
 /** @var array<string, mixed>|null $summary */
 $option = $option ?? [];
-log_message(json_encode($option, JSON_PRETTY_PRINT), 'DEBUG');
+// log_message(json_encode($option, JSON_PRETTY_PRINT), 'DEBUG');
 $optionId = isset($option['id']) ? (int) $option['id'] : 0;
 $optionTitle = (string) ($option['effective_title'] ?? $option['definition_title'] ?? '');
 $optionImage = $option['image'];
+$optionColor = $option['color'];
 $definitionTitle = (string) ($option['definition_title'] ?? '');
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
@@ -25,12 +26,15 @@ $configurationId = isset($summary['configuration_id']) ? (int) $summary['configu
         <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
         <?php if (isset($optionImage)) : ?>
             <img
+                class="options-card-image"
                 src="<?=  $optionImage ?>" 
                 width="100%"
                 loading="lazy"
                 decoding="async"
                 onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
             >
+        <?php elseif (isset($optionColor)) : ?>
+            <div class="options-card-color" style="--color:<?= $optionColor ?>"></div>
         <?php endif; ?>
         <h2 class="options-card-title">
             <?= htmlspecialchars($optionTitle) ?>
