@@ -21,6 +21,7 @@ final class QueryService
      * @return array<int, array{
      *    id: int,
      *    user_id: int,
+     *    status: string,
      *    created_at: string,
      *    updated_at: string
      * }>
@@ -31,6 +32,7 @@ final class QueryService
         SELECT
             c.id,
             c.user_id,
+            c.status,
             c.created_at,
             c.updated_at
         FROM configurations c

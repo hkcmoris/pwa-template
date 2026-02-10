@@ -52,19 +52,22 @@ $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
   <?php endif; ?>
 </div>
 
+<h2>Rozpracované návrhy</h2>
 <?php if ($drafts !== []) : ?>
-  <h2>Rozpracované návrhy</h2>
-  <ul class="draft-list">
+  <ul id="draft-list" class="configurations-list">
     <?php foreach ($drafts as $draft) : ?>
-        <?php $draftId = (int) $draft['id']; ?>
+      <?php $draftId = (int) $draft['id']; ?>
       <li>
-        <span>Návrh #<?= htmlspecialchars((string) $draftId) ?></span>
-        <?php if (!empty($draft['updated_at'])) : ?>
-          <time datetime="<?= htmlspecialchars((string) $draft['updated_at']) ?>">
-            <?= htmlspecialchars((string) $draft['updated_at']) ?>
-          </time>
-        <?php endif; ?>
+        <div class="configuration-entry-main">
+          <strong>Návrh #<?= htmlspecialchars((string) $draftId) ?></strong>
+          <?php if (!empty($draft['updated_at'])) : ?>
+            <time datetime="<?= htmlspecialchars((string) $draft['updated_at']) ?>">
+              <?= htmlspecialchars((string) $draft['updated_at']) ?>
+            </time>
+          <?php endif; ?>
+        </div>
         <button
+          class="configuration-entry-action"
           hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $draftId) ?>"
           hx-push-url="true"
           hx-target="#content"
@@ -74,8 +77,11 @@ $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
       </li>
     <?php endforeach; ?>
   </ul>
+<?php else : ?>
+  <p class="configurations-empty">Nemáte žádné rozpracované návrhy.</p>
 <?php endif; ?>
 
+<h2>Dokončené konfigurace</h2>
 <div id="configurations-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
 <div id="configurations-list-wrapper">
   <?php include __DIR__ . '/konfigurator/partials/configurations-list.php'; ?>

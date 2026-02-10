@@ -1,0 +1,86 @@
+.konfigurator-manager-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin: 1rem 0 1.25rem;
+}
+
+.konfigurator-manager-actions button {
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--primary-contrast);
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.konfigurator-manager-actions button:hover,
+.konfigurator-manager-actions button:focus-visible {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.configurations-list {
+    list-style: none;
+    padding-left: 0;
+    margin: 1rem 0 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.configurations-list li {
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    padding: 0.55rem 0.65rem;
+    background: rgb(0 0 0 / 2%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
+}
+
+[data-theme='dark'] .configurations-list li {
+    border-color: rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 5%);
+}
+
+.configuration-entry-main {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+}
+
+.configuration-entry-main strong {
+    font-weight: 600;
+}
+
+.configuration-entry-main time {
+    color: var(--fg-muted);
+    font-size: 0.85rem;
+}
+
+.configuration-entry-action {
+    border: 1px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 0.3rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.configuration-entry-action:hover,
+.configuration-entry-action:focus-visible {
+    background: var(--primary);
+    color: var(--primary-contrast);
+}
+
+.configurations-empty {
+    color: var(--fg-muted, #6b7280);
+    font-style: italic;
+}
