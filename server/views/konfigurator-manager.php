@@ -56,7 +56,7 @@ $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
   <h2>Rozpracované drafty</h2>
   <ul>
     <?php foreach ($drafts as $draft) : ?>
-      <?php $draftId = (int) $draft['id']; ?>
+        <?php $draftId = (int) $draft['id']; ?>
       <li>
         <span>Draft #<?= htmlspecialchars((string) $draftId) ?></span>
         <?php if (!empty($draft['updated_at'])) : ?>

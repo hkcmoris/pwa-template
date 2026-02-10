@@ -650,17 +650,31 @@
     color: inherit;
 }
 
+.component-select .select {
+    width: 100%;
+}
+
+.component-select[data-select-invalid] .select-button {
+    border-color: var(--danger);
+}
+
 .component-form--modal input:not([type='hidden']):focus,
 .component-form--modal textarea:focus,
 .component-form--modal .select-button:focus {
     outline: 2px solid var(--primary);
     outline-offset: 1px;
 }
-.component-form--modal .component-select[data-select-invalid] .select-button:focus {
+
+.component-form--modal
+    .component-select[data-select-invalid]
+    .select-button:focus {
     outline: 2px solid var(--danger);
     outline-offset: 1px;
 }
-.component-form--modal .component-select[data-select-invalid] .select-button:hover {
+
+.component-form--modal
+    .component-select[data-select-invalid]
+    .select-button:hover {
     background: var(--danger);
 }
 
@@ -737,12 +751,4 @@
     background: rgb(22 163 74 / 12%);
     border: 1px solid #16a34a;
     color: #166534;
-}
-
-.component-select .select {
-    width: 100%;
-}
-
-.component-select[data-select-invalid] .select-button {
-    border-color: var(--danger);
 }
