@@ -366,11 +366,14 @@
 }
 
 .component-help {
-    visibility: hidden;
-    white-space: nowrap;
+    --tooltip-shift: 0px;
+
+    display: block;
+    white-space: normal;
     position: absolute;
     bottom: calc(100% + 10px); 
     left: 50%;
+    max-width: min(24rem, calc(100vw - 16px));
     font-size: 0.75rem;
     color: #6b7280;
     margin: 0;
@@ -380,18 +383,21 @@
     border-radius: 8px;
     box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
     z-index: 10;
+    visibility: hidden;
+    pointer-events: none;
     opacity: 0;
-    transform: translateX(-50%) translateY(4px);
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(4px);
     transition:
         opacity 120ms ease,
-        transform 120ms ease;
+        transform 120ms ease,
+        visibility 0s linear 120ms;
 }
 
 .component-help::after {
     content: '';
     position: absolute;
-    top: 100%; 
-    left: 50%;
+    top: 100%; /* bottom of tooltip */
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
     transform: translateX(-50%);
     width: 0;
     height: 0;
@@ -404,7 +410,7 @@
     content: '';
     position: absolute;
     top: 100%;
-    left: 50%;
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
     transform: translateX(-50%);
     border-left: 7px solid transparent;
     border-right: 7px solid transparent;
@@ -419,7 +425,8 @@
 .info-wrapper:focus-within .component-help {
     visibility: visible;
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(0);
+    transition-delay: 0s;
 }
 
 .component-field--price {

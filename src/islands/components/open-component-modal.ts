@@ -85,6 +85,57 @@ type FactoryOptions = {
     base: string;
 };
 
+const setupHelpTooltipClamp = (form: HTMLElement) => {
+    const wrappers = Array.from(
+        form.querySelectorAll<HTMLElement>('.info-wrapper')
+    );
+
+    if (wrappers.length === 0) {
+        return;
+    }
+
+    const clampTooltip = (wrapper: HTMLElement) => {
+        const tooltip = wrapper.querySelector<HTMLElement>('.component-help');
+        if (!tooltip) {
+            return;
+        }
+
+        const previousVisibility = tooltip.style.visibility;
+        const previousOpacity = tooltip.style.opacity;
+        tooltip.style.visibility = 'visible';
+        tooltip.style.opacity = '0';
+        tooltip.style.setProperty('--tooltip-shift', '0px');
+
+        const rect = tooltip.getBoundingClientRect();
+        const viewportPadding = 8;
+        let shift = 0;
+
+        if (rect.left < viewportPadding) {
+            shift = viewportPadding - rect.left;
+        } else if (rect.right > window.innerWidth - viewportPadding) {
+            shift = window.innerWidth - viewportPadding - rect.right;
+        }
+
+        tooltip.style.setProperty('--tooltip-shift', `${shift}px`);
+        tooltip.style.visibility = previousVisibility;
+        tooltip.style.opacity = previousOpacity;
+    };
+
+    wrappers.forEach((wrapper) => {
+        const update = () => clampTooltip(wrapper);
+        wrapper.addEventListener('mouseenter', update);
+        wrapper.addEventListener('focusin', update);
+    });
+
+    window.addEventListener('resize', () => {
+        wrappers.forEach((wrapper) => {
+            if (wrapper.matches(':hover') || wrapper.matches(':focus-within')) {
+                clampTooltip(wrapper);
+            }
+        });
+    });
+};
+
 export const createOpenComponentModal = ({
     modal,
     createTemplate,
@@ -357,6 +408,7 @@ export const createOpenComponentModal = ({
         }
 
         modal.open(modalTitle, form as HTMLElement);
+        setupHelpTooltipClamp(form as HTMLElement);
         focusFirstField(form as HTMLElement);
 
         imageOpenButton?.addEventListener('click', async (event) => {
