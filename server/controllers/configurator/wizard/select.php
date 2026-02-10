@@ -27,17 +27,21 @@ if ($userId <= 0) {
 }
 
 $componentId = isset($_POST['component_id']) ? (int) $_POST['component_id'] : 0;
+$draftId = isset($_POST['draft_id']) ? (int) $_POST['draft_id'] : null;
+if ($draftId !== null && $draftId <= 0) {
+    $draftId = null;
+}
 if ($componentId <= 0) {
     http_response_code(422);
     $wizardError = 'Vyberte platnou komponentu.';
-    $wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+    $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
     return;
 }
 
 try {
-    $wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+    $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $wizard->selectComponent($componentId);
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
@@ -45,7 +49,7 @@ try {
     log_message('Wizard select failed: ' . $e->getMessage(), 'ERROR');
     http_response_code(400);
     $wizardError = 'Výběr nebyl uložen. Zkuste to prosím znovu.';
-    $wizard = ConfigurationWizard::loadOrCreateDraft($userId);
+    $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 }

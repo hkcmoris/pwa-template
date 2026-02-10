@@ -14,6 +14,7 @@ $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
 $stepTitle = $currentComponent['effective_title'] ?? $currentComponent['definition_title'] ?? 'Začněte výběrem';
 $hasSelections = !empty($selectedPath);
+$configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 ?>
 <div id="component-options">
     <div class="component-options-header">
@@ -27,6 +28,7 @@ $hasSelections = !empty($selectedPath);
                 hx-target="#konfigurator-wizard"
                 hx-swap="outerHTML"
             >
+                <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
                 <button class="component-options-back" type="submit">Zpět</button>
             </form>
         <?php endif; ?>
