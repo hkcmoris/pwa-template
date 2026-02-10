@@ -2,8 +2,10 @@
 
 /** @var array<string, mixed> $option */
 $option = $option ?? [];
+log_message(json_encode($option, JSON_PRETTY_PRINT), 'DEBUG');
 $optionId = isset($option['id']) ? (int) $option['id'] : 0;
 $optionTitle = (string) ($option['effective_title'] ?? $option['definition_title'] ?? '');
+$optionImage = $option['image'];
 $definitionTitle = (string) ($option['definition_title'] ?? '');
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
@@ -18,6 +20,15 @@ $BASE = rtrim($BASE, '/');
         hx-swap="outerHTML"
     >
         <input type="hidden" name="component_id" value="<?= $optionId ?>">
+        <?php if (isset($optionImage)) : ?>
+            <img
+                src="<?=  $optionImage ?>" 
+                width="100%"
+                loading="lazy"
+                decoding="async"
+                onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
+            >
+        <?php endif; ?>
         <h2 class="options-card-title">
             <?= htmlspecialchars($optionTitle) ?>
         </h2>
