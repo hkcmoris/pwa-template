@@ -371,7 +371,7 @@
     display: block;
     white-space: normal;
     position: absolute;
-    bottom: calc(100% + 10px); /* ⬆ above icon */
+    bottom: calc(100% + 10px); 
     left: 50%;
     max-width: min(24rem, calc(100vw - 16px));
     font-size: 0.75rem;

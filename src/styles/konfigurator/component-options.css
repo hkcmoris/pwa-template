@@ -41,11 +41,22 @@
     background: var(--surface, rgb(0 0 0 / 3%));
     border: 1px solid rgb(0 0 0 / 10%);
     border-radius: 12px;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     gap: 8px;
     padding: 16px;
     width: 100%;
+}
+
+.options-card-image, .options-card-color {
+    width: calc(100% + 32px);
+    margin: -16px -16px 0 -16px;
+    min-height: 100px;
+}
+
+.options-card-color {
+    background-color: var(--color);
 }
 
 .options-card-title {
