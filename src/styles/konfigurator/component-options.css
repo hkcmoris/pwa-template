@@ -49,9 +49,10 @@
     width: 100%;
 }
 
-.options-card-image, .options-card-color {
+.options-card-image,
+.options-card-color {
     width: calc(100% + 32px);
-    margin: -16px -16px 0 -16px;
+    margin: -16px -16px 0;
     min-height: 100px;
 }
 
