@@ -365,6 +365,13 @@
     cursor: help;
 }
 
+.info-wrapper img {
+    color: var(--fg);
+}
+.info-wrapper svg path {
+    fill: var(--fg);
+}
+
 .component-help {
     --tooltip-shift: 0px;
 
