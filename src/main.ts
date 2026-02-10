@@ -499,7 +499,22 @@ const ensureKonfiguratorStyleSlots = () => {
         head.appendChild(link);
     };
     ensureSlot('konfigurator-breadcrumbs');
+    ensureSlot('konfigurator-configuration-wizard');
     ensureSlot('konfigurator-component-options');
+};
+
+const ensureAdminStyleSlot = () => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const head = document.head;
+    if (!head || document.getElementById('admin')) {
+        return;
+    }
+    const link = document.createElement('link');
+    link.id = 'admin';
+    link.rel = 'stylesheet';
+    head.appendChild(link);
 };
 
 const cloneLinkElement = (source: HTMLLinkElement) => {
@@ -597,6 +612,9 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
         queryRoute.startsWith('konfigurator')
     ) {
         ensureKonfiguratorStyleSlots();
+    }
+    if (path.includes('/admin') || queryRoute === 'admin') {
+        ensureAdminStyleSlot();
     }
 });
 
