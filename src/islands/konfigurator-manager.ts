@@ -154,10 +154,13 @@ const openRenameModal = (
     input?.focus();
     input?.select();
 
-    form.querySelector('[data-modal-close]')?.addEventListener('click', (event) => {
-        event.preventDefault();
-        modal.close();
-    });
+    form.querySelector('[data-modal-close]')?.addEventListener(
+        'click',
+        (event) => {
+            event.preventDefault();
+            modal.close();
+        }
+    );
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -189,19 +192,27 @@ const openDeleteModal = (
 
     modal.open('Smazat návrh', body);
 
-    body.querySelector('[data-modal-close]')?.addEventListener('click', (event) => {
-        event.preventDefault();
-        modal.close();
-    });
+    body.querySelector('[data-modal-close]')?.addEventListener(
+        'click',
+        (event) => {
+            event.preventDefault();
+            modal.close();
+        }
+    );
 
-    body.querySelector('[data-modal-confirm]')?.addEventListener('click', async () => {
-        await postDraftAction('delete', draftId);
-        modal.close();
-    });
+    body.querySelector('[data-modal-confirm]')?.addEventListener(
+        'click',
+        async () => {
+            await postDraftAction('delete', draftId);
+            modal.close();
+        }
+    );
 };
 
 export default (root: HTMLElement) => {
-    const modalRoot = root.querySelector<HTMLElement>('#konfigurator-manager-modal');
+    const modalRoot = root.querySelector<HTMLElement>(
+        '#konfigurator-manager-modal'
+    );
     if (!modalRoot) {
         return;
     }
@@ -217,7 +228,9 @@ export default (root: HTMLElement) => {
             return;
         }
 
-        const action = button.dataset.managerAction as ManagerAction | undefined;
+        const action = button.dataset.managerAction as
+            | ManagerAction
+            | undefined;
         const draftId = button.dataset.draftId ?? '';
         const draftTitle = button.dataset.draftTitle ?? '';
 
