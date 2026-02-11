@@ -37,6 +37,8 @@ final class ConfigurationWizard
 {
     private int $configurationId;
 
+    private ?string $configurationTitle;
+
     private ?int $currentComponentId;
 
     /**
@@ -52,12 +54,14 @@ final class ConfigurationWizard
 
     private function __construct(
         int $configurationId,
+        ?string $configurationTitle,
         ?int $currentComponentId,
         WizardRepository $repository,
         ComponentsRepository $components,
         RuleEngine $rules
     ) {
         $this->configurationId = $configurationId;
+        $this->configurationTitle = $configurationTitle;
         $this->currentComponentId = $currentComponentId;
         $this->repository = $repository;
         $this->components = $components;
@@ -92,6 +96,7 @@ final class ConfigurationWizard
 
         $wizard = new self(
             (int) $draft['id'],
+            isset($draft['title']) && $draft['title'] !== '' ? (string) $draft['title'] : null,
             isset($draft['current_component_id']) ? (int) $draft['current_component_id'] : null,
             $repository,
             $components,
@@ -122,11 +127,6 @@ final class ConfigurationWizard
     public function getConfigurationId(): int
     {
         return $this->configurationId;
-    }
-
-    public function getTitle(): string | null
-    {
-        return $this->repository->fetchTitle($this->configurationId);
     }
 
     /**
@@ -257,14 +257,13 @@ final class ConfigurationWizard
      */
     public function buildSummary(): array
     {
-        $title = $this->getTitle();
         $selected = $this->getSelectedPath();
         $current = $this->getCurrentComponent();
         $isComplete = $current !== null && $this->getAvailableOptions() === [];
 
         return [
             'configuration_id' => $this->configurationId,
-            'configuration_title' => $title,
+            'configuration_title' => $this->configurationTitle,
             'selected_path' => $selected,
             'current_component' => $current,
             'is_complete' => $isComplete,
