@@ -792,7 +792,7 @@
     outline-offset: -2px;
 }
 
-.component-form--modal input:not([type='hidden']),
+.component-form--modal input:not([type='hidden']):not([type='radio']):not([type='checkbox']),
 .component-form--modal textarea {
     border: 1px solid var(--border);
     border-radius: 0.35rem;

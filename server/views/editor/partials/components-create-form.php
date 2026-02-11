@@ -22,12 +22,44 @@ $parentPlaceholder = 'Kořenová komponenta';
     <legend class="sr-only">Formulář komponenty</legend>
     <div class="component-modal-tabs" data-component-tabs>
       <div class="component-modal-tablist" role="tablist" aria-label="Sekce formuláře komponenty">
-        <button type="button" class="component-modal-tab is-active" role="tab" id="component-tab-main" aria-controls="component-panel-main" aria-selected="true" data-component-tab="main">Základní údaje</button>
-        <button type="button" class="component-modal-tab" role="tab" id="component-tab-price" aria-controls="component-panel-price" aria-selected="false" tabindex="-1" data-component-tab="price">Cena</button>
-        <button type="button" class="component-modal-tab" role="tab" id="component-tab-media" aria-controls="component-panel-media" aria-selected="false" tabindex="-1" data-component-tab="media">Barva / obrázky</button>
+        <button
+          type="button"
+          class="component-modal-tab is-active"
+          role="tab"
+          id="component-tab-main"
+          aria-controls="component-panel-main"
+          aria-selected="true"
+          data-component-tab="main"
+        >Základní údaje</button>
+        <button
+          type="button"
+          class="component-modal-tab"
+          role="tab"
+          id="component-tab-price"
+          aria-controls="component-panel-price"
+          aria-selected="false"
+          tabindex="-1"
+          data-component-tab="price"
+        >Cena</button>
+        <button
+          type="button"
+          class="component-modal-tab"
+          role="tab"
+          id="component-tab-media"
+          aria-controls="component-panel-media"
+          aria-selected="false"
+          tabindex="-1"
+          data-component-tab="media"
+        >Barva / obrázky</button>
       </div>
 
-      <section class="component-modal-tabpanel" role="tabpanel" id="component-panel-main" aria-labelledby="component-tab-main" data-component-panel="main">
+      <section
+        class="component-modal-tabpanel"
+        role="tabpanel"
+        id="component-panel-main"
+        aria-labelledby="component-tab-main"
+        data-component-panel="main"
+      >
         <div class="component-field">
           <label id="component-modal-definition-label" for="component-modal-definition">
             Definice
@@ -140,7 +172,9 @@ $parentPlaceholder = 'Kořenová komponenta';
             Pozice
             <span class="info-wrapper">
               <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-              <span class="component-help">Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.</span>
+              <span class="component-help">
+                Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.
+              </span>
             </span>
           </label>
           <input
@@ -179,102 +213,120 @@ $parentPlaceholder = 'Kořenová komponenta';
         </div>
       </section>
 
-      <section class="component-modal-tabpanel hidden" role="tabpanel" id="component-panel-price" aria-labelledby="component-tab-price" data-component-panel="price">
+      <section
+        class="component-modal-tabpanel hidden"
+        role="tabpanel"
+        id="component-panel-price"
+        aria-labelledby="component-tab-price"
+        data-component-panel="price"
+      >
         <div class="component-field component-field--price component-field--full">
-      <label for="component-modal-price">
-        Cena
-        <span class="info-wrapper">
-          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-          <span class="component-help">
-            Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).
-          </span>
-        </span>
-      </label>
-      <div class="component-price-input">
-        <input
-          type="text"
-          id="component-modal-price"
-          name="price"
-          inputmode="decimal"
-          autocomplete="off"
-          placeholder="např. 2499,00"
-          data-price-input
-        >
-        <span class="component-price-suffix" data-price-currency>CZK</span>
-      </div>
-      <div class="component-price-history" data-price-history-wrapper>
-        <span class="component-price-history-label">Historie cen</span>
-        <ul class="component-price-history-list" data-price-history-list>
-          <li class="component-price-history-empty" data-empty-state>Žádné záznamy.</li>
-        </ul>
-      </div>
+          <label for="component-modal-price">
+            Cena
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">
+                Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).
+              </span>
+            </span>
+          </label>
+          <div class="component-price-input">
+            <input
+              type="text"
+              id="component-modal-price"
+              name="price"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="např. 2499,00"
+              data-price-input
+            >
+            <span class="component-price-suffix" data-price-currency>CZK</span>
+          </div>
+          <div class="component-price-history" data-price-history-wrapper>
+            <span class="component-price-history-label">Historie cen</span>
+            <ul class="component-price-history-list" data-price-history-list>
+              <li class="component-price-history-empty" data-empty-state>Žádné záznamy.</li>
+            </ul>
+          </div>
         </div>
       </section>
 
-      <section class="component-modal-tabpanel hidden" role="tabpanel" id="component-panel-media" aria-labelledby="component-tab-media" data-component-panel="media">
+      <section
+        class="component-modal-tabpanel hidden"
+        role="tabpanel"
+        id="component-panel-media" 
+        aria-labelledby="component-tab-media"
+        data-component-panel="media"
+      >
         <div class="component-field component-field--media component-field--full">
-      <span class="component-media-label">Reprezentace</span>
-      <div class="component-media-toggle" data-media-toggle>
-        <label><input type="radio" name="media_type" value="image" checked data-media-choice="image"> Obrázek</label>
-        <label><input type="radio" name="media_type" value="color" data-media-choice="color"> Barva</label>
-      </div>
-      <div class="component-media-panel" data-media-panel="image">
-        <label for="component-modal-image">
-          Obrázek
-          <span class="info-wrapper">
-            <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-            <span class="component-help">Vyberte obrázek z galerie (volitelné).</span>
-          </span>
-        </label>
-        <div class="component-image-picker" data-image-picker>
-          <input
-            type="hidden"
-            id="component-modal-image"
-            name="images"
-            data-media-input="image"
-            data-images-input
-          >
-          <div class="component-image-selected" data-image-display>
-            <span class="component-image-placeholder" data-image-placeholder>Žádný obrázek není vybrán.</span>
-            <ul class="component-image-list" data-image-list></ul>
+          <span class="component-media-label">Reprezentace</span>
+          <div class="component-media-toggle" data-media-toggle>
+            <label>
+              <input type="radio" name="media_type" value="image" checked data-media-choice="image">
+              Obrázek
+            </label>
+            <label>
+              <input type="radio" name="media_type" value="color" data-media-choice="color">
+              Barva
+            </label>
           </div>
-          <div class="component-image-actions">
-            <button type="button" class="component-action" data-image-select-open>Vybrat obrázek</button>
-            <button 
-              type="button" 
-              class="component-action component-action--danger" 
-              data-image-clear 
-              disabled
-            >Odebrat vše</button>
+          <div class="component-media-panel" data-media-panel="image">
+            <label for="component-modal-image">
+              Obrázek
+              <span class="info-wrapper">
+                <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+                <span class="component-help">Vyberte obrázek z galerie (volitelné).</span>
+              </span>
+            </label>
+            <div class="component-image-picker" data-image-picker>
+              <input
+                type="hidden"
+                id="component-modal-image"
+                name="images"
+                data-media-input="image"
+                data-images-input
+              >
+              <div class="component-image-selected" data-image-display>
+                <span class="component-image-placeholder" data-image-placeholder>Žádný obrázek není vybrán.</span>
+                <ul class="component-image-list" data-image-list></ul>
+              </div>
+              <div class="component-image-actions">
+                <button type="button" class="component-action" data-image-select-open>Vybrat obrázek</button>
+                <button 
+                  type="button" 
+                  class="component-action component-action--danger" 
+                  data-image-clear 
+                  disabled
+                >Odebrat vše</button>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="component-media-panel hidden" data-media-panel="color">
-        <label for="component-modal-color">
-          Barva
-          <span class="info-wrapper">
-            <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-            <span class="component-help">Hex formát (#RGB nebo #RRGGBB). Swatch pomůže s výběrem.</span>
-          </span>
-        </label>
-        <div class="component-color-picker">
-          <input
-            type="text"
-            id="component-modal-color"
-            name="color"
-            maxlength="21"
-            placeholder="napr. #FF8800"
-            data-color-text
-          >
-          <input
-            type="color"
-            id="component-modal-color-swatch"
-            value="#ffffff"
-            data-color-picker
-            aria-label="Vybrat barvu komponenty"
-          >
-        </div>
-      </div>
+          <div class="component-media-panel hidden" data-media-panel="color">
+            <label for="component-modal-color">
+              Barva
+              <span class="info-wrapper">
+                <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+                <span class="component-help">Hex formát (#RGB nebo #RRGGBB). Swatch pomůže s výběrem.</span>
+              </span>
+            </label>
+            <div class="component-color-picker">
+              <input
+                type="text"
+                id="component-modal-color"
+                name="color"
+                maxlength="21"
+                placeholder="napr. #FF8800"
+                data-color-text
+              >
+              <input
+                type="color"
+                id="component-modal-color-swatch"
+                value="#ffffff"
+                data-color-picker
+                aria-label="Vybrat barvu komponenty"
+              >
+            </div>
+          </div>
         </div>
       </section>
     </div>
