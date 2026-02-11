@@ -120,16 +120,16 @@
 }
 
 .component-node {
+    display: flex;
     position: relative;
+    justify-content: space-between;
+    gap: 1.6rem;
     border: 1px solid var(--border);
     border-radius: 0.4rem;
     padding: 0.6rem 0.75rem;
     overflow: hidden;
     background: rgb(0 0 0 / 2%);
-    display: flex;
-    justify-content: space-between;
-    gap: 1.6rem;
-    box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
+    box-shadow: 0 2px 4px var(--shadow);
     cursor: grab;
     z-index: 1;
 }
@@ -368,6 +368,7 @@
 .info-wrapper img {
     color: var(--fg);
 }
+
 .info-wrapper svg path {
     fill: var(--fg);
 }

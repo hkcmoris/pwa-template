@@ -48,7 +48,42 @@
 }
 
 #definitions-list {
+    position: relative;
     margin: 1.5rem 0;
+}
+
+#definitions-list::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    /* tvoje parametry */
+    --gap: 1.25rem;
+    --line: 1px;
+    --dash: 4px;
+    --space: 2px;
+
+    /* barva overlaye (pak ji “vyřežeme” maskou do čárek) */
+    background: var(--border);
+
+    /*
+        1) maska: svislé pruhy (1px čára každých 1.25rem)
+        2) maska: dash pattern po ose Y a obě masky se musí PROTNOUT (intersect)
+    */ /* Safari/Chromium: průnik 2. masky do 1. */
+
+    mask-image:
+        repeating-linear-gradient(
+            to right,
+            #000 0 var(--line),
+            transparent 0 var(--gap)
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            #000 0 var(--dash),
+            transparent 0 calc(var(--dash) + var(--space))
+        );
+    mask-composite: intersect; /* Firefox/modern spec */
 }
 
 .definition-tree {
@@ -65,8 +100,17 @@
     margin-left: calc(var(--definition-depth, 0) * 1.25rem);
 }
 
+.definition-item::before {
+    content: '';
+    position: absolute;
+    inset: -4px -2px -2px;
+    background: var(--bg);
+    z-index: 0;
+}
+
 .definition-node {
     display: flex;
+    position: relative;
     justify-content: space-between;
     gap: 0.75rem;
     align-items: stretch;
@@ -75,8 +119,9 @@
     padding: 0.4rem 0.5rem;
     overflow: hidden;
     background: rgb(0 0 0 / 2%);
-    cursor: grab;
     box-shadow: 0 2px 4px var(--shadow);
+    cursor: grab;
+    z-index: 1;
 }
 
 .definition-node:active {
