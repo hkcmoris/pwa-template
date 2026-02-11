@@ -41,6 +41,8 @@ final class ConfigurationWizard
 
     private ?int $currentComponentId;
 
+    private ?int $draftNumber;
+
     /**
      * @var array<int, array<string, mixed>>|null
      */
@@ -56,6 +58,7 @@ final class ConfigurationWizard
         int $configurationId,
         ?string $configurationTitle,
         ?int $currentComponentId,
+        ?int $draftNumber,
         WizardRepository $repository,
         ComponentsRepository $components,
         RuleEngine $rules
@@ -63,6 +66,7 @@ final class ConfigurationWizard
         $this->configurationId = $configurationId;
         $this->configurationTitle = $configurationTitle;
         $this->currentComponentId = $currentComponentId;
+        $this->draftNumber = $draftNumber;
         $this->repository = $repository;
         $this->components = $components;
         $this->rules = $rules;
@@ -98,6 +102,7 @@ final class ConfigurationWizard
             (int) $draft['id'],
             isset($draft['title']) && $draft['title'] !== '' ? (string) $draft['title'] : null,
             isset($draft['current_component_id']) ? (int) $draft['current_component_id'] : null,
+            isset($draft['draft_number']) ? (int) $draft['draft_number'] : null,
             $repository,
             $components,
             $rules
@@ -264,6 +269,7 @@ final class ConfigurationWizard
         return [
             'configuration_id' => $this->configurationId,
             'configuration_title' => $this->configurationTitle,
+            'configuration_draft_number' => $this->draftNumber,
             'selected_path' => $selected,
             'current_component' => $current,
             'is_complete' => $isComplete,

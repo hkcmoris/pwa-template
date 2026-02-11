@@ -4,11 +4,15 @@
 $selectedPath = $selectedPath ?? [];
 $summary = $summary ?? [];
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
+$configurationDraftNumber = isset($summary['configuration_draft_number'])
+    ? (int) $summary['configuration_draft_number']
+    : 0;
 $configurationTitle = isset($summary['configuration_title']) && is_string($summary['configuration_title'])
     ? trim($summary['configuration_title'])
     : '';
 if ($configurationTitle == '') {
-    $configurationTitle = 'Návrh #' . $configurationId;
+    $fallbackNumber = $configurationDraftNumber > 0 ? $configurationDraftNumber : $configurationId;
+    $configurationTitle = 'Návrh #' . $fallbackNumber;
 }
 ?>
 <div id="breadcrumbs">
