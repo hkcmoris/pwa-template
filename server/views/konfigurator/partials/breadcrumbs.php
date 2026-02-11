@@ -4,15 +4,17 @@
 $selectedPath = $selectedPath ?? [];
 $summary = $summary ?? [];
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
+$configurationTitle = isset($summary['configuration_title']) 
+                        ? $summary['configuration_title']
+                        : 'Návrh #' . htmlspecialchars((string) $configurationId);
 $hasSelections = !empty($selectedPath);
 ?>
 <div id="breadcrumbs">
     <div class="breadcrumb-item">
         <span class="breadcrumb-item-inner">
             <span class="breadcrumb-item-title">
-                <?= htmlspecialchars($hasSelections ? 'Start' : 'Výběr') ?>
                 <?php if ($configurationId > 0) : ?>
-                    <small>(Draft #<?= htmlspecialchars((string) $configurationId) ?>)</small>
+                    <small><?= $configurationTitle ?></small>
                 <?php endif; ?>
             </span>
         </span>

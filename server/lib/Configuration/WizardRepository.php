@@ -192,6 +192,19 @@ final class WizardRepository
         $stmt->execute();
     }
 
+    public function fetchTitle(int $configurationId): string | null
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT title
+             FROM configurations
+             WHERE id = :id'
+        );
+        $stmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row['title'] ?: null;
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */

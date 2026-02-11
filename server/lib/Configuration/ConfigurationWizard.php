@@ -124,6 +124,11 @@ final class ConfigurationWizard
         return $this->configurationId;
     }
 
+    public function getTitle(): string | null
+    {
+        return $this->repository->fetchTitle($this->configurationId);
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -252,12 +257,14 @@ final class ConfigurationWizard
      */
     public function buildSummary(): array
     {
+        $title = $this->getTitle();
         $selected = $this->getSelectedPath();
         $current = $this->getCurrentComponent();
         $isComplete = $current !== null && $this->getAvailableOptions() === [];
 
         return [
             'configuration_id' => $this->configurationId,
+            'configuration_title' => $title,
             'selected_path' => $selected,
             'current_component' => $current,
             'is_complete' => $isComplete,
