@@ -19,7 +19,7 @@
         "fix:php": "composer --working-dir=server run fix:php",
         "lint:clean": "Remove-Item -Recurse -Force server\\var\\phpstan",
         "lint": "npm run lint:ts && npm run lint:css && npm run lint:php",
-        "lhci:local": "lhci autorun --config=lighthouserc.local.json",
+        "lhci:local": "cross-env LHCI=1 lhci autorun --config=lighthouserc.local.json",
         "lhci:prod": "lhci autorun --config=lighthouserc.prod.json",
         "test": "jest"
     },
@@ -29,6 +29,7 @@
         "@types/node": "^24.3.0",
         "@typescript-eslint/eslint-plugin": "^8.40.0",
         "@typescript-eslint/parser": "^8.40.0",
+        "cross-env": "^10.1.0",
         "eslint": "^9.33.0",
         "eslint-config-prettier": "^9.1.0",
         "htmx.org": "^2.0.7",

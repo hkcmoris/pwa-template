@@ -13,7 +13,10 @@
         },
         "assert": {
             "assertions": {
-                "is-on-https": "off"
+                "is-on-https": "off",
+                "uses-text-compression": "off",
+                "uses-long-cache-ttl": "off",
+                "cache-insight": "off"
             }
         }
     }

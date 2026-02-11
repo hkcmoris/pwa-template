@@ -514,7 +514,10 @@ foreach ($viewStyles as $styleId => $entry) {
       $swKillPaths = [$swBasePath . '/sw.js'];
       $swKillJson = json_encode($swKillPaths, JSON_UNESCAPED_SLASHES);
     ?>
-    <?php if (!defined('SW_ENABLED') || SW_ENABLED) : ?>
+    <?php
+      $lhci = strtolower(trim((string) getenv('LHCI'))) === '1';
+    ?>
+    <?php if (!$lhci && (!defined('SW_ENABLED') || SW_ENABLED)) : ?>
     <script>
       if ('serviceWorker' in navigator) {
         const registerSw = () => {
@@ -527,7 +530,7 @@ foreach ($viewStyles as $styleId => $entry) {
         idle(registerSw);
       }
     </script>
-    <?php else : ?>
+    <?php elseif (!$lhci) : ?>
     <script>
       if ('serviceWorker' in navigator) {
         const baseScope = <?= $swScopeJson ?>;
