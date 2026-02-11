@@ -152,6 +152,7 @@ final class Repository
         ?string $description,
         array $images,
         ?string $color,
+        array $dependencyTree,
         int $position,
         ?string $priceAmount = null,
         string $priceCurrency = 'CZK'
@@ -163,6 +164,7 @@ final class Repository
             $description,
             $images,
             $color,
+            $dependencyTree,
             $position,
             $priceAmount,
             $priceCurrency
@@ -189,6 +191,7 @@ final class Repository
         ?string $description,
         array $images,
         ?string $color,
+        array $dependencyTree,
         ?int $position,
         ?string $priceAmount = null,
         string $priceCurrency = 'CZK'
@@ -201,6 +204,7 @@ final class Repository
             $description,
             $images,
             $color,
+            $dependencyTree,
             $position,
             $priceAmount,
             $priceCurrency

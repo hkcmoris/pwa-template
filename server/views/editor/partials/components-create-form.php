@@ -51,6 +51,16 @@ $parentPlaceholder = 'Kořenová komponenta';
           tabindex="-1"
           data-component-tab="media"
         >Barva / obrázky</button>
+        <button
+          type="button"
+          class="component-modal-tab"
+          role="tab"
+          id="component-tab-dependencies"
+          aria-controls="component-panel-dependencies"
+          aria-selected="false"
+          tabindex="-1"
+          data-component-tab="dependencies"
+        >Závislosti</button>
       </div>
 
       <section
@@ -327,6 +337,33 @@ $parentPlaceholder = 'Kořenová komponenta';
               >
             </div>
           </div>
+        </div>
+      </section>
+
+      <section
+        class="component-modal-tabpanel hidden"
+        role="tabpanel"
+        id="component-panel-dependencies"
+        aria-labelledby="component-tab-dependencies"
+        data-component-panel="dependencies"
+      >
+        <div class="component-field component-field--full">
+          <label for="component-modal-dependency-tree">
+            Nastavení závislostí
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">
+                Zadejte JSON pole s pravidly závislostí (např. [] nebo [{"component_id": 12}]).
+              </span>
+            </span>
+          </label>
+          <textarea
+            id="component-modal-dependency-tree"
+            name="dependency_tree"
+            rows="8"
+            placeholder='např. [{"component_id": 12, "required": true}]'
+            data-dependency-tree-input
+          ></textarea>
         </div>
       </section>
     </div>

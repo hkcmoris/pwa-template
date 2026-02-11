@@ -61,6 +61,7 @@ export type ComponentModalOptions = {
     priceAmount?: string;
     priceCurrency?: string;
     priceHistory?: PriceHistoryItem[];
+    dependencyTree?: string;
 };
 
 export type MediaMode = 'image' | 'color';

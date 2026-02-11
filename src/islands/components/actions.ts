@@ -74,6 +74,7 @@ export const setupNodeActions = (
                 priceAmount,
                 priceCurrency,
                 priceHistory,
+                dependencyTree: item.dataset.dependencyTree ?? '',
             });
         } else if (action === 'delete') {
             let childCount = 0;
