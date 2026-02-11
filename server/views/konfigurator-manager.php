@@ -45,35 +45,40 @@ $drafts = $wizardRepository->findDraftsByUser($userId);
 $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
 ?>
 
-<h1>Konfigurace</h1>
-<div class="konfigurator-manager-actions">
-  <button
-    hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?new=1"
-    hx-push-url="true"
-    hx-target="#content"
-    hx-select="#content"
-    hx-swap="outerHTML"
-  >Vytvořit novou konfiguraci</button>
-
-  <?php if ($latestDraftId !== null) : ?>
+<section data-island="konfigurator-manager">
+  <h1>Konfigurace</h1>
+  <div class="konfigurator-manager-actions">
     <button
-      hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $latestDraftId) ?>"
+      hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?new=1"
       hx-push-url="true"
       hx-target="#content"
       hx-select="#content"
       hx-swap="outerHTML"
-    >Pokračovat v posledním návrhu (#<?= htmlspecialchars((string) $latestDraftId) ?>)</button>
-  <?php endif; ?>
-</div>
+    >Vytvořit novou konfiguraci</button>
 
-<h2>Rozpracované návrhy</h2>
-<div id="draft-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
-<div id="draft-list-wrapper">
-  <?php include __DIR__ . '/konfigurator/partials/drafts-list.php'; ?>
-</div>
+    <?php if ($latestDraftId !== null) : ?>
+      <button
+        hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $latestDraftId) ?>"
+        hx-push-url="true"
+        hx-target="#content"
+        hx-select="#content"
+        hx-swap="outerHTML"
+      >Pokračovat v posledním návrhu (#<?= htmlspecialchars((string) $latestDraftId) ?>)</button>
+    <?php endif; ?>
+  </div>
 
-<h2>Dokončené konfigurace</h2>
-<div id="configurations-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
-<div id="configurations-list-wrapper">
-  <?php include __DIR__ . '/konfigurator/partials/configurations-list.php'; ?>
+  <h2>Rozpracované návrhy</h2>
+  <div id="draft-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
+  <div id="draft-list-wrapper">
+    <?php include __DIR__ . '/konfigurator/partials/drafts-list.php'; ?>
+  </div>
+
+  <h2>Dokončené konfigurace</h2>
+  <div id="configurations-form-errors" class="form-feedback hidden" role="status" aria-live="polite"></div>
+  <div id="configurations-list-wrapper">
+    <?php include __DIR__ . '/konfigurator/partials/configurations-list.php'; ?>
+  </div>
+
+  <div id="konfigurator-manager-modal" class="konfigurator-manager-modal hidden" aria-hidden="true"></div>
+</section>
 </div>
