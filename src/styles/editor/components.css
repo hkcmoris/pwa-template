@@ -382,7 +382,7 @@
 .component-modal-tab:hover,
 .component-modal-tab:focus-visible {
     border-color: var(--primary);
-    color: var(--primary);
+    color: var(--primary-contrast);
 }
 
 .component-modal-tab.is-active {
