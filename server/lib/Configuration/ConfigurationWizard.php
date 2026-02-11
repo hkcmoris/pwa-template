@@ -244,7 +244,9 @@ final class ConfigurationWizard
         $remaining = $this->repository->fetchSelectedPath($this->configurationId);
         $newCurrent = null;
 
-        if (!empty($remaining)) {
+        if (array_key_exists('parent_component_id', $last) && $last['parent_component_id'] !== null) {
+            $newCurrent = (int) $last['parent_component_id'];
+        } elseif (!empty($remaining)) {
             $lastSelection = end($remaining);
             $newCurrent = isset($lastSelection['component_id']) ? (int) $lastSelection['component_id'] : null;
         } else {
