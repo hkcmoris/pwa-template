@@ -4,7 +4,7 @@
 $selectedPath = $selectedPath ?? [];
 $summary = $summary ?? [];
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
-$configurationTitle = isset($summary['configuration_title']) 
+$configurationTitle = isset($summary['configuration_title'])
                         ? $summary['configuration_title']
                         : 'Návrh #' . htmlspecialchars((string) $configurationId);
 $hasSelections = !empty($selectedPath);
