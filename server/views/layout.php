@@ -511,7 +511,7 @@ foreach ($viewStyles as $styleId => $entry) {
       $swPublicPath = $swBasePath . '/sw.js';
       $swScopeJson = json_encode($swScopePath, JSON_UNESCAPED_SLASHES);
       $swPathJson = json_encode($swPublicPath, JSON_UNESCAPED_SLASHES);
-      $swKillPaths = [$swBasePath . '/sw.js', $swBasePath . '/sw-'];
+      $swKillPaths = [$swBasePath . '/sw.js'];
       $swKillJson = json_encode($swKillPaths, JSON_UNESCAPED_SLASHES);
     ?>
     <?php if (!defined('SW_ENABLED') || SW_ENABLED) : ?>
