@@ -19,157 +19,168 @@ $parentPlaceholder = 'Kořenová komponenta';
 >
   <input type="hidden" id="component-modal-id" name="component_id" value="">
   <fieldset>
-    <legend>Přidat novou komponentu</legend>
-    <div class="component-field">
-      <label id="component-modal-definition-label" for="component-modal-definition">
-        Definice
-        <span class="info-wrapper">
-          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-          <span class="component-help">Povinné pole. Každá komponenta vychází z konkrétní definice.</span>
-        </span>
-      </label>
-      <div class="component-select" data-select-wrapper>
-        <input type="hidden" id="component-modal-definition" name="definition_id" value="">
-        <div
-          class="select"
-          data-select
-          data-required="true"
-          data-value=""
-          data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
-        >
-          <button
-            type="button"
-            class="select-button"
-            id="component-modal-definition-button"
-            aria-haspopup="listbox"
-            aria-expanded="false"
-            aria-labelledby="component-modal-definition-label component-modal-definition-button"
-          ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
-          <ul class="select-list" role="listbox" tabindex="-1" hidden>
-            <li
-              role="option"
-              class="select-option"
+    <legend class="sr-only">Formulář komponenty</legend>
+    <div class="component-modal-tabs" data-component-tabs>
+      <div class="component-modal-tablist" role="tablist" aria-label="Sekce formuláře komponenty">
+        <button type="button" class="component-modal-tab is-active" role="tab" id="component-tab-main" aria-controls="component-panel-main" aria-selected="true" data-component-tab="main">Základní údaje</button>
+        <button type="button" class="component-modal-tab" role="tab" id="component-tab-price" aria-controls="component-panel-price" aria-selected="false" tabindex="-1" data-component-tab="price">Cena</button>
+        <button type="button" class="component-modal-tab" role="tab" id="component-tab-media" aria-controls="component-panel-media" aria-selected="false" tabindex="-1" data-component-tab="media">Barva / obrázky</button>
+      </div>
+
+      <section class="component-modal-tabpanel" role="tabpanel" id="component-panel-main" aria-labelledby="component-tab-main" data-component-panel="main">
+        <div class="component-field">
+          <label id="component-modal-definition-label" for="component-modal-definition">
+            Definice
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">Povinné pole. Každá komponenta vychází z konkrétní definice.</span>
+            </span>
+          </label>
+          <div class="component-select" data-select-wrapper>
+            <input type="hidden" id="component-modal-definition" name="definition_id" value="">
+            <div
+              class="select"
+              data-select
+              data-required="true"
               data-value=""
               data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
-              aria-selected="true"
-            ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php foreach ($definitionOptions as $definition) : ?>
-                <?php
-                $depth = isset($definition['depth']) ? (int) $definition['depth'] : 0;
-                $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
-                $rawTitle = (string) ($definition['title'] ?? '');
-                $id = (int) ($definition['id'] ?? 0);
-                $labelText = $rawTitle . ' (ID ' . $id . ')';
-                $displayText = $indent . $labelText;
-                ?>
-              <li
-                role="option"
-                class="select-option"
-                data-value="<?= $id ?>"
-                data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
-                aria-selected="false"
-              ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php endforeach; ?>
-          </ul>
+            >
+              <button
+                type="button"
+                class="select-button"
+                id="component-modal-definition-button"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="component-modal-definition-label component-modal-definition-button"
+              ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
+              <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                <li
+                  role="option"
+                  class="select-option"
+                  data-value=""
+                  data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+                  aria-selected="true"
+                ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php foreach ($definitionOptions as $definition) : ?>
+                    <?php
+                    $depth = isset($definition['depth']) ? (int) $definition['depth'] : 0;
+                    $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                    $rawTitle = (string) ($definition['title'] ?? '');
+                    $id = (int) ($definition['id'] ?? 0);
+                    $labelText = $rawTitle . ' (ID ' . $id . ')';
+                    $displayText = $indent . $labelText;
+                    ?>
+                  <li
+                    role="option"
+                    class="select-option"
+                    data-value="<?= $id ?>"
+                    data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
+                    aria-selected="false"
+                  ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="component-field">
-      <label for="component-modal-title">
-        Alternativní název
-        <span class="info-wrapper">
-          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-          <span class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</span>
-        </span>
-      </label>
-      <input
-        type="text"
-        id="component-modal-title"
-        name="alternate_title"
-        maxlength="191"
-        placeholder="např. Střešní spojler"
-      >
-    </div>
-    <div class="component-field">
-      <label id="component-modal-parent-label" for="component-modal-parent">
-        Rodič
-        <span class="info-wrapper">
-          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-          <span class="component-help">Volitelné. Zvolte rodičovskou komponentu pro vytvoření hierarchie.</span>
-        </span>
-      </label>
-      <div class="component-select" data-select-wrapper>
-        <input type="hidden" id="component-modal-parent" name="parent_id" value="">
-        <div
-          class="select"
-          data-select
-          data-value=""
-          data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
-        >
-          <button
-            type="button"
-            class="select-button"
-            id="component-modal-parent-button"
-            aria-haspopup="listbox"
-            aria-expanded="false"
-            aria-labelledby="component-modal-parent-label component-modal-parent-button"
-          ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
-          <ul class="select-list" role="listbox" tabindex="-1" hidden>
-            <li
-              role="option"
-              class="select-option"
+        <div class="component-field">
+          <label id="component-modal-parent-label" for="component-modal-parent">
+            Rodič
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">Volitelné. Zvolte rodičovskou komponentu pro vytvoření hierarchie.</span>
+            </span>
+          </label>
+          <div class="component-select" data-select-wrapper>
+            <input type="hidden" id="component-modal-parent" name="parent_id" value="">
+            <div
+              class="select"
+              data-select
               data-value=""
               data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
-              aria-selected="true"
-            ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php foreach ($componentOptions as $component) : ?>
-                <?php
-                $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
-                $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
-                $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
-                $id = (int) ($component['id'] ?? 0);
-                $labelText = $rawTitle . ' (ID ' . $id . ')';
-                $displayText = $indent . $labelText;
-                ?>
-              <li
-                role="option"
-                class="select-option"
-                data-value="<?= $id ?>"
-                data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
-                aria-selected="false"
-              ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
-            <?php endforeach; ?>
-          </ul>
+            >
+              <button
+                type="button"
+                class="select-button"
+                id="component-modal-parent-button"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-labelledby="component-modal-parent-label component-modal-parent-button"
+              ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
+              <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                <li
+                  role="option"
+                  class="select-option"
+                  data-value=""
+                  data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+                  aria-selected="true"
+                ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php foreach ($componentOptions as $component) : ?>
+                    <?php
+                    $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
+                    $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                    $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
+                    $id = (int) ($component['id'] ?? 0);
+                    $labelText = $rawTitle . ' (ID ' . $id . ')';
+                    $displayText = $indent . $labelText;
+                    ?>
+                  <li
+                    role="option"
+                    class="select-option"
+                    data-value="<?= $id ?>"
+                    data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
+                    aria-selected="false"
+                  ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php endforeach; ?>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="component-field">
-      <label for="component-modal-position">
-        Pozice
-        <span class="info-wrapper">
-          <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-          <span class="component-help">Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.</span>
-        </span>
-      </label>
-      <input
-        type="number"
-        id="component-modal-position"
-        name="position"
-        min="0"
-        step="1"
-        placeholder="automaticky"
-      >
-    </div>
-    <div class="component-field component-field--full">
-      <label for="component-modal-description">Popis</label>
-      <textarea
-        id="component-modal-description"
-        name="description"
-        rows="4"
-        placeholder="Krátký popis komponenty"
-      ></textarea>
-    </div>
-    <div class="component-field component-field--price component-field--full">
+        <div class="component-field">
+          <label for="component-modal-position">
+            Pozice
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.</span>
+            </span>
+          </label>
+          <input
+            type="number"
+            id="component-modal-position"
+            name="position"
+            min="0"
+            step="1"
+            placeholder="automaticky"
+          >
+        </div>
+        <div class="component-field">
+          <label for="component-modal-title">
+            Alternativní název
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</span>
+            </span>
+          </label>
+          <input
+            type="text"
+            id="component-modal-title"
+            name="alternate_title"
+            maxlength="191"
+            placeholder="např. Střešní spojler"
+          >
+        </div>
+        <div class="component-field component-field--full">
+          <label for="component-modal-description">Popis</label>
+          <textarea
+            id="component-modal-description"
+            name="description"
+            rows="4"
+            placeholder="Krátký popis komponenty"
+          ></textarea>
+        </div>
+      </section>
+
+      <section class="component-modal-tabpanel hidden" role="tabpanel" id="component-panel-price" aria-labelledby="component-tab-price" data-component-panel="price">
+        <div class="component-field component-field--price component-field--full">
       <label for="component-modal-price">
         Cena
         <span class="info-wrapper">
@@ -197,8 +208,11 @@ $parentPlaceholder = 'Kořenová komponenta';
           <li class="component-price-history-empty" data-empty-state>Žádné záznamy.</li>
         </ul>
       </div>
-    </div>
-    <div class="component-field component-field--media component-field--full">
+        </div>
+      </section>
+
+      <section class="component-modal-tabpanel hidden" role="tabpanel" id="component-panel-media" aria-labelledby="component-tab-media" data-component-panel="media">
+        <div class="component-field component-field--media component-field--full">
       <span class="component-media-label">Reprezentace</span>
       <div class="component-media-toggle" data-media-toggle>
         <label><input type="radio" name="media_type" value="image" checked data-media-choice="image"> Obrázek</label>
@@ -261,6 +275,8 @@ $parentPlaceholder = 'Kořenová komponenta';
           >
         </div>
       </div>
+        </div>
+      </section>
     </div>
   </fieldset>
   <div class="components-modal-actions">

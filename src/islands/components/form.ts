@@ -153,6 +153,66 @@ export const renderPriceHistory = (
 };
 
 export const setupComponentForm = (form: HTMLFormElement) => {
+    const tabs = Array.from(
+        form.querySelectorAll<HTMLButtonElement>('[data-component-tab]')
+    );
+    const panels = Array.from(
+        form.querySelectorAll<HTMLElement>('[data-component-panel]')
+    );
+
+    const activateTab = (key: string, shouldFocus = false) => {
+        tabs.forEach((tab) => {
+            const active = tab.dataset.componentTab === key;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            if (active) {
+                tab.removeAttribute('tabindex');
+                if (shouldFocus) {
+                    tab.focus();
+                }
+            } else {
+                tab.setAttribute('tabindex', '-1');
+            }
+        });
+
+        panels.forEach((panel) => {
+            const active = panel.dataset.componentPanel === key;
+            panel.classList.toggle('hidden', !active);
+        });
+    };
+
+    if (tabs.length > 0 && panels.length > 0) {
+        const initialTab =
+            tabs.find((tab) => tab.getAttribute('aria-selected') === 'true') ??
+            tabs[0];
+        if (initialTab?.dataset.componentTab) {
+            activateTab(initialTab.dataset.componentTab);
+        }
+
+        tabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => {
+                const key = tab.dataset.componentTab;
+                if (key) {
+                    activateTab(key);
+                }
+            });
+
+            tab.addEventListener('keydown', (event) => {
+                if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+                    return;
+                }
+                event.preventDefault();
+                const delta = event.key === 'ArrowRight' ? 1 : -1;
+                const nextIndex = (index + delta + tabs.length) % tabs.length;
+                const nextTab = tabs[nextIndex];
+                const key = nextTab?.dataset.componentTab;
+                if (key) {
+                    activateTab(key, true);
+                }
+            });
+        });
+    }
+
     const wrappers = Array.from(
         form.querySelectorAll<HTMLElement>('[data-select-wrapper]')
     );
