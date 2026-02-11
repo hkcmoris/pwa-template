@@ -43,6 +43,13 @@ $configurations = $repository->fetch(null, 0, $userId);
 /** @var array<int, array<string, mixed>> $drafts */
 $drafts = $wizardRepository->findDraftsByUser($userId);
 $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
+$latestDraftTitle = $drafts !== [] ? trim((string) ($drafts[0]['title'] ?? '')) : '';
+$latestDraftNumber = $drafts !== [] && isset($drafts[0]['draft_number'])
+    ? (int) $drafts[0]['draft_number']
+    : $latestDraftId;
+$latestDraftLabel = $latestDraftId !== null
+    ? ($latestDraftTitle !== '' ? $latestDraftTitle : ('Návrh #' . $latestDraftNumber))
+    : '';
 ?>
 
 <section data-island="konfigurator-manager">
@@ -96,7 +103,7 @@ $latestDraftId = $drafts !== [] ? (int) $drafts[0]['id'] : null;
         hx-target="#content"
         hx-select="#content"
         hx-swap="outerHTML"
-      >Pokračovat v posledním návrhu (#<?= htmlspecialchars((string) $latestDraftId) ?>)</button>
+      >Pokračovat v posledním návrhu (<?= htmlspecialchars($latestDraftLabel) ?>)</button>
     <?php endif; ?>
   </div>
 
