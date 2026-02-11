@@ -178,6 +178,9 @@ export const createOpenComponentModal = ({
         const descriptionField = form.querySelector<HTMLTextAreaElement>(
             '#component-modal-description'
         );
+        const dependencyTreeField = form.querySelector<HTMLTextAreaElement>(
+            '[data-dependency-tree-input]'
+        );
         const imagesField = form.querySelector<HTMLInputElement>(
             '[data-images-input]'
         );
@@ -238,6 +241,9 @@ export const createOpenComponentModal = ({
         }
         if (descriptionField) {
             descriptionField.value = options.description ?? '';
+        }
+        if (dependencyTreeField) {
+            dependencyTreeField.value = options.dependencyTree ?? '[]';
         }
         let selectedImages: SelectedImageEntry[] =
             mediaMode === 'image'

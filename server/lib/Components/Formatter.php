@@ -47,9 +47,25 @@ final class Formatter
     }
 
     /**
-     * @param mixed $raw
-     * @return array<int, mixed>
+     * @return array{0: array<int, mixed>, 1: ?string}
      */
+    public function normaliseDependencyTreeInput(?string $rawInput): array
+    {
+        $value = $rawInput !== null ? trim($rawInput) : '';
+
+        if ($value === '') {
+            return [[], null];
+        }
+
+        $decoded = json_decode($value, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            return [[], 'Závislosti musí být platné JSON pole.'];
+        }
+
+        return [$decoded, null];
+    }
+
     public function normaliseDependencyTree($raw): array
     {
         if (is_array($raw)) {

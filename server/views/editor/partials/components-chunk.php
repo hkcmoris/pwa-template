@@ -90,6 +90,14 @@ foreach ($items as $node) {
         $priceHistoryJsonRaw = '[]';
     }
     $priceHistoryJson = htmlspecialchars($priceHistoryJsonRaw, ENT_QUOTES, 'UTF-8');
+    $dependencyTreeRaw = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
+        ? $node['dependency_tree']
+        : [];
+    $dependencyTreeJsonRaw = json_encode($dependencyTreeRaw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($dependencyTreeJsonRaw === false) {
+        $dependencyTreeJsonRaw = '[]';
+    }
+    $dependencyTreeJson = htmlspecialchars($dependencyTreeJsonRaw, ENT_QUOTES, 'UTF-8');
     $metaParts = [
         'ID ' . $id,
         'definice ' . $definitionTitle . ' (#' . $definitionId . ')',
@@ -113,6 +121,7 @@ foreach ($items as $node) {
       data-price-amount="<?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>"
       data-price-currency="<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?>"
       data-price-history="<?= $priceHistoryJson ?>"
+      data-dependency-tree="<?= $dependencyTreeJson ?>"
       <?= $depthAttr ?>
     >
       <div class="component-node" draggable="true">

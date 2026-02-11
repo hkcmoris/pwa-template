@@ -41,6 +41,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        array $dependencyTree,
         int $position
     ): int {
         if ($position < 0) {
@@ -120,7 +121,7 @@ final class WriteService
             $stmt->bindValue(':color', $colorValue, PDO::PARAM_STR);
         }
 
-        $stmt->bindValue(':dependency', json_encode([]), PDO::PARAM_STR);
+        $stmt->bindValue(':dependency', json_encode($dependencyTree), PDO::PARAM_STR);
         $stmt->bindValue(':position', $position, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -183,6 +184,7 @@ final class WriteService
                 null,
                 [],
                 null,
+                [],
                 $position
             );
 
@@ -202,6 +204,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        array $dependencyTree,
         int $position,
         ?string $priceAmount = null,
         string $priceCurrency = 'CZK'
@@ -219,6 +222,7 @@ final class WriteService
                 $description,
                 $images,
                 $color,
+                $dependencyTree,
                 $position
             );
 
@@ -248,6 +252,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        array $dependencyTree,
         ?int $position,
         ?string $priceAmount = null,
         string $priceCurrency = 'CZK'
@@ -371,6 +376,7 @@ final class WriteService
                     description = :description,
                     images = :images,
                     color = :color,
+                    dependency_tree = :dependency,
                     position = :position
                 WHERE id = :id
                 SQL
@@ -404,6 +410,7 @@ final class WriteService
                 $update->bindValue(':color', $colorValue, PDO::PARAM_STR);
             }
 
+            $update->bindValue(':dependency', json_encode($dependencyTree), PDO::PARAM_STR);
             $update->bindValue(':position', $position, PDO::PARAM_INT);
             $update->bindValue(':id', $componentId, PDO::PARAM_INT);
             $update->execute();
