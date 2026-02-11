@@ -178,7 +178,7 @@ export const createOpenComponentModal = ({
         const descriptionField = form.querySelector<HTMLTextAreaElement>(
             '#component-modal-description'
         );
-        const dependencyTreeField = form.querySelector<HTMLTextAreaElement>(
+        const dependencyTreeField = form.querySelector<HTMLInputElement>(
             '[data-dependency-tree-input]'
         );
         const imagesField = form.querySelector<HTMLInputElement>(

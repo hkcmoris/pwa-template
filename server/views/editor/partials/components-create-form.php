@@ -7,6 +7,7 @@ $definitionOptions = $definitionsFlat ?? [];
 $componentOptions = $componentsFlat ?? [];
 $definitionPlaceholder = 'Vyberte definici';
 $parentPlaceholder = 'Kořenová komponenta';
+$dependencyPlaceholder = 'Vyberte komponentu';
 ?>
 <form
   class="component-form component-form--modal"
@@ -353,17 +354,78 @@ $parentPlaceholder = 'Kořenová komponenta';
             <span class="info-wrapper">
               <img width="24px" height="24px" src="/public/assets/images/info.svg" />
               <span class="component-help">
-                Zadejte JSON pole s pravidly závislostí (např. [] nebo [{"component_id": 12}]).
+                Komponenta se nabídne pouze pokud jsou všechny uvedené komponenty v konfiguraci vybrané.
               </span>
             </span>
           </label>
-          <textarea
+          <input
+            type="hidden"
             id="component-modal-dependency-tree"
             name="dependency_tree"
-            rows="8"
-            placeholder='např. [{"component_id": 12, "required": true}]'
+            value="[]"
             data-dependency-tree-input
-          ></textarea>
+          >
+          <div class="component-dependency-editor" data-dependency-editor>
+            <ul class="component-dependency-list" data-dependency-list></ul>
+            <button
+              type="button"
+              class="component-action"
+              data-dependency-add
+            >+ Přidat závislost</button>
+            <p class="component-dependency-hint">Bez zadaných závislostí je komponenta dostupná vždy.</p>
+          </div>
+          <template data-dependency-row-template>
+            <li class="component-dependency-item" data-dependency-item>
+              <div class="component-select" data-select-wrapper>
+                <input type="hidden" value="" data-dependency-component-id>
+                <div
+                  class="select"
+                  data-select
+                  data-required="true"
+                  data-value=""
+                  data-label="<?= htmlspecialchars($dependencyPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+                >
+                  <button
+                    type="button"
+                    class="select-button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                  ><?= htmlspecialchars($dependencyPlaceholder, ENT_QUOTES, 'UTF-8') ?></button>
+                  <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                    <li
+                      role="option"
+                      class="select-option"
+                      data-value=""
+                      data-label="<?= htmlspecialchars($dependencyPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
+                      aria-selected="true"
+                    ><?= htmlspecialchars($dependencyPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php foreach ($componentOptions as $component) : ?>
+                        <?php
+                        $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
+                        $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                        $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
+                        $id = (int) ($component['id'] ?? 0);
+                        $labelText = $rawTitle . ' (ID ' . $id . ')';
+                        $displayText = $indent . $labelText;
+                        ?>
+                      <li
+                        role="option"
+                        class="select-option"
+                        data-value="<?= $id ?>"
+                        data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
+                        aria-selected="false"
+                      ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="component-action component-action--danger"
+                data-dependency-remove
+              >Odebrat</button>
+            </li>
+          </template>
         </div>
       </section>
     </div>
