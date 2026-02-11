@@ -293,7 +293,7 @@ final class WizardRepository
     public function deleteLastSelection(int $configurationId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, component_id
+            'SELECT id, component_id, parent_component_id
              FROM configuration_selections
              WHERE configuration_id = :configuration_id
              ORDER BY id DESC
