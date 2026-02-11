@@ -35,7 +35,14 @@ final class WizardRepository
     public function findDraftByUser(int $userId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at,
+                    (
+                        SELECT COUNT(*)
+                        FROM configurations sibling
+                        WHERE sibling.user_id = configurations.user_id
+                          AND sibling.status = configurations.status
+                          AND sibling.id <= configurations.id
+                    ) AS draft_number
              FROM configurations
              WHERE user_id = :user_id AND status = :status
              ORDER BY updated_at DESC, id DESC
@@ -59,7 +66,14 @@ final class WizardRepository
     public function findDraftByIdForUser(int $configurationId, int $userId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at,
+                    (
+                        SELECT COUNT(*)
+                        FROM configurations sibling
+                        WHERE sibling.user_id = configurations.user_id
+                          AND sibling.status = configurations.status
+                          AND sibling.id <= configurations.id
+                    ) AS draft_number
              FROM configurations
              WHERE id = :id AND user_id = :user_id AND status = :status
              LIMIT 1'
@@ -83,7 +97,14 @@ final class WizardRepository
     public function findDraftsByUser(int $userId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at,
+                    (
+                        SELECT COUNT(*)
+                        FROM configurations sibling
+                        WHERE sibling.user_id = configurations.user_id
+                          AND sibling.status = configurations.status
+                          AND sibling.id <= configurations.id
+                    ) AS draft_number
              FROM configurations
              WHERE user_id = :user_id AND status = :status
              ORDER BY updated_at DESC, id DESC'
@@ -165,7 +186,14 @@ final class WizardRepository
     private function findConfiguration(int $configurationId): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at
+            'SELECT id, user_id, title, status, current_component_id, created_at, updated_at,
+                    (
+                        SELECT COUNT(*)
+                        FROM configurations sibling
+                        WHERE sibling.user_id = configurations.user_id
+                          AND sibling.status = configurations.status
+                          AND sibling.id <= configurations.id
+                    ) AS draft_number
              FROM configurations
              WHERE id = :id'
         );

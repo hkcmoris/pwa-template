@@ -12,7 +12,8 @@ $BASE = isset($BASE) ? (string) $BASE : '';
         <?php
         $draftId = (int) $draft['id'];
         $draftTitle = trim((string) ($draft['title'] ?? ''));
-        $draftLabel = $draftTitle !== '' ? $draftTitle : ('Návrh #' . $draftId);
+        $draftNumber = isset($draft['draft_number']) ? (int) $draft['draft_number'] : $draftId;
+        $draftLabel = $draftTitle !== '' ? $draftTitle : ('Návrh #' . $draftNumber);
         ?>
       <li>
         <div class="configuration-entry-main">
