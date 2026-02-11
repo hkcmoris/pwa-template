@@ -174,7 +174,9 @@ $parentPlaceholder = 'Kořenová komponenta';
         Cena
         <span class="info-wrapper">
           <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-          <span class="component-help">Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).</span>
+          <span class="component-help">
+            Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).
+          </span>
         </span>
       </label>
       <div class="component-price-input">
