@@ -152,6 +152,134 @@ export const renderPriceHistory = (
     });
 };
 
+type DependencyRule = {
+    component_id: number;
+};
+
+const parseDependencyRules = (raw: string): DependencyRule[] => {
+    if (!raw.trim()) {
+        return [];
+    }
+
+    try {
+        const decoded = JSON.parse(raw) as unknown;
+        if (!Array.isArray(decoded)) {
+            return [];
+        }
+        const rules: DependencyRule[] = [];
+        decoded.forEach((entry) => {
+            if (!entry || typeof entry !== 'object') {
+                return;
+            }
+            const value = (entry as { component_id?: unknown }).component_id;
+            const numeric =
+                typeof value === 'number'
+                    ? value
+                    : typeof value === 'string'
+                      ? Number.parseInt(value, 10)
+                      : Number.NaN;
+            if (!Number.isFinite(numeric) || numeric <= 0) {
+                return;
+            }
+            rules.push({ component_id: Math.trunc(numeric) });
+        });
+        return rules;
+    } catch {
+        return [];
+    }
+};
+
+const setupDependencyEditor = (form: HTMLFormElement) => {
+    const dependencyInput = form.querySelector<HTMLInputElement>(
+        '[data-dependency-tree-input]'
+    );
+    const editor = form.querySelector<HTMLElement>('[data-dependency-editor]');
+    const list = form.querySelector<HTMLElement>('[data-dependency-list]');
+    const addButton = form.querySelector<HTMLButtonElement>('[data-dependency-add]');
+    const rowTemplate = form.querySelector<HTMLTemplateElement>(
+        '[data-dependency-row-template]'
+    );
+
+    if (!dependencyInput || !editor || !list || !addButton || !rowTemplate) {
+        return;
+    }
+
+    const syncDependencyInput = () => {
+        const rows = Array.from(
+            list.querySelectorAll<HTMLElement>('[data-dependency-item]')
+        );
+        const payload: DependencyRule[] = [];
+        rows.forEach((row) => {
+            const hidden = row.querySelector<HTMLInputElement>(
+                '[data-dependency-component-id]'
+            );
+            const raw = hidden?.value ?? '';
+            const parsed = Number.parseInt(raw, 10);
+            if (!Number.isNaN(parsed) && parsed > 0) {
+                payload.push({ component_id: parsed });
+            }
+        });
+        dependencyInput.value = JSON.stringify(payload);
+    };
+
+    const bindRow = (row: HTMLElement, initialValue = '') => {
+        const wrapper = row.querySelector<HTMLElement>('[data-select-wrapper]');
+        const hidden = row.querySelector<HTMLInputElement>(
+            '[data-dependency-component-id]'
+        );
+        const select = row.querySelector<HTMLElement>('.select[data-select]');
+        const removeButton = row.querySelector<HTMLButtonElement>(
+            '[data-dependency-remove]'
+        );
+
+        if (!wrapper || !hidden || !select || !removeButton) {
+            return;
+        }
+
+        hidden.value = initialValue;
+        select.setAttribute('data-value', initialValue);
+        setSelectValue(select, initialValue);
+
+        select.addEventListener('select:change', (event) => {
+            const detail = (event as CustomEvent<SelectChangeDetail>).detail;
+            hidden.value = detail?.value ?? '';
+            syncDependencyInput();
+        });
+
+        removeButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            row.remove();
+            syncDependencyInput();
+        });
+    };
+
+    const addDependencyRow = (componentId = '') => {
+        const fragment = rowTemplate.content.cloneNode(true) as DocumentFragment;
+        const row = fragment.querySelector<HTMLElement>('[data-dependency-item]');
+        if (!row) {
+            return;
+        }
+        list.appendChild(row);
+        enhanceSelects(row);
+        bindRow(row, componentId);
+        syncDependencyInput();
+    };
+
+    const existingRules = parseDependencyRules(dependencyInput.value);
+    list.innerHTML = '';
+    existingRules.forEach((rule) => {
+        addDependencyRow(String(rule.component_id));
+    });
+
+    addButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        addDependencyRow('');
+    });
+
+    syncDependencyInput();
+};
+
+
 export const setupComponentForm = (form: HTMLFormElement) => {
     const tabs = Array.from(
         form.querySelectorAll<HTMLButtonElement>('[data-component-tab]')
@@ -213,14 +341,15 @@ export const setupComponentForm = (form: HTMLFormElement) => {
         });
     }
 
+    setupDependencyEditor(form);
+
     const wrappers = Array.from(
         form.querySelectorAll<HTMLElement>('[data-select-wrapper]')
     );
-    if (!wrappers.length) {
-        return;
-    }
 
-    enhanceSelects(form);
+    if (wrappers.length > 0) {
+        enhanceSelects(form);
+    }
 
     wrappers.forEach((wrapper) => {
         const selectEl = wrapper.querySelector<HTMLElement>(
