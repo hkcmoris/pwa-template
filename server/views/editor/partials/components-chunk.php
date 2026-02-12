@@ -72,9 +72,7 @@ foreach ($items as $node) {
     $dependencyRules = isset($dependencyTreeRaw['rules']) && is_array($dependencyTreeRaw['rules'])
         ? $dependencyTreeRaw['rules']
         : $dependencyTreeRaw;
-    $dependencyCount = is_array($dependencyRules)
-        ? count($dependencyRules)
-        : 0;
+    $dependencyCount = count($dependencyRules);
     $childCount = isset($node['children_count']) ? (int) $node['children_count'] : 0;
     $depth = isset($node['depth']) ? (int) $node['depth'] : 0;
     $mediaType = $rawColor !== '' ? 'color' : 'image';

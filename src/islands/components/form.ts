@@ -222,7 +222,9 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
     );
     const editor = form.querySelector<HTMLElement>('[data-dependency-editor]');
     const list = form.querySelector<HTMLElement>('[data-dependency-list]');
-    const addButton = form.querySelector<HTMLButtonElement>('[data-dependency-add]');
+    const addButton = form.querySelector<HTMLButtonElement>(
+        '[data-dependency-add]'
+    );
     const operatorInput = form.querySelector<HTMLInputElement>(
         '[data-dependency-operator-input]'
     );
@@ -299,8 +301,12 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
     };
 
     const addDependencyRow = (componentId = '') => {
-        const fragment = rowTemplate.content.cloneNode(true) as DocumentFragment;
-        const row = fragment.querySelector<HTMLElement>('[data-dependency-item]');
+        const fragment = rowTemplate.content.cloneNode(
+            true
+        ) as DocumentFragment;
+        const row = fragment.querySelector<HTMLElement>(
+            '[data-dependency-item]'
+        );
         if (!row) {
             return;
         }
@@ -332,7 +338,6 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
 
     syncDependencyInput();
 };
-
 
 export const setupComponentForm = (form: HTMLFormElement) => {
     const tabs = Array.from(
