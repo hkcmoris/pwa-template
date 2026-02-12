@@ -66,6 +66,13 @@ final class RuleEngine
      */
     private function extractPrerequisites($dependencyTree): array
     {
+        if (is_string($dependencyTree)) {
+            $decoded = json_decode($dependencyTree, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $dependencyTree = $decoded;
+            }
+        }
+
         if (!is_array($dependencyTree)) {
             return [
                 'operator' => 'and',
@@ -80,6 +87,13 @@ final class RuleEngine
             $rules = $dependencyTree['rules'];
             $operatorRaw = isset($dependencyTree['operator']) ? $dependencyTree['operator'] : '';
             $operator = $operatorRaw === 'or' ? 'or' : 'and';
+        } elseif (isset($dependencyTree['rules']) && is_string($dependencyTree['rules'])) {
+            $decodedRules = json_decode($dependencyTree['rules'], true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedRules)) {
+                $rules = $decodedRules;
+                $operatorRaw = isset($dependencyTree['operator']) ? $dependencyTree['operator'] : '';
+                $operator = $operatorRaw === 'or' ? 'or' : 'and';
+            }
         }
 
         $required = [];
