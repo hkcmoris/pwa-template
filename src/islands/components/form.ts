@@ -244,7 +244,9 @@ const parseDependencyRules = (raw: string): DependencyTreePayload => {
                 return;
             }
 
-            const nestedRules = parseRules((entry as { rules?: unknown }).rules);
+            const nestedRules = parseRules(
+                (entry as { rules?: unknown }).rules
+            );
             if (nestedRules.length > 0) {
                 const nestedOperator: DependencyOperator =
                     (entry as { operator?: unknown }).operator === 'or'
@@ -320,7 +322,9 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
     const operatorSelect = form.querySelector<HTMLElement>(
         '[data-dependency-operator-select]'
     );
-    const groupList = form.querySelector<HTMLElement>('[data-dependency-group-list]');
+    const groupList = form.querySelector<HTMLElement>(
+        '[data-dependency-group-list]'
+    );
     const addGroupButton = form.querySelector<HTMLButtonElement>(
         '[data-dependency-group-add]'
     );
@@ -330,7 +334,9 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
     const rowTemplate = form.querySelector<HTMLTemplateElement>(
         '[data-dependency-row-template]'
     );
-    const forbiddenList = form.querySelector<HTMLElement>('[data-forbidden-list]');
+    const forbiddenList = form.querySelector<HTMLElement>(
+        '[data-forbidden-list]'
+    );
     const forbiddenAddButton = form.querySelector<HTMLButtonElement>(
         '[data-forbidden-add]'
     );
@@ -395,7 +401,11 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
                 '[data-forbidden-component-id]'
             );
             const parsed = Number.parseInt(hidden?.value ?? '', 10);
-            if (!Number.isNaN(parsed) && parsed > 0 && !forbiddenIds.includes(parsed)) {
+            if (
+                !Number.isNaN(parsed) &&
+                parsed > 0 &&
+                !forbiddenIds.includes(parsed)
+            ) {
                 forbiddenIds.push(parsed);
             }
         });
@@ -455,9 +465,16 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         syncDependencyInput();
     };
 
-    const addGroup = (operator: DependencyOperator = 'and', componentIds: string[] = []) => {
-        const fragment = groupTemplate.content.cloneNode(true) as DocumentFragment;
-        const group = fragment.querySelector<HTMLElement>('[data-dependency-group]');
+    const addGroup = (
+        operator: DependencyOperator = 'and',
+        componentIds: string[] = []
+    ) => {
+        const fragment = groupTemplate.content.cloneNode(
+            true
+        ) as DocumentFragment;
+        const group = fragment.querySelector<HTMLElement>(
+            '[data-dependency-group]'
+        );
         const groupOperatorInput = fragment.querySelector<HTMLInputElement>(
             '[data-dependency-group-operator-input]'
         );
@@ -521,12 +538,18 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         const fragment = forbiddenRowTemplate.content.cloneNode(
             true
         ) as DocumentFragment;
-        const row = fragment.querySelector<HTMLElement>('[data-forbidden-item]');
+        const row = fragment.querySelector<HTMLElement>(
+            '[data-forbidden-item]'
+        );
         const hidden = fragment.querySelector<HTMLInputElement>(
             '[data-forbidden-component-id]'
         );
-        const select = fragment.querySelector<HTMLElement>('.select[data-select]');
-        const remove = fragment.querySelector<HTMLButtonElement>('[data-forbidden-remove]');
+        const select = fragment.querySelector<HTMLElement>(
+            '.select[data-select]'
+        );
+        const remove = fragment.querySelector<HTMLButtonElement>(
+            '[data-forbidden-remove]'
+        );
 
         if (!row || !hidden || !select || !remove) {
             return;
@@ -576,8 +599,12 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
 
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        const firstGroup = groupList.querySelector<HTMLElement>('[data-dependency-group]');
-        const firstGroupRules = firstGroup?.querySelector<HTMLElement>('[data-dependency-rules-list]');
+        const firstGroup = groupList.querySelector<HTMLElement>(
+            '[data-dependency-group]'
+        );
+        const firstGroupRules = firstGroup?.querySelector<HTMLElement>(
+            '[data-dependency-rules-list]'
+        );
         if (firstGroupRules) {
             addDependencyRow(firstGroupRules, '');
         }
