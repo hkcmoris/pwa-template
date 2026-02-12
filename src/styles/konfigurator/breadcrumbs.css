@@ -33,6 +33,20 @@
     cursor: pointer;
 }
 
+
+#breadcrumbs .breadcrumb-item form {
+    margin: 0;
+}
+
+#breadcrumbs .breadcrumb-item-button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
 #breadcrumbs .breadcrumb-item.active {
     background-color: var(--primary) !important;
     color: var(--bg) !important;

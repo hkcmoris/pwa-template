@@ -289,6 +289,28 @@ final class WizardRepository
         $stmt->execute();
     }
 
+    public function deleteSelectionsAfter(int $configurationId, int $selectionId): void
+    {
+        $stmt = $this->pdo->prepare(
+            'DELETE FROM configuration_selections
+             WHERE configuration_id = :configuration_id
+               AND id > :selection_id'
+        );
+        $stmt->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
+        $stmt->bindValue(':selection_id', $selectionId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    public function deleteAllSelections(int $configurationId): void
+    {
+        $stmt = $this->pdo->prepare(
+            'DELETE FROM configuration_selections
+             WHERE configuration_id = :configuration_id'
+        );
+        $stmt->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
     /**
      * @return array<string, mixed>|null
      */
