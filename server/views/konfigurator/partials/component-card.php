@@ -3,10 +3,14 @@
 /** @var array<string, mixed> $option */
 /** @var array<string, mixed>|null $summary */
 $option = $option ?? [];
-// log_message(json_encode($option, JSON_PRETTY_PRINT), 'DEBUG');
 $optionId = isset($option['id']) ? (int) $option['id'] : 0;
 $optionTitle = (string) ($option['effective_title'] ?? $option['definition_title'] ?? '');
 $optionImage = $option['image'];
+$optionImages = isset($option['images']) && is_array($option['images'])
+    ? array_values(array_filter($option['images'], static function ($image): bool {
+        return is_string($image) && trim($image) !== '';
+    }))
+    : [];
 $optionColor = $option['color'];
 $definitionTitle = (string) ($option['definition_title'] ?? '');
 $optionProperties = isset($option['properties']) && is_array($option['properties'])
@@ -16,6 +20,10 @@ $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
+if ($optionImage !== null && !in_array($optionImage, $optionImages, true)) {
+    array_unshift($optionImages, (string) $optionImage);
+}
+$hasMultipleImages = count($optionImages) > 1;
 ?>
 <div class="component-card">
     <form
@@ -27,17 +35,48 @@ $configurationId = isset($summary['configuration_id']) ? (int) $summary['configu
     >
         <input type="hidden" name="component_id" value="<?= $optionId ?>">
         <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
-        <?php if (isset($optionImage)) : ?>
-            <img
-                class="options-card-image"
-                src="<?=  $optionImage ?>" 
-                width="100%"
-                loading="lazy"
-                decoding="async"
-                onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
-            >
+        <?php if (!empty($optionImages)) : ?>
+            <div class="options-card-media">
+                <?php foreach ($optionImages as $index => $imageUrl) : ?>
+                    <img
+                        class="options-card-image<?= $index === 0 ? ' is-active' : '' ?>"
+                        src="<?= htmlspecialchars((string) $imageUrl) ?>"
+                        alt="<?= htmlspecialchars($optionTitle) ?>"
+                        width="100%"
+                        loading="lazy"
+                        decoding="async"
+                        data-option-image
+                        <?= $index === 0 ? '' : 'hidden' ?>
+                        onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
+                    >
+                <?php endforeach; ?>
+                <?php if ($hasMultipleImages) : ?>
+                    <button
+                        class="options-card-image-arrow options-card-image-arrow--left"
+                        type="button"
+                        aria-label="Předchozí obrázek"
+                        data-option-image-nav="prev"
+                    >
+                        &#8249;
+                    </button>
+                    <button
+                        class="options-card-image-arrow options-card-image-arrow--right"
+                        type="button"
+                        aria-label="Další obrázek"
+                        data-option-image-nav="next"
+                    >
+                        &#8250;
+                    </button>
+                <?php endif; ?>
+                <button
+                    class="options-card-image-open"
+                    type="button"
+                    aria-label="Zobrazit obrázek ve větší velikosti"
+                    data-option-image-open
+                ></button>
+            </div>
         <?php elseif (isset($optionColor)) : ?>
-            <div class="options-card-color" style="--color:<?= $optionColor ?>"></div>
+            <div class="options-card-color" style="--color:<?= htmlspecialchars((string) $optionColor) ?>"></div>
         <?php endif; ?>
         <h2 class="options-card-title">
             <?= htmlspecialchars($optionTitle) ?>

@@ -16,7 +16,7 @@ $stepTitle = $currentComponent['effective_title'] ?? $currentComponent['definiti
 $hasSelections = !empty($selectedPath);
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 ?>
-<div id="component-options">
+<div id="component-options" data-island="konfigurator-option-cards">
     <div class="component-options-header">
         <h2 class="component-options-title">
             <?= htmlspecialchars((string) $stepTitle) ?>

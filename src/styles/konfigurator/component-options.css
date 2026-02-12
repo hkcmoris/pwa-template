@@ -49,15 +49,11 @@
     width: 100%;
 }
 
-.options-card-image,
 .options-card-color {
+    background-color: var(--color);
     width: calc(100% + 32px);
     margin: -16px -16px 0;
     min-height: 100px;
-}
-
-.options-card-color {
-    background-color: var(--color);
 }
 
 .options-card-title {
@@ -92,4 +88,103 @@
     margin: 4px 0 0;
     padding-left: 1rem;
     font-size: 0.85rem;
+}
+
+.options-card-media {
+    position: relative;
+    width: calc(100% + 32px);
+    margin: -16px -16px 0;
+    min-height: 100px;
+}
+
+.options-card-image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+}
+
+.options-card-image-arrow {
+    align-items: center;
+    background: rgb(0 0 0 / 60%);
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 1.25rem;
+    height: 28px;
+    justify-content: center;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    z-index: 2;
+}
+
+.options-card-image-arrow--left {
+    left: 10px;
+}
+
+.options-card-image-arrow--right {
+    right: 10px;
+}
+
+.options-card-image-open {
+    background: transparent;
+    border: 0;
+    cursor: zoom-in;
+    inset: 0;
+    position: absolute;
+}
+
+.options-card-modal {
+    align-items: center;
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    position: fixed;
+    z-index: 1000;
+}
+
+.options-card-modal.hidden {
+    display: none;
+}
+
+.options-card-modal-overlay {
+    background: rgb(0 0 0 / 70%);
+    inset: 0;
+    position: absolute;
+}
+
+.options-card-modal-panel {
+    max-height: min(90vh, 900px);
+    max-width: min(90vw, 1100px);
+    position: relative;
+    z-index: 1;
+}
+
+.options-card-modal-image {
+    border-radius: 12px;
+    display: block;
+    max-height: min(90vh, 900px);
+    max-width: min(90vw, 1100px);
+    object-fit: contain;
+}
+
+.options-card-modal-close {
+    align-items: center;
+    background: rgb(0 0 0 / 75%);
+    border: 0;
+    border-radius: 999px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 1.5rem;
+    height: 36px;
+    justify-content: center;
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    width: 36px;
 }
