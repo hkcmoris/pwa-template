@@ -69,6 +69,7 @@ if ($requestedDraftId !== null && $requestedDraftId <= 0) {
 $forceCreateNewDraft = isset($_GET['new']) && $_GET['new'] === '1';
 
 $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $requestedDraftId, $forceCreateNewDraft);
+$wizard->autoSelectSingleOptions();
 $wizardPartial = __DIR__ . '/konfigurator/partials/wizard.php';
 if (is_file($wizardPartial)) {
     require $wizardPartial;
