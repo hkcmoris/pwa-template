@@ -66,6 +66,10 @@ final class Formatter
         return [$decoded, null];
     }
 
+    /**
+     * @param mixed $raw
+     * @return array<int, mixed>
+     */
     public function normaliseDependencyTree($raw): array
     {
         if (is_array($raw)) {

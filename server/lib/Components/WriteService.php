@@ -33,6 +33,7 @@ final class WriteService
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $dependencyTree
      */
     public function insertComponentRow(
         int $definitionId,
@@ -195,6 +196,7 @@ final class WriteService
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $dependencyTree
      * @return int id of created component
      */
     public function create(
@@ -242,6 +244,7 @@ final class WriteService
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $dependencyTree
      * @return int id of updated component
      */
     public function update(
