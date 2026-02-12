@@ -354,7 +354,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             <span class="info-wrapper">
               <img width="24px" height="24px" src="/public/assets/images/info.svg" />
               <span class="component-help">
-                Komponenta se nabídne pouze pokud jsou všechny uvedené komponenty v konfiguraci vybrané.
+                Komponenta se nabídne podle zvoleného pravidla: buď pokud jsou vybrané všechny závislosti (AND), nebo alespoň jedna z nich (OR).
               </span>
             </span>
           </label>
@@ -366,6 +366,40 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             data-dependency-tree-input
           >
           <div class="component-dependency-editor" data-dependency-editor>
+            <input type="hidden" value="and" data-dependency-operator-input>
+            <div class="component-select component-dependency-operator" data-select-wrapper>
+              <div
+                class="select"
+                data-select
+                data-dependency-operator-select
+                data-required="true"
+                data-value="and"
+                data-label="Všechny zvolené komponenty (AND)"
+              >
+                <button
+                  type="button"
+                  class="select-button"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                >Všechny zvolené komponenty (AND)</button>
+                <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                  <li
+                    role="option"
+                    class="select-option"
+                    data-value="and"
+                    data-label="Všechny zvolené komponenty (AND)"
+                    aria-selected="true"
+                  >Všechny zvolené komponenty (AND)</li>
+                  <li
+                    role="option"
+                    class="select-option"
+                    data-value="or"
+                    data-label="Alespoň jedna zvolená komponenta (OR)"
+                    aria-selected="false"
+                  >Alespoň jedna zvolená komponenta (OR)</li>
+                </ul>
+              </div>
+            </div>
             <ul class="component-dependency-list" data-dependency-list></ul>
             <button
               type="button"
