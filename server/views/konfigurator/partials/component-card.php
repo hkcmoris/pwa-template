@@ -87,8 +87,9 @@ $hasMultipleImages = count($optionImages) > 1;
             </p>
         <?php endif; ?>
         <?php if (!empty($optionProperties)) : ?>
-            <ul class="options-card-properties">
+            <table class="options-card-properties">
                 <?php foreach ($optionProperties as $property) : ?>
+                <tr>
                     <?php
                     if (!is_array($property)) {
                         continue;
@@ -96,14 +97,13 @@ $hasMultipleImages = count($optionImages) > 1;
                     $name = isset($property['name']) ? trim((string) $property['name']) : '';
                     $value = isset($property['value']) ? trim((string) $property['value']) : '';
                     $unit = isset($property['unit']) ? trim((string) $property['unit']) : '';
-                    $label = trim($name . ' ' . $value . ' ' . $unit);
-                    if ($label === '') {
-                        continue;
-                    }
                     ?>
-                    <li><?= htmlspecialchars($label) ?></li>
+                    <td><?= htmlspecialchars($name) ?></td>
+                    <td><?= htmlspecialchars($value) ?></td>
+                    <td><?= htmlspecialchars($unit) ?></td>
+                </tr>
                 <?php endforeach; ?>
-            </ul>
+                </table>
         <?php endif; ?>
         <button type="submit" class="options-card-action">Vybrat</button>
     </form>

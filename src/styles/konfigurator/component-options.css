@@ -36,6 +36,10 @@
     padding: 8px 12px;
 }
 
+.component-card {
+    display: flex;
+}
+
 .options-card-inner {
     align-items: flex-start;
     background: var(--surface, rgb(0 0 0 / 3%));
@@ -68,10 +72,8 @@
 
 .options-card-action {
     align-self: flex-start;
-    background: #0f62fe;
     border: none;
     border-radius: 999px;
-    color: #fff;
     cursor: pointer;
     padding: 6px 16px;
     width: 100%;
@@ -81,6 +83,11 @@
     margin: 0;
     padding-left: 1rem;
     font-size: 0.85rem;
+}
+
+.options-card-properties td:nth-child(2) {
+    text-align: right;
+    padding-right: 0.5rem;
 }
 
 .component-options-summary-properties {
@@ -99,8 +106,7 @@
 .options-card-image {
     display: block;
     width: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
+    object-fit: contain;
 }
 
 .options-card-image[hidden] {
@@ -139,6 +145,10 @@
     cursor: zoom-in;
     inset: 0;
     position: absolute;
+}
+
+.options-card-image-open:hover {
+    background: transparent;
 }
 
 .options-card-modal {

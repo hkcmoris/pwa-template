@@ -163,6 +163,10 @@ foreach ($viewStyles as $styleId => $entry) {
         max-width: 1000px;
         margin: 0 auto;
       }
+
+      body[data-route="konfigurator"] main {
+        max-width: initial;
+      }
     </style>
     <?php if (!$isDevEnv) :
         $main = vite_asset('src/main.ts');
