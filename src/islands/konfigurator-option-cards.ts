@@ -69,12 +69,24 @@ const ensureModal = (root: HTMLElement) => {
     return modal;
 };
 
+const initializeCardImages = (root: HTMLElement) => {
+    root.querySelectorAll<HTMLElement>('.options-card-media').forEach((card) => {
+        const { images, currentIndex } = getCurrentImage(card);
+        if (!images.length) {
+            return;
+        }
+
+        showImage(card, currentIndex);
+    });
+};
+
 export default (root: HTMLElement) => {
     if (root.hasAttribute('data-option-cards-mounted')) {
         return;
     }
 
     const modal = ensureModal(root);
+    initializeCardImages(root);
 
     root.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
