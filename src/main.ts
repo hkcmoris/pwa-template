@@ -65,6 +65,12 @@ const mountIslands = (root: Document | HTMLElement = document) => {
     });
 };
 
+const resetMountedIslands = (root: Document | HTMLElement = document) => {
+    root.querySelectorAll<HTMLElement>('[data-island-mounted]').forEach((el) => {
+        el.removeAttribute('data-island-mounted');
+    });
+};
+
 onIdle(() => mountIslands());
 
 // In dev, lazy-load font CSS from Vite server after first paint
@@ -463,6 +469,9 @@ logoutBtn?.addEventListener('click', async () => {
 });
 
 document.body.addEventListener('htmx:historyRestore', () => {
+    resetMountedIslands();
+    mountIslands();
+    initNavActions();
     highlightNav();
     updateBodyRoute();
 });
