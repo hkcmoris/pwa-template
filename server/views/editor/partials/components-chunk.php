@@ -66,8 +66,14 @@ foreach ($items as $node) {
     $color = $rawColor !== ''
         ? htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8')
         : '';
-    $dependencyCount = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
-        ? count($node['dependency_tree'])
+    $dependencyTreeRaw = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
+        ? $node['dependency_tree']
+        : [];
+    $dependencyRules = isset($dependencyTreeRaw['rules']) && is_array($dependencyTreeRaw['rules'])
+        ? $dependencyTreeRaw['rules']
+        : $dependencyTreeRaw;
+    $dependencyCount = is_array($dependencyRules)
+        ? count($dependencyRules)
         : 0;
     $childCount = isset($node['children_count']) ? (int) $node['children_count'] : 0;
     $depth = isset($node['depth']) ? (int) $node['depth'] : 0;
@@ -90,9 +96,6 @@ foreach ($items as $node) {
         $priceHistoryJsonRaw = '[]';
     }
     $priceHistoryJson = htmlspecialchars($priceHistoryJsonRaw, ENT_QUOTES, 'UTF-8');
-    $dependencyTreeRaw = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
-        ? $node['dependency_tree']
-        : [];
     $dependencyTreeJsonRaw = json_encode($dependencyTreeRaw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($dependencyTreeJsonRaw === false) {
         $dependencyTreeJsonRaw = '[]';

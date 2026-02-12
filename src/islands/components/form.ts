@@ -156,16 +156,23 @@ type DependencyRule = {
     component_id: number;
 };
 
-const parseDependencyRules = (raw: string): DependencyRule[] => {
+type DependencyOperator = 'and' | 'or';
+
+type DependencyTreePayload = {
+    operator: DependencyOperator;
+    rules: DependencyRule[];
+};
+
+const parseDependencyRules = (raw: string): DependencyTreePayload => {
     if (!raw.trim()) {
-        return [];
+        return { operator: 'and', rules: [] };
     }
 
-    try {
-        const decoded = JSON.parse(raw) as unknown;
+    const parseRules = (decoded: unknown): DependencyRule[] => {
         if (!Array.isArray(decoded)) {
             return [];
         }
+
         const rules: DependencyRule[] = [];
         decoded.forEach((entry) => {
             if (!entry || typeof entry !== 'object') {
@@ -183,9 +190,29 @@ const parseDependencyRules = (raw: string): DependencyRule[] => {
             }
             rules.push({ component_id: Math.trunc(numeric) });
         });
+
         return rules;
+    };
+
+    try {
+        const decoded = JSON.parse(raw) as unknown;
+
+        if (Array.isArray(decoded)) {
+            return { operator: 'and', rules: parseRules(decoded) };
+        }
+
+        if (!decoded || typeof decoded !== 'object') {
+            return { operator: 'and', rules: [] };
+        }
+
+        const operatorRaw = (decoded as { operator?: unknown }).operator;
+        const operator: DependencyOperator =
+            operatorRaw === 'or' ? 'or' : 'and';
+        const rules = parseRules((decoded as { rules?: unknown }).rules);
+
+        return { operator, rules };
     } catch {
-        return [];
+        return { operator: 'and', rules: [] };
     }
 };
 
@@ -196,11 +223,25 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
     const editor = form.querySelector<HTMLElement>('[data-dependency-editor]');
     const list = form.querySelector<HTMLElement>('[data-dependency-list]');
     const addButton = form.querySelector<HTMLButtonElement>('[data-dependency-add]');
+    const operatorInput = form.querySelector<HTMLInputElement>(
+        '[data-dependency-operator-input]'
+    );
+    const operatorSelect = form.querySelector<HTMLElement>(
+        '[data-dependency-operator-select]'
+    );
     const rowTemplate = form.querySelector<HTMLTemplateElement>(
         '[data-dependency-row-template]'
     );
 
-    if (!dependencyInput || !editor || !list || !addButton || !rowTemplate) {
+    if (
+        !dependencyInput ||
+        !editor ||
+        !list ||
+        !addButton ||
+        !rowTemplate ||
+        !operatorInput ||
+        !operatorSelect
+    ) {
         return;
     }
 
@@ -219,7 +260,11 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
                 payload.push({ component_id: parsed });
             }
         });
-        dependencyInput.value = JSON.stringify(payload);
+        const operator = operatorInput.value === 'or' ? 'or' : 'and';
+        dependencyInput.value = JSON.stringify({
+            operator,
+            rules: payload,
+        });
     };
 
     const bindRow = (row: HTMLElement, initialValue = '') => {
@@ -265,9 +310,18 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         syncDependencyInput();
     };
 
-    const existingRules = parseDependencyRules(dependencyInput.value);
+    const existingTree = parseDependencyRules(dependencyInput.value);
+    operatorInput.value = existingTree.operator;
+    operatorSelect.setAttribute('data-value', existingTree.operator);
+    setSelectValue(operatorSelect, existingTree.operator);
+    operatorSelect.addEventListener('select:change', (event) => {
+        const detail = (event as CustomEvent<SelectChangeDetail>).detail;
+        operatorInput.value = detail?.value === 'or' ? 'or' : 'and';
+        syncDependencyInput();
+    });
+
     list.innerHTML = '';
-    existingRules.forEach((rule) => {
+    existingTree.rules.forEach((rule) => {
         addDependencyRow(String(rule.component_id));
     });
 

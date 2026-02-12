@@ -23,7 +23,8 @@ final class RuleEngine
      */
     private function passesPrerequisites(array $component, array $selectedPath): bool
     {
-        $requiredComponentIds = $this->extractRequiredComponentIds($component['dependency_tree'] ?? null);
+        $prerequisites = $this->extractPrerequisites($component['dependency_tree'] ?? null);
+        $requiredComponentIds = $prerequisites['component_ids'];
 
         if ($requiredComponentIds === []) {
             return true;
@@ -40,6 +41,16 @@ final class RuleEngine
             }
         }
 
+        if ($prerequisites['operator'] === 'or') {
+            foreach ($requiredComponentIds as $requiredId) {
+                if (isset($selectedComponentIds[$requiredId])) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         foreach ($requiredComponentIds as $requiredId) {
             if (!isset($selectedComponentIds[$requiredId])) {
                 return false;
@@ -51,17 +62,29 @@ final class RuleEngine
 
     /**
      * @param mixed $dependencyTree
-     * @return array<int, int>
+     * @return array{operator: string, component_ids: array<int, int>}
      */
-    private function extractRequiredComponentIds($dependencyTree): array
+    private function extractPrerequisites($dependencyTree): array
     {
         if (!is_array($dependencyTree)) {
-            return [];
+            return [
+                'operator' => 'and',
+                'component_ids' => [],
+            ];
+        }
+
+        $operator = 'and';
+        $rules = $dependencyTree;
+
+        if (isset($dependencyTree['rules']) && is_array($dependencyTree['rules'])) {
+            $rules = $dependencyTree['rules'];
+            $operatorRaw = isset($dependencyTree['operator']) ? $dependencyTree['operator'] : '';
+            $operator = $operatorRaw === 'or' ? 'or' : 'and';
         }
 
         $required = [];
 
-        foreach ($dependencyTree as $entry) {
+        foreach ($rules as $entry) {
             if (!is_array($entry) || !isset($entry['component_id'])) {
                 continue;
             }
@@ -77,7 +100,10 @@ final class RuleEngine
             }
         }
 
-        return $required;
+        return [
+            'operator' => $operator,
+            'component_ids' => $required,
+        ];
     }
 
     /**
