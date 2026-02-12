@@ -33,6 +33,7 @@ final class WriteService
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $properties
      * @param array<int, mixed> $dependencyTree
      */
     public function insertComponentRow(
@@ -42,6 +43,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        array $properties,
         array $dependencyTree,
         int $position
     ): int {
@@ -80,6 +82,7 @@ final class WriteService
                 images,
                 color,
                 dependency_tree,
+                properties,
                 position
             ) VALUES (
                 :definition,
@@ -89,6 +92,7 @@ final class WriteService
                 :images,
                 :color,
                 :dependency,
+                :properties,
                 :position
             )
             SQL
@@ -123,6 +127,7 @@ final class WriteService
         }
 
         $stmt->bindValue(':dependency', json_encode($dependencyTree), PDO::PARAM_STR);
+        $stmt->bindValue(':properties', json_encode($properties), PDO::PARAM_STR);
         $stmt->bindValue(':position', $position, PDO::PARAM_INT);
         $stmt->execute();
 
@@ -186,6 +191,7 @@ final class WriteService
                 [],
                 null,
                 [],
+                [],
                 $position
             );
 
@@ -196,6 +202,7 @@ final class WriteService
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $properties
      * @param array<int, mixed> $dependencyTree
      * @return int id of created component
      */
@@ -206,6 +213,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        array $properties,
         array $dependencyTree,
         int $position,
         ?string $priceAmount = null,
@@ -224,6 +232,7 @@ final class WriteService
                 $description,
                 $images,
                 $color,
+                $properties,
                 $dependencyTree,
                 $position
             );
@@ -244,6 +253,7 @@ final class WriteService
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $properties
      * @param array<int, mixed> $dependencyTree
      * @return int id of updated component
      */
@@ -255,6 +265,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        array $properties,
         array $dependencyTree,
         ?int $position,
         ?string $priceAmount = null,
@@ -380,6 +391,7 @@ final class WriteService
                     images = :images,
                     color = :color,
                     dependency_tree = :dependency,
+                    properties = :properties,
                     position = :position
                 WHERE id = :id
                 SQL
@@ -414,6 +426,7 @@ final class WriteService
             }
 
             $update->bindValue(':dependency', json_encode($dependencyTree), PDO::PARAM_STR);
+            $update->bindValue(':properties', json_encode($properties), PDO::PARAM_STR);
             $update->bindValue(':position', $position, PDO::PARAM_INT);
             $update->bindValue(':id', $componentId, PDO::PARAM_INT);
             $update->execute();

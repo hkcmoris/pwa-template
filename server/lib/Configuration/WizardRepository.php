@@ -236,6 +236,7 @@ final class WizardRepository
                 c.description,
                 c.images,
                 c.color,
+                c.properties,
                 c.dependency_tree,
                 c.position,
                 c.parent_id,
@@ -255,6 +256,7 @@ final class WizardRepository
             $row['dependency_tree'] = $this->componentsFormatter->normaliseDependencyTree(
                 $row['dependency_tree'] ?? null
             );
+            $row['properties'] = $this->componentsFormatter->normaliseProperties($row['properties'] ?? null);
             $images = $this->componentsFormatter->normaliseImages($row['images'] ?? null);
             $row['images'] = $images;
             $row['image'] = $images[0] ?? null;

@@ -62,6 +62,7 @@ final class QueryService
             c.description,
             c.images,
             c.color,
+            c.properties,
             c.dependency_tree,
             c.position,
             c.created_at,
@@ -102,6 +103,7 @@ final class QueryService
 
         foreach ($rows as $row) {
             $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+            $row['properties'] = $this->formatter->normaliseProperties($row['properties'] ?? null);
             $images = $this->formatter->normaliseImages($row['images'] ?? null);
             $row['images'] = $images;
             $row['image'] = $images[0] ?? null;
@@ -132,6 +134,7 @@ final class QueryService
             c.description,
             c.images,
             c.color,
+            c.properties,
             c.dependency_tree,
             c.position,
             c.created_at,
@@ -159,6 +162,7 @@ final class QueryService
 
         foreach ($rows as $row) {
             $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+            $row['properties'] = $this->formatter->normaliseProperties($row['properties'] ?? null);
             $images = $this->formatter->normaliseImages($row['images'] ?? null);
             $row['images'] = $images;
             $row['image'] = $images[0] ?? null;
@@ -250,6 +254,7 @@ final class QueryService
             c.description,
             c.images,
             c.color,
+            c.properties,
             c.dependency_tree,
             c.position,
             c.pos_path,
@@ -271,6 +276,7 @@ final class QueryService
         }
 
         $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+        $row['properties'] = $this->formatter->normaliseProperties($row['properties'] ?? null);
         $row['pos_path'] = $row['pos_path'] ?? null;
         $images = $this->formatter->normaliseImages($row['images'] ?? null);
         $row['images'] = $images;

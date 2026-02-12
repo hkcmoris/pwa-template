@@ -9,6 +9,9 @@ $optionTitle = (string) ($option['effective_title'] ?? $option['definition_title
 $optionImage = $option['image'];
 $optionColor = $option['color'];
 $definitionTitle = (string) ($option['definition_title'] ?? '');
+$optionProperties = isset($option['properties']) && is_array($option['properties'])
+    ? $option['properties']
+    : [];
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
@@ -43,6 +46,25 @@ $configurationId = isset($summary['configuration_id']) ? (int) $summary['configu
             <p class="options-card-subtitle">
                 <?= htmlspecialchars($definitionTitle) ?>
             </p>
+        <?php endif; ?>
+        <?php if (!empty($optionProperties)) : ?>
+            <ul class="options-card-properties">
+                <?php foreach ($optionProperties as $property) : ?>
+                    <?php
+                    if (!is_array($property)) {
+                        continue;
+                    }
+                    $name = isset($property['name']) ? trim((string) $property['name']) : '';
+                    $value = isset($property['value']) ? trim((string) $property['value']) : '';
+                    $unit = isset($property['unit']) ? trim((string) $property['unit']) : '';
+                    $label = trim($name . ' ' . $value . ' ' . $unit);
+                    if ($label === '') {
+                        continue;
+                    }
+                    ?>
+                    <li><?= htmlspecialchars($label) ?></li>
+                <?php endforeach; ?>
+            </ul>
         <?php endif; ?>
         <button type="submit" class="options-card-action">Vybrat</button>
     </form>

@@ -54,6 +54,19 @@ export const setupNodeActions = (
                 item.dataset.images,
                 item.dataset.image
             );
+            const propertiesRaw = item.dataset.properties ?? '[]';
+            let properties = undefined;
+            try {
+                const parsed = JSON.parse(propertiesRaw) as unknown;
+                if (Array.isArray(parsed)) {
+                    properties = parsed.filter(
+                        (entry): entry is { name?: string; value?: string; unit?: string } =>
+                            entry !== null && typeof entry === 'object'
+                    );
+                }
+            } catch {
+                properties = undefined;
+            }
             openComponentModal({
                 mode: 'edit',
                 componentId: id,
@@ -75,6 +88,7 @@ export const setupNodeActions = (
                 priceCurrency,
                 priceHistory,
                 dependencyTree: item.dataset.dependencyTree ?? '',
+                properties,
             });
         } else if (action === 'delete') {
             let childCount = 0;

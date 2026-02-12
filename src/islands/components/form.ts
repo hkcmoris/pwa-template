@@ -306,6 +306,98 @@ const parseDependencyRules = (raw: string): DependencyTreePayload => {
     }
 };
 
+const setupPropertiesEditor = (form: HTMLFormElement) => {
+    const propertiesInput = form.querySelector<HTMLInputElement>(
+        '[data-properties-input]'
+    );
+    const editor = form.querySelector<HTMLElement>('[data-properties-editor]');
+    const list = form.querySelector<HTMLElement>('[data-properties-list]');
+    const addButton = form.querySelector<HTMLButtonElement>('[data-properties-add]');
+    const rowTemplate = form.querySelector<HTMLTemplateElement>(
+        '[data-properties-row-template]'
+    );
+
+    if (!propertiesInput || !editor || !list || !addButton || !rowTemplate) {
+        return;
+    }
+
+    const sync = () => {
+        const rows = Array.from(list.querySelectorAll<HTMLElement>('[data-properties-item]'));
+        const payload = rows
+            .map((row) => {
+                const nameInput = row.querySelector<HTMLInputElement>('[data-property-name]');
+                const valueInput = row.querySelector<HTMLInputElement>('[data-property-value]');
+                const unitInput = row.querySelector<HTMLInputElement>('[data-property-unit]');
+                const name = nameInput?.value.trim() ?? '';
+                const value = valueInput?.value.trim() ?? '';
+                const unit = unitInput?.value.trim() ?? '';
+                if (!name && !value && !unit) {
+                    return null;
+                }
+                return { name, value, unit };
+            })
+            .filter((entry): entry is { name: string; value: string; unit: string } => entry !== null);
+
+        propertiesInput.value = JSON.stringify(payload);
+    };
+
+    const addRow = (entry?: { name?: string; value?: string; unit?: string }) => {
+        const fragment = rowTemplate.content.cloneNode(true) as DocumentFragment;
+        const row = fragment.querySelector<HTMLElement>('[data-properties-item]');
+        const nameInput = fragment.querySelector<HTMLInputElement>('[data-property-name]');
+        const valueInput = fragment.querySelector<HTMLInputElement>('[data-property-value]');
+        const unitInput = fragment.querySelector<HTMLInputElement>('[data-property-unit]');
+        const removeButton = fragment.querySelector<HTMLButtonElement>('[data-properties-remove]');
+
+        if (!row || !nameInput || !valueInput || !unitInput || !removeButton) {
+            return;
+        }
+
+        nameInput.value = entry?.name?.trim() ?? '';
+        valueInput.value = entry?.value?.trim() ?? '';
+        unitInput.value = entry?.unit?.trim() ?? '';
+
+        const onInput = () => sync();
+        nameInput.addEventListener('input', onInput);
+        valueInput.addEventListener('input', onInput);
+        unitInput.addEventListener('input', onInput);
+
+        removeButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            row.remove();
+            sync();
+        });
+
+        list.appendChild(row);
+        sync();
+    };
+
+    let existing: Array<{ name?: string; value?: string; unit?: string }> = [];
+    try {
+        const parsed = JSON.parse(propertiesInput.value || '[]') as unknown;
+        if (Array.isArray(parsed)) {
+            existing = parsed.filter(
+                (entry): entry is { name?: string; value?: string; unit?: string } =>
+                    entry !== null && typeof entry === 'object'
+            );
+        }
+    } catch {
+        existing = [];
+    }
+
+    list.innerHTML = '';
+    if (existing.length > 0) {
+        existing.forEach((entry) => addRow(entry));
+    }
+
+    addButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        addRow();
+    });
+
+    sync();
+};
+
 const setupDependencyEditor = (form: HTMLFormElement) => {
     const dependencyInput = form.querySelector<HTMLInputElement>(
         '[data-dependency-tree-input]'
@@ -661,6 +753,7 @@ export const setupComponentForm = (form: HTMLFormElement) => {
         });
     }
 
+    setupPropertiesEditor(form);
     setupDependencyEditor(form);
 
     const wrappers = Array.from(
