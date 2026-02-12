@@ -280,28 +280,29 @@ final class ConfigurationWizard
             throw new RuntimeException('Požadovaný krok nebyl nalezen.');
         }
 
-        if ($targetIndex === 0) {
-            $this->repository->deleteAllSelections($this->configurationId);
-            $rootComponent = $this->findStartRootComponent([]);
-            $newCurrent = $rootComponent !== null ? (int) $rootComponent['id'] : null;
-            $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
-            $this->currentComponentId = $newCurrent;
-            $this->selectedPath = [];
-            return;
-        }
-
-        $targetSelection = $path[$targetIndex - 1];
-        $targetSelectionId = (int) ($targetSelection['id'] ?? 0);
-        if ($targetSelectionId <= 0) {
-            throw new RuntimeException('Požadovaný krok nebyl nalezen.');
-        }
-
-        $this->repository->deleteSelectionsAfter($this->configurationId, $targetSelectionId);
-
+        $targetSelection = $path[$targetIndex];
         $remaining = array_slice($path, 0, $targetIndex);
-        $newCurrent = isset($remaining[$targetIndex - 1]['component_id'])
-            ? (int) $remaining[$targetIndex - 1]['component_id']
+
+        if ($remaining === []) {
+            $this->repository->deleteAllSelections($this->configurationId);
+        } else {
+            $lastRemainingSelection = end($remaining);
+            $lastRemainingSelectionId = (int) ($lastRemainingSelection['id'] ?? 0);
+            if ($lastRemainingSelectionId <= 0) {
+                throw new RuntimeException('Požadovaný krok nebyl nalezen.');
+            }
+
+            $this->repository->deleteSelectionsAfter($this->configurationId, $lastRemainingSelectionId);
+        }
+
+        $newCurrent = isset($targetSelection['parent_component_id'])
+            ? (int) $targetSelection['parent_component_id']
             : null;
+
+        if ($newCurrent <= 0) {
+            $rootComponent = $this->findStartRootComponent($remaining);
+            $newCurrent = $rootComponent !== null ? (int) $rootComponent['id'] : null;
+        }
 
         $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
         $this->currentComponentId = $newCurrent;
