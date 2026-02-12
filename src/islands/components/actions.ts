@@ -60,8 +60,13 @@ export const setupNodeActions = (
                 const parsed = JSON.parse(propertiesRaw) as unknown;
                 if (Array.isArray(parsed)) {
                     properties = parsed.filter(
-                        (entry): entry is { name?: string; value?: string; unit?: string } =>
-                            entry !== null && typeof entry === 'object'
+                        (
+                            entry
+                        ): entry is {
+                            name?: string;
+                            value?: string;
+                            unit?: string;
+                        } => entry !== null && typeof entry === 'object'
                     );
                 }
             } catch {

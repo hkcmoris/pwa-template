@@ -976,7 +976,6 @@
     color: var(--fg-muted, #94a3b8);
 }
 
-
 .component-properties-editor {
     display: grid;
     gap: 0.5rem;
