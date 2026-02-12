@@ -86,7 +86,11 @@ final class RuleEngine
 
     /**
      * @param mixed $dependencyTree
-     * @return array{operator: string, groups: array<int, array{operator: string, component_ids: array<int, int>}>, forbidden_component_ids: array<int, int>}
+     * @return array{
+     *  operator: string,
+     *  groups: array<int, array{operator: string, component_ids: array<int, int>}>,
+     *  forbidden_component_ids: array<int, int>
+     * }
      */
     private function extractPrerequisites($dependencyTree): array
     {

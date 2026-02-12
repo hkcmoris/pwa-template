@@ -363,7 +363,9 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             Vlastnosti komponenty
             <span class="info-wrapper">
               <img width="24px" height="24px" src="/public/assets/images/info.svg" />
-              <span class="component-help">Přidejte vlastnosti ve tvaru název, hodnota a jednotka (např. výkon 120 kW).</span>
+              <span class="component-help">
+                Přidejte vlastnosti ve tvaru název, hodnota a jednotka (např. výkon 120 kW).
+              </span>
             </span>
           </label>
           <input
@@ -493,7 +495,9 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                 data-forbidden-add
               >+ Přidat zakázanou komponentu</button>
             </div>
-            <p class="component-dependency-hint">Bez zadaných pravidel je komponenta dostupná vždy. Zakázané komponenty dostupnost vždy blokují.</p>
+            <p class="component-dependency-hint">
+              Bez zadaných pravidel je komponenta dostupná vždy. Zakázané komponenty dostupnost vždy blokují.
+            </p>
           </div>
           <template data-dependency-group-template>
             <li class="component-dependency-group" data-dependency-group>

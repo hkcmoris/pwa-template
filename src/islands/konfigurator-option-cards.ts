@@ -38,7 +38,9 @@ const openModal = (modal: HTMLElement, src: string, alt: string) => {
         </div>
     `;
 
-    const image = modal.querySelector<HTMLImageElement>('.options-card-modal-image');
+    const image = modal.querySelector<HTMLImageElement>(
+        '.options-card-modal-image'
+    );
     if (image) {
         image.src = src;
         image.alt = alt;
@@ -77,7 +79,9 @@ export default (root: HTMLElement) => {
     root.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
 
-        const navButton = target.closest<HTMLElement>('[data-option-image-nav]');
+        const navButton = target.closest<HTMLElement>(
+            '[data-option-image-nav]'
+        );
         if (navButton) {
             const card = navButton.closest<HTMLElement>('.options-card-media');
             const direction = navButton.dataset.optionImageNav;
@@ -93,7 +97,9 @@ export default (root: HTMLElement) => {
             return;
         }
 
-        const openButton = target.closest<HTMLElement>('[data-option-image-open]');
+        const openButton = target.closest<HTMLElement>(
+            '[data-option-image-open]'
+        );
         if (openButton) {
             const card = openButton.closest<HTMLElement>('.options-card-media');
             if (!card) {
