@@ -920,6 +920,52 @@
     flex: 1;
 }
 
+.component-dependency-group-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.component-dependency-group {
+    border: 1px solid var(--line, #d1d5db);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-dependency-group-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.component-dependency-group-header .component-select {
+    flex: 1;
+}
+
+.component-dependency-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.component-dependency-subheading {
+    margin: 0;
+    font-weight: 600;
+}
+
+.component-forbidden-editor {
+    display: grid;
+    gap: 0.5rem;
+}
+
+[data-theme='dark'] .component-dependency-group {
+    border-color: var(--line, #334155);
+}
+
 .component-dependency-hint {
     margin: 0;
     color: var(--fg-muted, #6b7280);

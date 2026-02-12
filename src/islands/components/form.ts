@@ -158,15 +158,36 @@ type DependencyRule = {
 
 type DependencyOperator = 'and' | 'or';
 
-type DependencyTreePayload = {
+type DependencyRuleGroup = {
     operator: DependencyOperator;
     rules: DependencyRule[];
 };
 
+type DependencyTreePayload = {
+    operator: DependencyOperator;
+    rules: DependencyRuleGroup[];
+    forbidden_component_ids: number[];
+};
+
 const parseDependencyRules = (raw: string): DependencyTreePayload => {
     if (!raw.trim()) {
-        return { operator: 'and', rules: [] };
+        return { operator: 'and', rules: [], forbidden_component_ids: [] };
     }
+
+    const toComponentId = (value: unknown): number | null => {
+        const numeric =
+            typeof value === 'number'
+                ? value
+                : typeof value === 'string'
+                  ? Number.parseInt(value, 10)
+                  : Number.NaN;
+
+        if (!Number.isFinite(numeric) || numeric <= 0) {
+            return null;
+        }
+
+        return Math.trunc(numeric);
+    };
 
     const parseRules = (decoded: unknown): DependencyRule[] => {
         if (!Array.isArray(decoded)) {
@@ -178,41 +199,110 @@ const parseDependencyRules = (raw: string): DependencyTreePayload => {
             if (!entry || typeof entry !== 'object') {
                 return;
             }
-            const value = (entry as { component_id?: unknown }).component_id;
-            const numeric =
-                typeof value === 'number'
-                    ? value
-                    : typeof value === 'string'
-                      ? Number.parseInt(value, 10)
-                      : Number.NaN;
-            if (!Number.isFinite(numeric) || numeric <= 0) {
+            const numeric = toComponentId(
+                (entry as { component_id?: unknown }).component_id
+            );
+            if (numeric === null) {
                 return;
             }
-            rules.push({ component_id: Math.trunc(numeric) });
+            rules.push({ component_id: numeric });
         });
 
         return rules;
+    };
+
+    const parseForbidden = (decoded: unknown): number[] => {
+        if (!Array.isArray(decoded)) {
+            return [];
+        }
+
+        const forbidden: number[] = [];
+        decoded.forEach((entry) => {
+            const id = toComponentId(entry);
+            if (id === null || forbidden.includes(id)) {
+                return;
+            }
+            forbidden.push(id);
+        });
+
+        return forbidden;
+    };
+
+    const parseGroups = (
+        operator: DependencyOperator,
+        decoded: unknown
+    ): DependencyRuleGroup[] => {
+        if (!Array.isArray(decoded)) {
+            return [];
+        }
+
+        const groups: DependencyRuleGroup[] = [];
+        let hasLegacyRules = false;
+
+        decoded.forEach((entry) => {
+            if (!entry || typeof entry !== 'object') {
+                return;
+            }
+
+            const nestedRules = parseRules((entry as { rules?: unknown }).rules);
+            if (nestedRules.length > 0) {
+                const nestedOperator: DependencyOperator =
+                    (entry as { operator?: unknown }).operator === 'or'
+                        ? 'or'
+                        : 'and';
+                groups.push({ operator: nestedOperator, rules: nestedRules });
+                return;
+            }
+
+            const legacyComponentId = toComponentId(
+                (entry as { component_id?: unknown }).component_id
+            );
+            if (legacyComponentId !== null) {
+                hasLegacyRules = true;
+            }
+        });
+
+        if (groups.length > 0) {
+            return groups;
+        }
+
+        if (!hasLegacyRules) {
+            return [];
+        }
+
+        return [{ operator, rules: parseRules(decoded) }];
     };
 
     try {
         const decoded = JSON.parse(raw) as unknown;
 
         if (Array.isArray(decoded)) {
-            return { operator: 'and', rules: parseRules(decoded) };
+            return {
+                operator: 'and',
+                rules: [{ operator: 'and', rules: parseRules(decoded) }],
+                forbidden_component_ids: [],
+            };
         }
 
         if (!decoded || typeof decoded !== 'object') {
-            return { operator: 'and', rules: [] };
+            return { operator: 'and', rules: [], forbidden_component_ids: [] };
         }
 
         const operatorRaw = (decoded as { operator?: unknown }).operator;
         const operator: DependencyOperator =
             operatorRaw === 'or' ? 'or' : 'and';
-        const rules = parseRules((decoded as { rules?: unknown }).rules);
+        const rules = parseGroups(
+            operator,
+            (decoded as { rules?: unknown }).rules
+        );
+        const forbidden = parseForbidden(
+            (decoded as { forbidden_component_ids?: unknown })
+                .forbidden_component_ids
+        );
 
-        return { operator, rules };
+        return { operator, rules, forbidden_component_ids: forbidden };
     } catch {
-        return { operator: 'and', rules: [] };
+        return { operator: 'and', rules: [], forbidden_component_ids: [] };
     }
 };
 
@@ -221,7 +311,6 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         '[data-dependency-tree-input]'
     );
     const editor = form.querySelector<HTMLElement>('[data-dependency-editor]');
-    const list = form.querySelector<HTMLElement>('[data-dependency-list]');
     const addButton = form.querySelector<HTMLButtonElement>(
         '[data-dependency-add]'
     );
@@ -231,41 +320,91 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
     const operatorSelect = form.querySelector<HTMLElement>(
         '[data-dependency-operator-select]'
     );
+    const groupList = form.querySelector<HTMLElement>('[data-dependency-group-list]');
+    const addGroupButton = form.querySelector<HTMLButtonElement>(
+        '[data-dependency-group-add]'
+    );
+    const groupTemplate = form.querySelector<HTMLTemplateElement>(
+        '[data-dependency-group-template]'
+    );
     const rowTemplate = form.querySelector<HTMLTemplateElement>(
         '[data-dependency-row-template]'
+    );
+    const forbiddenList = form.querySelector<HTMLElement>('[data-forbidden-list]');
+    const forbiddenAddButton = form.querySelector<HTMLButtonElement>(
+        '[data-forbidden-add]'
+    );
+    const forbiddenRowTemplate = form.querySelector<HTMLTemplateElement>(
+        '[data-forbidden-row-template]'
     );
 
     if (
         !dependencyInput ||
         !editor ||
-        !list ||
         !addButton ||
+        !groupList ||
+        !addGroupButton ||
+        !groupTemplate ||
         !rowTemplate ||
         !operatorInput ||
-        !operatorSelect
+        !operatorSelect ||
+        !forbiddenList ||
+        !forbiddenAddButton ||
+        !forbiddenRowTemplate
     ) {
         return;
     }
 
     const syncDependencyInput = () => {
-        const rows = Array.from(
-            list.querySelectorAll<HTMLElement>('[data-dependency-item]')
+        const groups = Array.from(
+            groupList.querySelectorAll<HTMLElement>('[data-dependency-group]')
         );
-        const payload: DependencyRule[] = [];
-        rows.forEach((row) => {
-            const hidden = row.querySelector<HTMLInputElement>(
-                '[data-dependency-component-id]'
+        const payload: DependencyRuleGroup[] = [];
+        groups.forEach((group) => {
+            const groupOperatorInput = group.querySelector<HTMLInputElement>(
+                '[data-dependency-group-operator-input]'
             );
-            const raw = hidden?.value ?? '';
-            const parsed = Number.parseInt(raw, 10);
-            if (!Number.isNaN(parsed) && parsed > 0) {
-                payload.push({ component_id: parsed });
+            const groupOperator: DependencyOperator =
+                groupOperatorInput?.value === 'or' ? 'or' : 'and';
+            const groupRows = Array.from(
+                group.querySelectorAll<HTMLElement>('[data-dependency-item]')
+            );
+            const groupRules: DependencyRule[] = [];
+            groupRows.forEach((row) => {
+                const hidden = row.querySelector<HTMLInputElement>(
+                    '[data-dependency-component-id]'
+                );
+                const raw = hidden?.value ?? '';
+                const parsed = Number.parseInt(raw, 10);
+                if (!Number.isNaN(parsed) && parsed > 0) {
+                    groupRules.push({ component_id: parsed });
+                }
+            });
+
+            if (groupRules.length > 0) {
+                payload.push({ operator: groupOperator, rules: groupRules });
             }
         });
+
+        const forbiddenIds: number[] = [];
+        const forbiddenRows = Array.from(
+            forbiddenList.querySelectorAll<HTMLElement>('[data-forbidden-item]')
+        );
+        forbiddenRows.forEach((row) => {
+            const hidden = row.querySelector<HTMLInputElement>(
+                '[data-forbidden-component-id]'
+            );
+            const parsed = Number.parseInt(hidden?.value ?? '', 10);
+            if (!Number.isNaN(parsed) && parsed > 0 && !forbiddenIds.includes(parsed)) {
+                forbiddenIds.push(parsed);
+            }
+        });
+
         const operator = operatorInput.value === 'or' ? 'or' : 'and';
         dependencyInput.value = JSON.stringify({
             operator,
             rules: payload,
+            forbidden_component_ids: forbiddenIds,
         });
     };
 
@@ -300,7 +439,7 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         });
     };
 
-    const addDependencyRow = (componentId = '') => {
+    const addDependencyRow = (targetList: HTMLElement, componentId = '') => {
         const fragment = rowTemplate.content.cloneNode(
             true
         ) as DocumentFragment;
@@ -310,9 +449,107 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         if (!row) {
             return;
         }
-        list.appendChild(row);
+        targetList.appendChild(row);
         enhanceSelects(row);
         bindRow(row, componentId);
+        syncDependencyInput();
+    };
+
+    const addGroup = (operator: DependencyOperator = 'and', componentIds: string[] = []) => {
+        const fragment = groupTemplate.content.cloneNode(true) as DocumentFragment;
+        const group = fragment.querySelector<HTMLElement>('[data-dependency-group]');
+        const groupOperatorInput = fragment.querySelector<HTMLInputElement>(
+            '[data-dependency-group-operator-input]'
+        );
+        const groupOperatorSelect = fragment.querySelector<HTMLElement>(
+            '[data-dependency-group-operator-select]'
+        );
+        const groupRulesList = fragment.querySelector<HTMLElement>(
+            '[data-dependency-rules-list]'
+        );
+        const groupAddRule = fragment.querySelector<HTMLButtonElement>(
+            '[data-dependency-rule-add]'
+        );
+        const groupRemove = fragment.querySelector<HTMLButtonElement>(
+            '[data-dependency-group-remove]'
+        );
+
+        if (
+            !group ||
+            !groupOperatorInput ||
+            !groupOperatorSelect ||
+            !groupRulesList ||
+            !groupAddRule ||
+            !groupRemove
+        ) {
+            return;
+        }
+
+        groupList.appendChild(group);
+        enhanceSelects(group);
+        groupOperatorInput.value = operator;
+        groupOperatorSelect.setAttribute('data-value', operator);
+        setSelectValue(groupOperatorSelect, operator);
+
+        groupOperatorSelect.addEventListener('select:change', (event) => {
+            const detail = (event as CustomEvent<SelectChangeDetail>).detail;
+            groupOperatorInput.value = detail?.value === 'or' ? 'or' : 'and';
+            syncDependencyInput();
+        });
+
+        groupAddRule.addEventListener('click', (event) => {
+            event.preventDefault();
+            addDependencyRow(groupRulesList, '');
+        });
+
+        groupRemove.addEventListener('click', (event) => {
+            event.preventDefault();
+            group.remove();
+            syncDependencyInput();
+        });
+
+        if (componentIds.length > 0) {
+            componentIds.forEach((componentId) => {
+                addDependencyRow(groupRulesList, componentId);
+            });
+        }
+
+        syncDependencyInput();
+    };
+
+    const addForbiddenRow = (componentId = '') => {
+        const fragment = forbiddenRowTemplate.content.cloneNode(
+            true
+        ) as DocumentFragment;
+        const row = fragment.querySelector<HTMLElement>('[data-forbidden-item]');
+        const hidden = fragment.querySelector<HTMLInputElement>(
+            '[data-forbidden-component-id]'
+        );
+        const select = fragment.querySelector<HTMLElement>('.select[data-select]');
+        const remove = fragment.querySelector<HTMLButtonElement>('[data-forbidden-remove]');
+
+        if (!row || !hidden || !select || !remove) {
+            return;
+        }
+
+        forbiddenList.appendChild(row);
+        enhanceSelects(row);
+        hidden.value = componentId;
+        select.setAttribute('data-value', componentId);
+        setSelectValue(select, componentId);
+
+        select.addEventListener('select:change', (event) => {
+            const detail = (event as CustomEvent<SelectChangeDetail>).detail;
+            hidden.value = detail?.value ?? '';
+            syncDependencyInput();
+        });
+
+        remove.addEventListener('click', (event) => {
+            event.preventDefault();
+            row.remove();
+            syncDependencyInput();
+        });
+
         syncDependencyInput();
     };
 
@@ -326,14 +563,38 @@ const setupDependencyEditor = (form: HTMLFormElement) => {
         syncDependencyInput();
     });
 
-    list.innerHTML = '';
-    existingTree.rules.forEach((rule) => {
-        addDependencyRow(String(rule.component_id));
+    groupList.innerHTML = '';
+    existingTree.rules.forEach((group) => {
+        addGroup(
+            group.operator,
+            group.rules.map((rule) => String(rule.component_id))
+        );
     });
+    if (existingTree.rules.length === 0) {
+        addGroup('and');
+    }
 
     addButton.addEventListener('click', (event) => {
         event.preventDefault();
-        addDependencyRow('');
+        const firstGroup = groupList.querySelector<HTMLElement>('[data-dependency-group]');
+        const firstGroupRules = firstGroup?.querySelector<HTMLElement>('[data-dependency-rules-list]');
+        if (firstGroupRules) {
+            addDependencyRow(firstGroupRules, '');
+        }
+    });
+
+    addGroupButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        addGroup('and');
+    });
+
+    forbiddenList.innerHTML = '';
+    existingTree.forbidden_component_ids.forEach((id) => {
+        addForbiddenRow(String(id));
+    });
+    forbiddenAddButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        addForbiddenRow('');
     });
 
     syncDependencyInput();

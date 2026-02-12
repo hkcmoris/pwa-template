@@ -375,40 +375,107 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                 data-dependency-operator-select
                 data-required="true"
                 data-value="and"
-                data-label="Všechny zvolené komponenty (AND)"
+                data-label="Splnit všechny skupiny (AND)"
               >
                 <button
                   type="button"
                   class="select-button"
                   aria-haspopup="listbox"
                   aria-expanded="false"
-                >Všechny zvolené komponenty (AND)</button>
+                >Splnit všechny skupiny (AND)</button>
                 <ul class="select-list" role="listbox" tabindex="-1" hidden>
                   <li
                     role="option"
                     class="select-option"
                     data-value="and"
-                    data-label="Všechny zvolené komponenty (AND)"
+                    data-label="Splnit všechny skupiny (AND)"
                     aria-selected="true"
-                  >Všechny zvolené komponenty (AND)</li>
+                  >Splnit všechny skupiny (AND)</li>
                   <li
                     role="option"
                     class="select-option"
                     data-value="or"
-                    data-label="Alespoň jedna zvolená komponenta (OR)"
+                    data-label="Splnit aspoň jednu skupinu (OR)"
                     aria-selected="false"
-                  >Alespoň jedna zvolená komponenta (OR)</li>
+                  >Splnit aspoň jednu skupinu (OR)</li>
                 </ul>
               </div>
             </div>
-            <ul class="component-dependency-list" data-dependency-list></ul>
-            <button
-              type="button"
-              class="component-action"
-              data-dependency-add
-            >+ Přidat závislost</button>
-            <p class="component-dependency-hint">Bez zadaných závislostí je komponenta dostupná vždy.</p>
+            <ul class="component-dependency-group-list" data-dependency-group-list></ul>
+            <div class="component-dependency-actions">
+              <button
+                type="button"
+                class="component-action"
+                data-dependency-group-add
+              >+ Přidat skupinu</button>
+              <button
+                type="button"
+                class="component-action"
+                data-dependency-add
+              >+ Přidat pravidlo do 1. skupiny</button>
+            </div>
+            <div class="component-forbidden-editor">
+              <p class="component-dependency-subheading">Zakázané komponenty</p>
+              <ul class="component-dependency-list" data-forbidden-list></ul>
+              <button
+                type="button"
+                class="component-action"
+                data-forbidden-add
+              >+ Přidat zakázanou komponentu</button>
+            </div>
+            <p class="component-dependency-hint">Bez zadaných pravidel je komponenta dostupná vždy. Zakázané komponenty dostupnost vždy blokují.</p>
           </div>
+          <template data-dependency-group-template>
+            <li class="component-dependency-group" data-dependency-group>
+              <div class="component-dependency-group-header">
+                <input type="hidden" value="and" data-dependency-group-operator-input>
+                <div class="component-select component-dependency-operator" data-select-wrapper>
+                  <div
+                    class="select"
+                    data-select
+                    data-dependency-group-operator-select
+                    data-required="true"
+                    data-value="and"
+                    data-label="V této skupině musí platit vše (AND)"
+                  >
+                    <button
+                      type="button"
+                      class="select-button"
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                    >V této skupině musí platit vše (AND)</button>
+                    <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                      <li
+                        role="option"
+                        class="select-option"
+                        data-value="and"
+                        data-label="V této skupině musí platit vše (AND)"
+                        aria-selected="true"
+                      >V této skupině musí platit vše (AND)</li>
+                      <li
+                        role="option"
+                        class="select-option"
+                        data-value="or"
+                        data-label="V této skupině stačí jedna podmínka (OR)"
+                        aria-selected="false"
+                      >V této skupině stačí jedna podmínka (OR)</li>
+                    </ul>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="component-action component-action--danger"
+                  data-dependency-group-remove
+                >Odebrat skupinu</button>
+              </div>
+              <ul class="component-dependency-list" data-dependency-rules-list></ul>
+              <button
+                type="button"
+                class="component-action"
+                data-dependency-rule-add
+              >+ Přidat pravidlo do skupiny</button>
+            </li>
+          </template>
           <template data-dependency-row-template>
             <li class="component-dependency-item" data-dependency-item>
               <div class="component-select" data-select-wrapper>
@@ -458,6 +525,58 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                 type="button"
                 class="component-action component-action--danger"
                 data-dependency-remove
+              >Odebrat</button>
+            </li>
+          </template>
+          <template data-forbidden-row-template>
+            <li class="component-dependency-item" data-forbidden-item>
+              <div class="component-select" data-select-wrapper>
+                <input type="hidden" value="" data-forbidden-component-id>
+                <div
+                  class="select"
+                  data-select
+                  data-required="true"
+                  data-value=""
+                  data-label="Vyberte zakázanou komponentu"
+                >
+                  <button
+                    type="button"
+                    class="select-button"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                  >Vyberte zakázanou komponentu</button>
+                  <ul class="select-list" role="listbox" tabindex="-1" hidden>
+                    <li
+                      role="option"
+                      class="select-option"
+                      data-value=""
+                      data-label="Vyberte zakázanou komponentu"
+                      aria-selected="true"
+                    >Vyberte zakázanou komponentu</li>
+                    <?php foreach ($componentOptions as $component) : ?>
+                        <?php
+                        $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
+                        $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                        $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
+                        $id = (int) ($component['id'] ?? 0);
+                        $labelText = $rawTitle . ' (ID ' . $id . ')';
+                        $displayText = $indent . $labelText;
+                        ?>
+                      <li
+                        role="option"
+                        class="select-option"
+                        data-value="<?= $id ?>"
+                        data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
+                        aria-selected="false"
+                      ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php endforeach; ?>
+                  </ul>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="component-action component-action--danger"
+                data-forbidden-remove
               >Odebrat</button>
             </li>
           </template>
