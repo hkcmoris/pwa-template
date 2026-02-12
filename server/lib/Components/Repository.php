@@ -143,6 +143,7 @@ final class Repository
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $dependencyTree
      * @return ComponentRow
      */
     public function create(
@@ -181,6 +182,7 @@ final class Repository
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $dependencyTree
      * @return ComponentRow
      */
     public function update(
