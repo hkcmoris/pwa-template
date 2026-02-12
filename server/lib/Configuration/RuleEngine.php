@@ -35,12 +35,8 @@ final class RuleEngine
         $groupResults = [];
 
         foreach ($groups as $group) {
-            $groupRequiredIds = isset($group['component_ids']) && is_array($group['component_ids'])
-                ? $group['component_ids']
-                : [];
-            $groupOperator = isset($group['operator']) && $group['operator'] === 'or'
-                ? 'or'
-                : 'and';
+            $groupRequiredIds = $group['component_ids'];
+            $groupOperator = $group['operator'] === 'or' ? 'or' : 'and';
 
             if ($groupRequiredIds === []) {
                 $groupResults[] = true;

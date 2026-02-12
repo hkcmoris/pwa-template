@@ -59,6 +59,30 @@ $configurationId = isset($summary['configuration_id']) ? (int) $summary['configu
                             <?= htmlspecialchars(
                                 (string) ($selection['effective_title'] ?? $selection['definition_title'] ?? '')
                             ) ?>
+                            <?php
+                            $selectionProperties = isset($selection['properties']) && is_array($selection['properties'])
+                                ? $selection['properties']
+                                : [];
+                            ?>
+                            <?php if (!empty($selectionProperties)) : ?>
+                                <ul class="component-options-summary-properties">
+                                    <?php foreach ($selectionProperties as $property) : ?>
+                                        <?php
+                                        if (!is_array($property)) {
+                                            continue;
+                                        }
+                                        $name = isset($property['name']) ? trim((string) $property['name']) : '';
+                                        $value = isset($property['value']) ? trim((string) $property['value']) : '';
+                                        $unit = isset($property['unit']) ? trim((string) $property['unit']) : '';
+                                        $label = trim($name . ' ' . $value . ' ' . $unit);
+                                        if ($label === '') {
+                                            continue;
+                                        }
+                                        ?>
+                                        <li><?= htmlspecialchars($label) ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php endif; ?>
                         </li>
                     <?php endforeach; ?>
                 </ul>

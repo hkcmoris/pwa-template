@@ -51,6 +51,7 @@ $mediaType = isset($_POST['media_type']) ? (string) $_POST['media_type'] : 'imag
 $positionParam = isset($_POST['position']) ? trim((string) $_POST['position']) : '';
 $priceParam = isset($_POST['price']) ? trim((string) $_POST['price']) : '';
 $dependencyTreeParam = isset($_POST['dependency_tree']) ? (string) $_POST['dependency_tree'] : '';
+$propertiesParam = isset($_POST['properties']) ? (string) $_POST['properties'] : '';
 $mediaType = $mediaType === 'color' ? 'color' : 'image';
 $errors = [];
 $definitionId = null;
@@ -58,6 +59,7 @@ $parentId = null;
 $position = null;
 $priceValue = null;
 $dependencyTree = [];
+$properties = [];
 
 if (is_string($imagesParam)) {
     $decoded = json_decode($imagesParam, true);
@@ -151,6 +153,11 @@ if ($dependencyError !== null) {
     $errors[] = $dependencyError;
 }
 
+[$properties, $propertiesError] = $formatter->normalisePropertiesInput($propertiesParam);
+if ($propertiesError !== null) {
+    $errors[] = $propertiesError;
+}
+
 if (!empty($errors)) {
     http_response_code(422);
     $viewModel = $presenter->presentInitial([
@@ -183,6 +190,7 @@ try {
         $description !== '' ? $description : null,
         $imageList,
         $color !== '' ? strtoupper($color) : null,
+        $properties,
         $dependencyTree,
         $position,
         $priceValue,

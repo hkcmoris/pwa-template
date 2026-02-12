@@ -975,3 +975,35 @@
 [data-theme='dark'] .component-dependency-hint {
     color: var(--fg-muted, #94a3b8);
 }
+
+
+.component-properties-editor {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-properties-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-properties-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr minmax(90px, 0.5fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+@media (width < 720px) {
+    .component-properties-item {
+        grid-template-columns: 1fr;
+    }
+}
+
+.component-properties-preview {
+    margin: 0;
+    padding-left: 1rem;
+}

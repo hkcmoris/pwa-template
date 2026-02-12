@@ -80,3 +80,16 @@
     padding: 6px 16px;
     width: 100%;
 }
+
+
+.options-card-properties {
+    margin: 0;
+    padding-left: 1rem;
+    font-size: 0.85rem;
+}
+
+.component-options-summary-properties {
+    margin: 4px 0 0;
+    padding-left: 1rem;
+    font-size: 0.85rem;
+}

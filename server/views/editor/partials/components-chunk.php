@@ -69,6 +69,9 @@ foreach ($items as $node) {
     $dependencyTreeRaw = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
         ? $node['dependency_tree']
         : [];
+    $propertiesRaw = isset($node['properties']) && is_array($node['properties'])
+        ? $node['properties']
+        : [];
     $dependencyRules = isset($dependencyTreeRaw['rules']) && is_array($dependencyTreeRaw['rules'])
         ? $dependencyTreeRaw['rules']
         : $dependencyTreeRaw;
@@ -94,6 +97,11 @@ foreach ($items as $node) {
         $priceHistoryJsonRaw = '[]';
     }
     $priceHistoryJson = htmlspecialchars($priceHistoryJsonRaw, ENT_QUOTES, 'UTF-8');
+    $propertiesJsonRaw = json_encode($propertiesRaw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($propertiesJsonRaw === false) {
+        $propertiesJsonRaw = '[]';
+    }
+    $propertiesJson = htmlspecialchars($propertiesJsonRaw, ENT_QUOTES, 'UTF-8');
     $dependencyTreeJsonRaw = json_encode($dependencyTreeRaw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     if ($dependencyTreeJsonRaw === false) {
         $dependencyTreeJsonRaw = '[]';
@@ -122,6 +130,7 @@ foreach ($items as $node) {
       data-price-amount="<?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>"
       data-price-currency="<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?>"
       data-price-history="<?= $priceHistoryJson ?>"
+      data-properties="<?= $propertiesJson ?>"
       data-dependency-tree="<?= $dependencyTreeJson ?>"
       <?= $depthAttr ?>
     >
@@ -140,6 +149,7 @@ foreach ($items as $node) {
               !empty($rawImages) ||
               $color !== '' ||
               $dependencyCount > 0 ||
+              !empty($propertiesRaw) ||
               $latestPrice !== null;
             ?>
             <?php if ($hasDetails) : ?>
@@ -205,6 +215,30 @@ foreach ($items as $node) {
                     <dd>
                       <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
                       <?= $color ?>
+                    </dd>
+                  </div>
+                <?php endif; ?>
+                <?php if (!empty($propertiesRaw)) : ?>
+                  <div>
+                    <dt>Vlastnosti</dt>
+                    <dd>
+                      <ul class="component-properties-preview">
+                        <?php foreach ($propertiesRaw as $property) : ?>
+                            <?php
+                            if (!is_array($property)) {
+                                continue;
+                            }
+                            $propertyName = isset($property['name']) ? trim((string) $property['name']) : '';
+                            $propertyValue = isset($property['value']) ? trim((string) $property['value']) : '';
+                            $propertyUnit = isset($property['unit']) ? trim((string) $property['unit']) : '';
+                            if ($propertyName === '' && $propertyValue === '' && $propertyUnit === '') {
+                                continue;
+                            }
+                            $propertyLabel = trim($propertyName . ' ' . $propertyValue . ' ' . $propertyUnit);
+                            ?>
+                          <li><?= htmlspecialchars($propertyLabel, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                      </ul>
                     </dd>
                   </div>
                 <?php endif; ?>
