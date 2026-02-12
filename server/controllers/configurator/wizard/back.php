@@ -34,6 +34,7 @@ if ($draftId !== null && $draftId <= 0) {
 try {
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $wizard->goBack();
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 } catch (Throwable $e) {
@@ -41,6 +42,7 @@ try {
     http_response_code(400);
     $wizardError = 'Návrat zpět se nezdařil.';
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 }

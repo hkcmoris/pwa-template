@@ -36,6 +36,7 @@ if ($selectionId <= 0) {
     http_response_code(422);
     $wizardError = 'Požadovaný krok není platný.';
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
     return;
@@ -44,6 +45,7 @@ if ($selectionId <= 0) {
 try {
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $wizard->goToStep($selectionId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 } catch (Throwable $e) {
@@ -51,6 +53,7 @@ try {
     http_response_code(400);
     $wizardError = 'Přechod na vybraný krok se nezdařil.';
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 }

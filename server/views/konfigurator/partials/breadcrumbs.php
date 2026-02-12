@@ -3,6 +3,7 @@
 /** @var array<string, mixed>|null $summary */
 $selectedPath = $selectedPath ?? [];
 $summary = $summary ?? [];
+$BASE = isset($BASE) ? (string) $BASE : '';
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 $configurationDraftNumber = isset($summary['configuration_draft_number'])
     ? (int) $summary['configuration_draft_number']

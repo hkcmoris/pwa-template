@@ -35,6 +35,7 @@ if ($componentId <= 0) {
     http_response_code(422);
     $wizardError = 'Vyberte platnou komponentu.';
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
     return;
@@ -43,6 +44,7 @@ if ($componentId <= 0) {
 try {
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
     $wizard->selectComponent($componentId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 } catch (Throwable $e) {
@@ -50,6 +52,7 @@ try {
     http_response_code(400);
     $wizardError = 'Výběr nebyl uložen. Zkuste to prosím znovu.';
     $wizard = ConfigurationWizard::loadOrCreateDraft($userId, $draftId);
+    $wizard->autoSelectSingleOptions();
     $BASE = rtrim((string) (defined('BASE_PATH') ? BASE_PATH : ''), '/');
     require __DIR__ . '/../../../views/konfigurator/partials/wizard.php';
 }

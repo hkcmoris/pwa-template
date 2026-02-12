@@ -309,6 +309,27 @@ final class ConfigurationWizard
         $this->selectedPath = $remaining;
     }
 
+    public function autoSelectSingleOptions(): void
+    {
+        $safetyCounter = 0;
+
+        while ($safetyCounter < 100) {
+            $availableOptions = $this->getAvailableOptions();
+            if (count($availableOptions) !== 1) {
+                return;
+            }
+
+            $onlyOption = $availableOptions[0];
+            $optionId = (int) ($onlyOption['id'] ?? 0);
+            if ($optionId <= 0) {
+                return;
+            }
+
+            $this->selectComponent($optionId);
+            $safetyCounter++;
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
