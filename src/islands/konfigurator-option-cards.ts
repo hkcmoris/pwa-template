@@ -70,14 +70,16 @@ const ensureModal = (root: HTMLElement) => {
 };
 
 const initializeCardImages = (root: HTMLElement) => {
-    root.querySelectorAll<HTMLElement>('.options-card-media').forEach((card) => {
-        const { images, currentIndex } = getCurrentImage(card);
-        if (!images.length) {
-            return;
-        }
+    root.querySelectorAll<HTMLElement>('.options-card-media').forEach(
+        (card) => {
+            const { images, currentIndex } = getCurrentImage(card);
+            if (!images.length) {
+                return;
+            }
 
-        showImage(card, currentIndex);
-    });
+            showImage(card, currentIndex);
+        }
+    );
 };
 
 export default (root: HTMLElement) => {
