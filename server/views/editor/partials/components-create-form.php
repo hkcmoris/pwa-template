@@ -354,7 +354,8 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             <span class="info-wrapper">
               <img width="24px" height="24px" src="/public/assets/images/info.svg" />
               <span class="component-help">
-                Komponenta se nabídne podle zvoleného pravidla: buď pokud jsou vybrané všechny závislosti (AND), nebo alespoň jedna z nich (OR).
+                Komponenta se nabídne podle zvoleného pravidla: buď pokud jsou vybrané
+                všechny závislosti (AND), nebo alespoň jedna z nich (OR).
               </span>
             </span>
           </label>

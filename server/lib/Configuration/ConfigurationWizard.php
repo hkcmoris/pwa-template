@@ -118,7 +118,7 @@ final class ConfigurationWizard
                     $wizard->repository->updateCurrentComponent($wizard->configurationId, $componentId);
                 }
             } else {
-                $rootComponent = $wizard->findStartRootComponent();
+                $rootComponent = $wizard->findStartRootComponent($path);
                 if ($rootComponent !== null) {
                     $wizard->currentComponentId = (int) $rootComponent['id'];
                     $wizard->repository->updateCurrentComponent($wizard->configurationId, $wizard->currentComponentId);
@@ -250,7 +250,7 @@ final class ConfigurationWizard
             $lastSelection = end($remaining);
             $newCurrent = isset($lastSelection['component_id']) ? (int) $lastSelection['component_id'] : null;
         } else {
-            $rootComponent = $this->findStartRootComponent();
+            $rootComponent = $this->findStartRootComponent($remaining);
             $newCurrent = $rootComponent !== null ? (int) $rootComponent['id'] : null;
         }
 
@@ -284,7 +284,7 @@ final class ConfigurationWizard
             return;
         }
 
-        $rootComponent = $this->findStartRootComponent();
+        $rootComponent = $this->findStartRootComponent($this->getSelectedPath());
         if ($rootComponent === null) {
             return;
         }
@@ -294,22 +294,34 @@ final class ConfigurationWizard
     }
 
     /**
+     * @param array<int, array<string, mixed>> $selectedPath
      * @return ComponentRow|null
      */
-    private function findStartRootComponent(): ?array
+    private function findStartRootComponent(array $selectedPath = []): ?array
     {
         $roots = $this->components->fetchChildren(null);
         if ($roots === []) {
             return null;
         }
 
+        $eligibleRoots = [];
         foreach ($roots as $root) {
+            if ($this->rules->allowsComponent($root, $selectedPath)) {
+                $eligibleRoots[] = $root;
+            }
+        }
+
+        if ($eligibleRoots === []) {
+            return null;
+        }
+
+        foreach ($eligibleRoots as $root) {
             if ((int) ($root['position'] ?? -1) === 0) {
                 return $root;
             }
         }
 
-        return $roots[0];
+        return $eligibleRoots[0];
     }
 
     /**
@@ -332,10 +344,18 @@ final class ConfigurationWizard
             return null;
         }
 
+        $path = $this->getSelectedPath();
         $rootId = (int) $rootComponent['id'];
         foreach ($roots as $index => $root) {
             if ((int) $root['id'] === $rootId) {
-                return $roots[$index + 1] ?? null;
+                for ($nextIndex = $index + 1; $nextIndex < count($roots); $nextIndex++) {
+                    $nextRoot = $roots[$nextIndex];
+                    if ($this->rules->allowsComponent($nextRoot, $path)) {
+                        return $nextRoot;
+                    }
+                }
+
+                return null;
             }
         }
 
