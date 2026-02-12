@@ -56,6 +56,16 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           type="button"
           class="component-modal-tab"
           role="tab"
+          id="component-tab-properties"
+          aria-controls="component-panel-properties"
+          aria-selected="false"
+          tabindex="-1"
+          data-component-tab="properties"
+        >Vlastnosti</button>
+        <button
+          type="button"
+          class="component-modal-tab"
+          role="tab"
           id="component-tab-dependencies"
           aria-controls="component-panel-dependencies"
           aria-selected="false"
@@ -338,6 +348,66 @@ $dependencyPlaceholder = 'Vyberte komponentu';
               >
             </div>
           </div>
+        </div>
+      </section>
+
+      <section
+        class="component-modal-tabpanel hidden"
+        role="tabpanel"
+        id="component-panel-properties"
+        aria-labelledby="component-tab-properties"
+        data-component-panel="properties"
+      >
+        <div class="component-field component-field--full">
+          <label for="component-modal-properties">
+            Vlastnosti komponenty
+            <span class="info-wrapper">
+              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <span class="component-help">Přidejte vlastnosti ve tvaru název, hodnota a jednotka (např. výkon 120 kW).</span>
+            </span>
+          </label>
+          <input
+            type="hidden"
+            id="component-modal-properties"
+            name="properties"
+            value="[]"
+            data-properties-input
+          >
+          <div class="component-properties-editor" data-properties-editor>
+            <ul class="component-properties-list" data-properties-list></ul>
+            <button
+              type="button"
+              class="component-action"
+              data-properties-add
+            >+ Přidat vlastnost</button>
+          </div>
+          <template data-properties-row-template>
+            <li class="component-properties-item" data-properties-item>
+              <input
+                type="text"
+                maxlength="120"
+                placeholder="Název"
+                data-property-name
+              >
+              <input
+                type="text"
+                maxlength="120"
+                placeholder="Hodnota"
+                data-property-value
+              >
+              <input
+                type="text"
+                maxlength="32"
+                placeholder="Jednotka"
+                data-property-unit
+              >
+              <button
+                type="button"
+                class="component-action component-action--danger"
+                data-properties-remove
+              >Odebrat</button>
+            </li>
+          </template>
         </div>
       </section>
 

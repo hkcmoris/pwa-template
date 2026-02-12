@@ -143,6 +143,7 @@ final class Repository
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $properties
      * @param array<int, mixed> $dependencyTree
      * @return ComponentRow
      */
@@ -153,6 +154,7 @@ final class Repository
         ?string $description,
         array $images,
         ?string $color,
+        array $properties,
         array $dependencyTree,
         int $position,
         ?string $priceAmount = null,
@@ -165,6 +167,7 @@ final class Repository
             $description,
             $images,
             $color,
+            $properties,
             $dependencyTree,
             $position,
             $priceAmount,
@@ -182,6 +185,7 @@ final class Repository
 
     /**
      * @param array<int, scalar|null> $images
+     * @param array<int, mixed> $properties
      * @param array<int, mixed> $dependencyTree
      * @return ComponentRow
      */
@@ -193,6 +197,7 @@ final class Repository
         ?string $description,
         array $images,
         ?string $color,
+        array $properties,
         array $dependencyTree,
         ?int $position,
         ?string $priceAmount = null,
@@ -206,6 +211,7 @@ final class Repository
             $description,
             $images,
             $color,
+            $properties,
             $dependencyTree,
             $position,
             $priceAmount,

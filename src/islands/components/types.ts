@@ -37,6 +37,12 @@ export type DropContext = {
     position: DropPosition | null;
 };
 
+export type ComponentProperty = {
+    name?: string;
+    value?: string;
+    unit?: string;
+};
+
 export type PriceHistoryItem = {
     amount?: string;
     currency?: string;
@@ -62,6 +68,7 @@ export type ComponentModalOptions = {
     priceCurrency?: string;
     priceHistory?: PriceHistoryItem[];
     dependencyTree?: string;
+    properties?: ComponentProperty[];
 };
 
 export type MediaMode = 'image' | 'color';

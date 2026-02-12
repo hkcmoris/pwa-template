@@ -67,6 +67,26 @@ final class Formatter
     }
 
     /**
+     * @return array{0: array<int, array{name: string, value: string, unit: string}>, 1: ?string}
+     */
+    public function normalisePropertiesInput(?string $rawInput): array
+    {
+        $value = $rawInput !== null ? trim($rawInput) : '';
+
+        if ($value === '') {
+            return [[], null];
+        }
+
+        $decoded = json_decode($value, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            return [[], 'Vlastnosti musí být ve formátu JSON pole.'];
+        }
+
+        return [$this->normaliseProperties($decoded), null];
+    }
+
+    /**
      * @param mixed $raw
      * @return array<int, mixed>
      */
@@ -123,6 +143,49 @@ final class Formatter
             if (!in_array($trimmed, $normalised, true)) {
                 $normalised[] = $trimmed;
             }
+        }
+
+        return $normalised;
+    }
+
+    /**
+     * @param mixed $raw
+     * @return array<int, array{name: string, value: string, unit: string}>
+     */
+    public function normaliseProperties($raw): array
+    {
+        if (!is_array($raw)) {
+            if (is_string($raw) && $raw !== '') {
+                $decoded = json_decode($raw, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    $raw = $decoded;
+                } else {
+                    return [];
+                }
+            } else {
+                return [];
+            }
+        }
+
+        $normalised = [];
+        foreach ($raw as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $name = isset($entry['name']) ? trim((string) $entry['name']) : '';
+            $propertyValue = isset($entry['value']) ? trim((string) $entry['value']) : '';
+            $unit = isset($entry['unit']) ? trim((string) $entry['unit']) : '';
+
+            if ($name === '' && $propertyValue === '' && $unit === '') {
+                continue;
+            }
+
+            $normalised[] = [
+                'name' => mb_substr($name, 0, 120, 'UTF-8'),
+                'value' => mb_substr($propertyValue, 0, 120, 'UTF-8'),
+                'unit' => mb_substr($unit, 0, 32, 'UTF-8'),
+            ];
         }
 
         return $normalised;

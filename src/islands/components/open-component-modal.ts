@@ -6,6 +6,7 @@ import {
     AfterRequestDetail,
     ComponentModalOptions,
     PriceHistoryItem,
+    ComponentProperty,
     SelectedImageEntry,
 } from './types';
 import { buildImageList, focusFirstField, trimImageValue } from './utils';
@@ -65,6 +66,26 @@ const updatePositionField = (
     } else {
         input.value = '';
     }
+};
+
+const normaliseProperties = (
+    input: ComponentProperty[] | undefined
+): ComponentProperty[] => {
+    if (!Array.isArray(input)) {
+        return [];
+    }
+
+    return input
+        .filter((entry) => entry && typeof entry === 'object')
+        .map((entry) => ({
+            name: entry.name?.trim() ?? '',
+            value: entry.value?.trim() ?? '',
+            unit: entry.unit?.trim() ?? '',
+        }))
+        .filter(
+            (entry) =>
+                entry.name !== '' || entry.value !== '' || entry.unit !== ''
+        );
 };
 
 const applyPriceHistory = (
@@ -181,6 +202,9 @@ export const createOpenComponentModal = ({
         const dependencyTreeField = form.querySelector<HTMLInputElement>(
             '[data-dependency-tree-input]'
         );
+        const propertiesField = form.querySelector<HTMLInputElement>(
+            '[data-properties-input]'
+        );
         const imagesField = form.querySelector<HTMLInputElement>(
             '[data-images-input]'
         );
@@ -244,6 +268,11 @@ export const createOpenComponentModal = ({
         }
         if (dependencyTreeField) {
             dependencyTreeField.value = options.dependencyTree ?? '[]';
+        }
+        if (propertiesField) {
+            propertiesField.value = JSON.stringify(
+                normaliseProperties(options.properties)
+            );
         }
         let selectedImages: SelectedImageEntry[] =
             mediaMode === 'image'
