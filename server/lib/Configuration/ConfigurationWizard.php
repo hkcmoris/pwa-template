@@ -259,6 +259,55 @@ final class ConfigurationWizard
         $this->selectedPath = $remaining;
     }
 
+    public function goToStep(int $selectionId): void
+    {
+        $path = $this->getSelectedPath();
+        if ($path === []) {
+            $this->currentComponentId = null;
+            $this->repository->updateCurrentComponent($this->configurationId, null);
+            return;
+        }
+
+        $targetIndex = null;
+        foreach ($path as $index => $selection) {
+            if ((int) ($selection['id'] ?? 0) === $selectionId) {
+                $targetIndex = $index;
+                break;
+            }
+        }
+
+        if ($targetIndex === null) {
+            throw new RuntimeException('Požadovaný krok nebyl nalezen.');
+        }
+
+        if ($targetIndex === 0) {
+            $this->repository->deleteAllSelections($this->configurationId);
+            $rootComponent = $this->findStartRootComponent([]);
+            $newCurrent = $rootComponent !== null ? (int) $rootComponent['id'] : null;
+            $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
+            $this->currentComponentId = $newCurrent;
+            $this->selectedPath = [];
+            return;
+        }
+
+        $targetSelection = $path[$targetIndex - 1];
+        $targetSelectionId = (int) ($targetSelection['id'] ?? 0);
+        if ($targetSelectionId <= 0) {
+            throw new RuntimeException('Požadovaný krok nebyl nalezen.');
+        }
+
+        $this->repository->deleteSelectionsAfter($this->configurationId, $targetSelectionId);
+
+        $remaining = array_slice($path, 0, $targetIndex);
+        $newCurrent = isset($remaining[$targetIndex - 1]['component_id'])
+            ? (int) $remaining[$targetIndex - 1]['component_id']
+            : null;
+
+        $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
+        $this->currentComponentId = $newCurrent;
+        $this->selectedPath = $remaining;
+    }
+
     /**
      * @return array<string, mixed>
      */

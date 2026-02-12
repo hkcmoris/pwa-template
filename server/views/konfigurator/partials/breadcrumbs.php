@@ -26,12 +26,25 @@ if ($configurationTitle == '') {
         </span>
     </div>
     <?php foreach ($selectedPath as $crumb) : ?>
+        <?php
+        $selectionId = isset($crumb['id']) ? (int) $crumb['id'] : 0;
+        $crumbTitle = (string) ($crumb['effective_title'] ?? $crumb['definition_title'] ?? '');
+        ?>
         <div class="breadcrumb-item">
-            <span class="breadcrumb-item-inner">
-                <span class="breadcrumb-item-title">
-                    <?= htmlspecialchars((string) ($crumb['effective_title'] ?? $crumb['definition_title'] ?? '')) ?>
-                </span>
-            </span>
+            <form
+                method="post"
+                hx-post="<?= htmlspecialchars($BASE) ?>/configurator/wizard/goto-step"
+                hx-target="#konfigurator-wizard"
+                hx-swap="outerHTML"
+            >
+                <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
+                <input type="hidden" name="selection_id" value="<?= $selectionId ?>">
+                <button type="submit" class="breadcrumb-item-inner breadcrumb-item-button">
+                    <span class="breadcrumb-item-title">
+                        <?= htmlspecialchars($crumbTitle) ?>
+                    </span>
+                </button>
+            </form>
         </div>
     <?php endforeach; ?>
 </div>
