@@ -103,6 +103,10 @@
     object-fit: cover;
 }
 
+.options-card-image[hidden] {
+    display: none;
+}
+
 .options-card-image-arrow {
     align-items: center;
     background: rgb(0 0 0 / 60%);
