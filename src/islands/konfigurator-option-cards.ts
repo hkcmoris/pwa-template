@@ -82,6 +82,58 @@ const initializeCardImages = (root: HTMLElement) => {
     );
 };
 
+const recalculateCardMediaHeights = (root: HTMLElement) => {
+    root.querySelectorAll<HTMLElement>('.options-card-inner').forEach((card) => {
+        const media = card.querySelector<HTMLElement>('.options-card-media');
+        if (!media) {
+            return;
+        }
+
+        card.style.removeProperty('--options-card-media-max-height');
+
+        const mediaHeight = media.offsetHeight;
+        if (!mediaHeight) {
+            return;
+        }
+
+        const cardRect = card.getBoundingClientRect();
+        const viewportBottomSpacing = 16;
+        const availableHeight = Math.floor(
+            window.innerHeight - cardRect.top - viewportBottomSpacing
+        );
+        if (availableHeight <= 0) {
+            return;
+        }
+
+        const nonMediaHeight = Math.max(0, card.scrollHeight - mediaHeight);
+        const mediaMaxHeight = Math.max(160, availableHeight - nonMediaHeight);
+        card.style.setProperty(
+            '--options-card-media-max-height',
+            `${mediaMaxHeight}px`
+        );
+    });
+};
+
+const setupCardMediaHeightRecalculation = (root: HTMLElement) => {
+    let rafId = 0;
+    const scheduleRecalculation = () => {
+        if (rafId) {
+            return;
+        }
+        rafId = window.requestAnimationFrame(() => {
+            rafId = 0;
+            recalculateCardMediaHeights(root);
+        });
+    };
+
+    root.querySelectorAll<HTMLImageElement>('[data-option-image]').forEach((image) => {
+        image.addEventListener('load', scheduleRecalculation);
+    });
+
+    window.addEventListener('resize', scheduleRecalculation, { passive: true });
+    scheduleRecalculation();
+};
+
 export default (root: HTMLElement) => {
     if (root.hasAttribute('data-option-cards-mounted')) {
         return;
@@ -89,6 +141,7 @@ export default (root: HTMLElement) => {
 
     const modal = ensureModal(root);
     initializeCardImages(root);
+    setupCardMediaHeightRecalculation(root);
 
     root.addEventListener('click', (event) => {
         const target = event.target as HTMLElement;
