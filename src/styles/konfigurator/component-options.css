@@ -48,6 +48,7 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
     gap: 8px;
     padding: 16px;
     width: 100%;
