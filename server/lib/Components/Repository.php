@@ -236,4 +236,19 @@ final class Repository
     {
         $this->writeService->delete($componentId);
     }
+
+    /**
+     * @return ComponentRow
+     */
+    public function clone(int $componentId): array
+    {
+        $cloneId = $this->writeService->clone($componentId);
+        $row = $this->find($cloneId);
+
+        if (!$row) {
+            throw new RuntimeException('Klonovanou komponentu se nepodařilo načíst.');
+        }
+
+        return $row;
+    }
 }

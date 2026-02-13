@@ -80,6 +80,7 @@ export type SelectedImageEntry = {
 
 export type ComponentApiClient = {
     deleteComponent: (componentId: string) => void;
+    cloneComponent: (componentId: string) => void;
     move: (options: {
         id: string;
         parentId: string | null;

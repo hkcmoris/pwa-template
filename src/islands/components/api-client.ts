@@ -49,6 +49,20 @@ export const createComponentApiClient = ({
 
         deleteViaForm(`${base}/editor/components/delete`, componentId);
     },
+
+    cloneComponent(componentId) {
+        if (!componentId || !htmx || typeof htmx.ajax !== 'function') {
+            return;
+        }
+
+        htmx.ajax('POST', `${base}/editor/components/clone`, {
+            source: listTarget,
+            target: listTarget,
+            select: listTarget,
+            swap: 'outerHTML',
+            values: { component_id: componentId },
+        });
+    },
     move({ id, parentId, position }) {
         if (!id || !htmx || typeof htmx.ajax !== 'function') {
             return;

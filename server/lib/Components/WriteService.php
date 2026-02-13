@@ -484,6 +484,87 @@ final class WriteService
         }
     }
 
+    public function clone(int $id): int
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $source = $this->validator->findComponentOrFail($id, 'Komponentu se nepodařilo najít.');
+            $parentId = $source['parent_id'] === null ? null : (int) $source['parent_id'];
+            $position = isset($source['position']) ? (int) $source['position'] + 1 : 0;
+            $cloneId = $this->cloneNodeRecursive($source, $parentId, $position);
+            $this->pdo->commit();
+
+            return $cloneId;
+        } catch (Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $source
+     */
+    private function cloneNodeRecursive(array $source, ?int $targetParentId, int $position): int
+    {
+        $sourceId = isset($source['id']) ? (int) $source['id'] : 0;
+        $definitionId = isset($source['definition_id']) ? (int) $source['definition_id'] : 0;
+
+        if ($sourceId <= 0 || $definitionId <= 0) {
+            throw new ValidationException('Zdrojová komponenta není validní.');
+        }
+
+        $alternateTitle = isset($source['alternate_title']) ? (string) $source['alternate_title'] : null;
+        $description = isset($source['description']) ? (string) $source['description'] : null;
+        $images = isset($source['images']) && is_array($source['images']) ? $source['images'] : [];
+        $color = isset($source['color']) ? (string) $source['color'] : null;
+        $properties = isset($source['properties']) && is_array($source['properties'])
+            ? $source['properties']
+            : [];
+        $dependencyTree = isset($source['dependency_tree']) && is_array($source['dependency_tree'])
+            ? $source['dependency_tree']
+            : [];
+
+        $cloneId = $this->insertComponentRow(
+            $definitionId,
+            $targetParentId,
+            $alternateTitle,
+            $description,
+            $images,
+            $color,
+            $properties,
+            $dependencyTree,
+            $position
+        );
+
+        $this->copyPrices($sourceId, $cloneId);
+
+        $children = $this->queries->fetchChildren($sourceId);
+
+        foreach ($children as $childIndex => $child) {
+            $this->cloneNodeRecursive($child, $cloneId, $childIndex);
+        }
+
+        return $cloneId;
+    }
+
+    private function copyPrices(int $sourceId, int $cloneId): void
+    {
+        $statement = $this->pdo->prepare(
+            <<<'SQL'
+            INSERT INTO prices (component_id, amount, currency, created_at)
+            SELECT :cloneId, amount, currency, created_at
+            FROM prices
+            WHERE component_id = :sourceId
+            ORDER BY created_at ASC, id ASC
+            SQL
+        );
+
+        $statement->bindValue(':cloneId', $cloneId, PDO::PARAM_INT);
+        $statement->bindValue(':sourceId', $sourceId, PDO::PARAM_INT);
+        $statement->execute();
+    }
+
     /**
      * @param array<int, scalar|null>|null $images
      * @return array{0: array<int, string>, 1: ?string, 2: ?string}

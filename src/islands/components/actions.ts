@@ -95,6 +95,8 @@ export const setupNodeActions = (
                 dependencyTree: item.dataset.dependencyTree ?? '',
                 properties,
             });
+        } else if (action === 'clone') {
+            api.cloneComponent(id);
         } else if (action === 'delete') {
             let childCount = 0;
             if (item.dataset.childrenCount) {

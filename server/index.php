@@ -95,6 +95,7 @@ $controllerRoutes = [
     // METHOD  PATH                              => file
     'POST editor/components/create'              => __DIR__ . '/controllers/editor/components/create.php',
     'POST editor/components/delete'              => __DIR__ . '/controllers/editor/components/delete.php',
+    'POST editor/components/clone'               => __DIR__ . '/controllers/editor/components/clone.php',
     'POST editor/components/move'                => __DIR__ . '/controllers/editor/components/move.php',
     'POST editor/components/update'              => __DIR__ . '/controllers/editor/components/update.php',
     'GET editor/components/page'                 => __DIR__ . '/controllers/editor/components/page.php',
