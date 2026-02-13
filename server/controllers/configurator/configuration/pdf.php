@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 require_once __DIR__ . '/../../../bootstrap.php';
 
 $user = app_get_current_user();
@@ -83,17 +82,83 @@ if ($options === []) {
     }
 }
 
-$pdfEscape = static function (string $value): string {
-    return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
-};
+$czechMap = [
+    'Á' => 128,
+    'Č' => 129,
+    'Ď' => 130,
+    'É' => 131,
+    'Ě' => 132,
+    'Í' => 133,
+    'Ň' => 134,
+    'Ó' => 135,
+    'Ř' => 136,
+    'Š' => 137,
+    'Ť' => 138,
+    'Ú' => 139,
+    'Ů' => 140,
+    'Ý' => 141,
+    'Ž' => 142,
+    'á' => 143,
+    'č' => 144,
+    'ď' => 145,
+    'é' => 146,
+    'ě' => 147,
+    'í' => 148,
+    'ň' => 149,
+    'ó' => 150,
+    'ř' => 151,
+    'š' => 152,
+    'ť' => 153,
+    'ú' => 154,
+    'ů' => 155,
+    'ý' => 156,
+    'ž' => 157,
+];
 
-$toPdfText = static function (string $value): string {
-    $normalized = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-    if (!is_string($normalized) || $normalized === '') {
-        $normalized = $value;
+$toPdfText = static function (string $value) use ($czechMap): string {
+    $buffer = '';
+    $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
+    if (!is_array($chars)) {
+        return '';
     }
 
-    return preg_replace('/[^\x20-\x7E]/', '', $normalized) ?? '';
+    foreach ($chars as $char) {
+        if (isset($czechMap[$char])) {
+            $buffer .= chr($czechMap[$char]);
+            continue;
+        }
+
+        if (strlen($char) === 1) {
+            $ord = ord($char);
+            if ($ord >= 32 && $ord <= 126) {
+                $buffer .= $char;
+            }
+        }
+    }
+
+    return $buffer;
+};
+
+$pdfEscape = static function (string $value): string {
+    $escaped = '';
+    $length = strlen($value);
+
+    for ($i = 0; $i < $length; $i++) {
+        $byte = ord($value[$i]);
+        if ($byte === 40 || $byte === 41 || $byte === 92) {
+            $escaped .= '\\' . chr($byte);
+            continue;
+        }
+
+        if ($byte < 32 || $byte > 126) {
+            $escaped .= sprintf('\\%03o', $byte);
+            continue;
+        }
+
+        $escaped .= chr($byte);
+    }
+
+    return $escaped;
 };
 
 $lineHeight = 16;
@@ -115,7 +180,14 @@ $objects[] = '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj';
 $objects[] = '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj';
 $objects[] = '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj';
 $objects[] = '4 0 obj << /Length ' . strlen($content) . ' >> stream' . "\n" . $content . 'endstream endobj';
-$objects[] = '5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj';
+$objects[] = <<<'PDF'
+5 0 obj <<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+/Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [128 /Aacute /Ccaron /Dcaron /Eacute /Ecaron /Iacute /Ncaron /Oacute /Rcaron /Scaron /Tcaron /Uacute /Uring /Yacute /Zcaron /aacute /ccaron /dcaron /eacute /ecaron /iacute /ncaron /oacute /rcaron /scaron /tcaron /uacute /uring /yacute /zcaron] >>
+>> endobj
+PDF;
 
 $pdf = "%PDF-1.4\n";
 $offsets = [0];
