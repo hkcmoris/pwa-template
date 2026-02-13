@@ -23,8 +23,15 @@
 }
 
 .select-button::after {
-    content: '\25BE';
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 0.35rem solid currentcolor;
+    border-right: 0.3rem solid transparent;
+    border-left: 0.3rem solid transparent;
     float: right;
+    margin-top: 0.45rem;
     opacity: 0.7;
 }
 
