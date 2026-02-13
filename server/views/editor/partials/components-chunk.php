@@ -203,7 +203,7 @@ foreach ($items as $node) {
                                     decoding="async"
                                     onerror="
                                       this.onerror = null;
-                                      this.src = '<?= htmlspecialchars($BASE) ?>/images/missing-image.svg';
+                                      this.src = '<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg';
                                     "
                                   >
                                 </div>
