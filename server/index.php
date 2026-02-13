@@ -125,6 +125,7 @@ $controllerRoutes = [
     'POST configurator/wizard/goto-step'         => __DIR__ . '/controllers/configurator/wizard/goto-step.php',
     'POST configurator/wizard/rename'            => __DIR__ . '/controllers/configurator/wizard/rename.php',
     'POST configurator/wizard/delete'            => __DIR__ . '/controllers/configurator/wizard/delete.php',
+    'POST configurator/wizard/finish'            => __DIR__ . '/controllers/configurator/wizard/finish.php',
     'POST admin/sql'                             => __DIR__ . '/controllers/admin/sql.php',
     'POST admin/export'                          => __DIR__ . '/controllers/admin/export.php',
     'POST admin/import'                          => __DIR__ . '/controllers/admin/import.php',

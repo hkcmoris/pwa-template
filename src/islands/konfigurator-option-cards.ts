@@ -1,3 +1,13 @@
+import { getCsrfToken } from '../utils/api';
+
+const escapeHtml = (value: string) =>
+    value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
 const getCurrentImage = (card: HTMLElement) => {
     const images = Array.from(
         card.querySelectorAll<HTMLImageElement>('[data-option-image]')
@@ -27,6 +37,96 @@ const closeModal = (modal: HTMLElement) => {
     modal.classList.add('hidden');
     modal.setAttribute('aria-hidden', 'true');
     modal.innerHTML = '';
+};
+
+const closeFinishModal = (modal: HTMLElement) => {
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = '';
+};
+
+const openFinishModal = (modal: HTMLElement, message: string, success: boolean) => {
+    modal.innerHTML = `
+        <div class="component-options-finish-modal-overlay" data-finish-modal-close></div>
+        <div class="component-options-finish-modal-panel" role="dialog" aria-modal="true" aria-label="Výsledek dokončení konfigurace">
+            <button type="button" class="component-options-finish-modal-close" data-finish-modal-close aria-label="Zavřít">×</button>
+            <h3 class="component-options-finish-modal-title ${success ? 'is-success' : 'is-error'}">${
+                success ? 'Hotovo' : 'Chyba'
+            }</h3>
+            <p>${escapeHtml(message)}</p>
+        </div>
+    `;
+
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+
+    modal.querySelectorAll<HTMLElement>('[data-finish-modal-close]').forEach((button) => {
+        button.addEventListener('click', () => closeFinishModal(modal));
+    });
+};
+
+const finishConfiguration = async (
+    root: HTMLElement,
+    finishButton: HTMLButtonElement,
+    draftId: string
+) => {
+    const params = new URLSearchParams();
+    params.set('draft_id', draftId);
+
+    const headers = new Headers({
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'HX-Request': 'true',
+    });
+    const csrfToken = getCsrfToken();
+    if (csrfToken) {
+        headers.set('X-CSRF-Token', csrfToken);
+    }
+
+    const base = document.documentElement.dataset.base ?? '';
+    const modal =
+        root.querySelector<HTMLElement>('.component-options-finish-modal') ??
+        root.appendChild(document.createElement('div'));
+    if (!modal.classList.contains('component-options-finish-modal')) {
+        modal.className = 'component-options-finish-modal hidden';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    finishButton.disabled = true;
+
+    try {
+        const response = await fetch(`${base}/configurator/wizard/finish`, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers,
+            body: params.toString(),
+        });
+        const payload = (await response.json().catch(() => null)) as {
+            success?: boolean;
+            message?: string;
+        } | null;
+        const success = Boolean(response.ok && payload?.success);
+        const message =
+            payload?.message ??
+            (success
+                ? 'Konfigurace byla dokončena.'
+                : 'Dokončení konfigurace se nezdařilo.');
+
+        openFinishModal(modal, message, success);
+
+        if (success) {
+            finishButton.textContent = 'Konfigurace dokončena';
+            return;
+        }
+
+        finishButton.disabled = false;
+    } catch {
+        openFinishModal(
+            modal,
+            'Dokončení konfigurace se nezdařilo.',
+            false
+        );
+        finishButton.disabled = false;
+    }
 };
 
 const openModal = (modal: HTMLElement, src: string, alt: string) => {
@@ -182,12 +282,33 @@ export default (root: HTMLElement) => {
             }
 
             openModal(modal, active.src, active.alt || 'Náhled obrázku');
+            return;
+        }
+
+        const finishButton = target.closest<HTMLButtonElement>('[data-wizard-finish]');
+        if (finishButton) {
+            const draftId = finishButton.dataset.draftId ?? '';
+            if (!draftId) {
+                return;
+            }
+            event.preventDefault();
+            void finishConfiguration(root, finishButton, draftId);
         }
     });
+
+    const finishModal = root.querySelector<HTMLElement>('.component-options-finish-modal');
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
             closeModal(modal);
+        }
+
+        if (
+            event.key === 'Escape' &&
+            finishModal &&
+            !finishModal.classList.contains('hidden')
+        ) {
+            closeFinishModal(finishModal);
         }
     });
 
