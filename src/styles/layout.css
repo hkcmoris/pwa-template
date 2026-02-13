@@ -273,7 +273,7 @@ main {
     margin: 0 auto;
 }
 
-body[data-route="konfigurator"] main {
+body[data-route='konfigurator'] main {
     max-width: initial;
 }
 
