@@ -13,6 +13,18 @@ $optionImages = isset($option['images']) && is_array($option['images'])
     : [];
 $optionColor = $option['color'];
 $definitionTitle = (string) ($option['definition_title'] ?? '');
+$optionDescription = trim((string) ($option['description'] ?? ''));
+$latestPrice = isset($option['latest_price']) && is_array($option['latest_price'])
+    ? $option['latest_price']
+    : null;
+$priceAmount = $latestPrice !== null ? trim((string) ($latestPrice['amount'] ?? '')) : '';
+$priceCurrency = $latestPrice !== null ? strtoupper(trim((string) ($latestPrice['currency'] ?? 'CZK'))) : 'CZK';
+$priceLabel = '';
+if ($priceAmount !== '' && is_numeric($priceAmount)) {
+    $normalised = number_format((float) $priceAmount, 2, ',', ' ');
+    $normalised = preg_replace('/,00$/', '', $normalised);
+    $priceLabel = trim((string) $normalised . ' ' . $priceCurrency);
+}
 $optionProperties = isset($option['properties']) && is_array($option['properties'])
     ? $option['properties']
     : [];
@@ -87,6 +99,16 @@ $hasMultipleImages = count($optionImages) > 1;
         <?php if ($definitionTitle !== '' && $definitionTitle !== $optionTitle) : ?>
             <p class="options-card-subtitle">
                 <?= htmlspecialchars($definitionTitle) ?>
+            </p>
+        <?php endif; ?>
+        <?php if ($optionDescription !== '') : ?>
+            <p class="options-card-description">
+                <?= htmlspecialchars($optionDescription) ?>
+            </p>
+        <?php endif; ?>
+        <?php if ($priceLabel !== '') : ?>
+            <p class="options-card-price">
+                <?= htmlspecialchars($priceLabel) ?>
             </p>
         <?php endif; ?>
         <?php if (!empty($optionProperties)) : ?>
