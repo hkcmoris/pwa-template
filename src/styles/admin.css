@@ -231,3 +231,16 @@
     justify-content: flex-end;
     gap: 0.75rem;
 }
+
+.admin-import-result-message {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.admin-import-result-message--success {
+    color: var(--success);
+}
+
+.admin-import-result-message--error {
+    color: var(--danger);
+}
