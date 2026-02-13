@@ -17,7 +17,7 @@ $finishedConfigurations = array_values(array_filter(
 <?php else : ?>
   <ul class="configurations-list">
     <?php foreach ($finishedConfigurations as $configuration) : ?>
-      <?php $configurationId = (int) ($configuration['id'] ?? 0); ?>
+        <?php $configurationId = (int) ($configuration['id'] ?? 0); ?>
       <li>
         <div class="configuration-entry-main">
           <strong>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></strong>
