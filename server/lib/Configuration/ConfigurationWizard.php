@@ -147,6 +147,31 @@ final class ConfigurationWizard
     }
 
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function getBreadcrumbPath(): array
+    {
+        $selectedPath = $this->getSelectedPath();
+        if ($selectedPath === []) {
+            return [];
+        }
+
+        $breadcrumbPath = [];
+        $pathPrefix = [];
+
+        foreach ($selectedPath as $selection) {
+            $availableOptions = $this->resolveAvailableOptionsForSelectionParent($selection, $pathPrefix);
+            if (count($availableOptions) !== 1) {
+                $breadcrumbPath[] = $selection;
+            }
+
+            $pathPrefix[] = $selection;
+        }
+
+        return $breadcrumbPath;
+    }
+
+    /**
      * @return ComponentRow|null
      */
     public function getCurrentComponent(): ?array
@@ -451,5 +476,34 @@ final class ConfigurationWizard
         }
 
         return $component;
+    }
+
+    /**
+     * @param array<string, mixed> $selection
+     * @param array<int, array<string, mixed>> $pathPrefix
+     * @return array<int, array<string, mixed>>
+     */
+    private function resolveAvailableOptionsForSelectionParent(array $selection, array $pathPrefix): array
+    {
+        $parentComponentId = isset($selection['parent_component_id'])
+            ? (int) $selection['parent_component_id']
+            : null;
+        if ($parentComponentId !== null && $parentComponentId <= 0) {
+            $parentComponentId = null;
+        }
+
+        $children = $this->components->fetchChildren($parentComponentId);
+        if ($children === []) {
+            return [];
+        }
+
+        $available = [];
+        foreach ($children as $child) {
+            if ($this->rules->allowsComponent($child, $pathPrefix)) {
+                $available[] = $child;
+            }
+        }
+
+        return $available;
     }
 }

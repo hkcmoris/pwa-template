@@ -1,7 +1,8 @@
 <?php
 /** @var array<int, array<string, mixed>> $selectedPath */
+/** @var array<int, array<string, mixed>> $breadcrumbPath */
 /** @var array<string, mixed>|null $summary */
-$selectedPath = $selectedPath ?? [];
+$breadcrumbPath = $breadcrumbPath ?? $selectedPath ?? [];
 $summary = $summary ?? [];
 $BASE = isset($BASE) ? (string) $BASE : '';
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
@@ -26,7 +27,7 @@ if ($configurationTitle == '') {
             </span>
         </span>
     </div>
-    <?php foreach ($selectedPath as $crumb) : ?>
+    <?php foreach ($breadcrumbPath as $crumb) : ?>
         <?php
         $selectionId = isset($crumb['id']) ? (int) $crumb['id'] : 0;
         $crumbTitle = (string) ($crumb['effective_title'] ?? $crumb['definition_title'] ?? '');
