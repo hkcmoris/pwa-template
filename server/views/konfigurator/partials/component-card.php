@@ -47,7 +47,7 @@ $hasMultipleImages = count($optionImages) > 1;
                         decoding="async"
                         data-option-image
                         <?= $index === 0 ? '' : 'hidden' ?>
-                        onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
+                        onerror="this.onerror = null; this.src = '<?= htmlspecialchars($BASE) ?>/images/missing-image.svg';"
                     >
                 <?php endforeach; ?>
                 <?php if ($hasMultipleImages) : ?>

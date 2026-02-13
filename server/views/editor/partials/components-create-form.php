@@ -85,7 +85,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label id="component-modal-definition-label" for="component-modal-definition">
             Definice
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">Povinné pole. Každá komponenta vychází z konkrétní definice.</span>
             </span>
           </label>
@@ -139,7 +139,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label id="component-modal-parent-label" for="component-modal-parent">
             Rodič
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">Volitelné. Zvolte rodičovskou komponentu pro vytvoření hierarchie.</span>
             </span>
           </label>
@@ -192,7 +192,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label for="component-modal-position">
             Pozice
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">
                 Pořadí mezi sourozenci (0 = první). Prázdné pole přidá položku na konec.
               </span>
@@ -211,7 +211,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label for="component-modal-title">
             Alternativní název
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">Nepovinné. Pokud je vyplněno, zobrazí se místo názvu definice.</span>
             </span>
           </label>
@@ -245,7 +245,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label for="component-modal-price">
             Cena
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">
                 Volitelné. Zadejte cenu s DPH ve formátu 1234,56 (max. dvě desetinná místa).
               </span>
@@ -295,7 +295,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             <label for="component-modal-image">
               Obrázek
               <span class="info-wrapper">
-                <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+                <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
                 <span class="component-help">Vyberte obrázek z galerie (volitelné).</span>
               </span>
             </label>
@@ -326,7 +326,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             <label for="component-modal-color">
               Barva
               <span class="info-wrapper">
-                <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+                <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
                 <span class="component-help">Hex formát (#RGB nebo #RRGGBB). Swatch pomůže s výběrem.</span>
               </span>
             </label>
@@ -362,7 +362,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label for="component-modal-properties">
             Vlastnosti komponenty
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">
                 Přidejte vlastnosti ve tvaru název, hodnota a jednotka (např. výkon 120 kW).
               </span>
@@ -424,7 +424,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
           <label for="component-modal-dependency-tree">
             Nastavení závislostí
             <span class="info-wrapper">
-              <img width="24px" height="24px" src="/public/assets/images/info.svg" />
+              <img width="24px" height="24px" src="<?= htmlspecialchars($BASE) ?>/images/info.svg" />
               <span class="component-help">
                 Komponenta se nabídne podle zvoleného pravidla: buď pokud jsou vybrané
                 všechny závislosti (AND), nebo alespoň jedna z nich (OR).

@@ -4,6 +4,10 @@
  */
 $items = $componentsPage;
 
+$baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
+$BASE = rtrim($BASE, '/');
+
 foreach ($items as $node) {
     $id = isset($node['id']) ? (int) $node['id'] : 0;
     if ($id <= 0) {
@@ -197,7 +201,7 @@ foreach ($items as $node) {
                                     height="48px"
                                     loading="lazy"
                                     decoding="async"
-                                    onerror="this.onerror = null; this.src = '/public/assets/images/missing-image.svg';"
+                                    onerror="this.onerror = null; this.src = '<?= htmlspecialchars($BASE) ?>/images/missing-image.svg';"
                                   >
                                 </div>
                               </figure>
