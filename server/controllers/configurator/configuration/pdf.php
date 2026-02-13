@@ -50,17 +50,31 @@ $optionsStmt = $pdo->prepare(
     <<<'SQL'
     SELECT
         COALESCE(NULLIF(c.alternate_title, ''), d.title) AS option_title,
+        COALESCE(NULLIF(c.image, ''), JSON_UNQUOTE(JSON_EXTRACT(c.images, '$[0]')), '') AS option_image,
+        lp.amount AS option_price_amount,
+        UPPER(COALESCE(NULLIF(lp.currency, ''), 'CZK')) AS option_price_currency,
         o.position
     FROM configuration_selections o
     INNER JOIN components c ON c.id = o.component_id
     INNER JOIN definitions d ON d.id = c.definition_id
+    LEFT JOIN (
+        SELECT p.component_id, p.amount, p.currency
+        FROM prices p
+        INNER JOIN (
+            SELECT component_id, MAX(created_at) AS max_created_at
+            FROM prices
+            GROUP BY component_id
+        ) latest_price
+            ON latest_price.component_id = p.component_id
+            AND latest_price.max_created_at = p.created_at
+    ) lp ON lp.component_id = c.id
     WHERE o.configuration_id = :configuration_id
     ORDER BY o.position ASC, o.id ASC
     SQL
 );
 $optionsStmt->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
 $optionsStmt->execute();
-/** @var list<array{option_title: string|null, position: int|string}> $options */
+/** @var list<array{option_title: string|null, option_image: string|null, option_price_amount: string|null, option_price_currency: string|null, position: int|string}> $options */
 $options = $optionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $lines = [
@@ -73,12 +87,56 @@ $lines = [
 if ($options === []) {
     $lines[] = '- No selected options';
 } else {
+    $finalPriceByCurrency = [];
+
     foreach ($options as $index => $option) {
         $title = trim((string) ($option['option_title'] ?? 'Option'));
         if ($title === '') {
             $title = 'Option';
         }
-        $lines[] = ($index + 1) . '. ' . $title;
+
+        $priceAmountRaw = trim((string) ($option['option_price_amount'] ?? ''));
+        $priceCurrency = strtoupper(trim((string) ($option['option_price_currency'] ?? 'CZK')));
+        if ($priceCurrency === '') {
+            $priceCurrency = 'CZK';
+        }
+
+        $priceLabel = 'N/A';
+        if ($priceAmountRaw !== '' && is_numeric($priceAmountRaw)) {
+            $normalised = number_format((float) $priceAmountRaw, 2, '.', ' ');
+            $priceLabel = $normalised . ' ' . $priceCurrency;
+
+            if (!isset($finalPriceByCurrency[$priceCurrency])) {
+                $finalPriceByCurrency[$priceCurrency] = 0.0;
+            }
+            $finalPriceByCurrency[$priceCurrency] += (float) $priceAmountRaw;
+        }
+
+        $imageLabel = trim((string) ($option['option_image'] ?? ''));
+        if ($imageLabel === '') {
+            $imageLabel = 'N/A';
+        }
+
+        $lines[] = sprintf(
+            '%d. %s | Price: %s | Image: %s',
+            $index + 1,
+            $title,
+            $priceLabel,
+            $imageLabel
+        );
+    }
+
+    $lines[] = '';
+    if ($finalPriceByCurrency === []) {
+        $lines[] = 'Final price: N/A';
+    } else {
+        foreach ($finalPriceByCurrency as $currency => $amount) {
+            $lines[] = sprintf(
+                'Final price (%s): %s',
+                $currency,
+                number_format($amount, 2, '.', ' ')
+            );
+        }
     }
 }
 
