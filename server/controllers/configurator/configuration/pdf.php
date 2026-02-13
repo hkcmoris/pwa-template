@@ -52,7 +52,7 @@ $optionsStmt = $pdo->prepare(
     SELECT
         COALESCE(NULLIF(c.alternate_title, ''), d.title) AS option_title,
         o.position
-    FROM configuration_options o
+    FROM configuration_selections o
     INNER JOIN components c ON c.id = o.component_id
     INNER JOIN definitions d ON d.id = c.definition_id
     WHERE o.configuration_id = :configuration_id
