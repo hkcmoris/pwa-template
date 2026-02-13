@@ -279,6 +279,8 @@ export const createOpenComponentModal = ({
                 ? initialImages.map((value) => ({ value, label: value }))
                 : [];
 
+        const missingImageFallback = `${base}/images/missing-image.svg`;
+
         const syncSelectedImages = () => {
             const values = selectedImages.map((item) => item.value);
             if (imagesField) {
@@ -307,8 +309,7 @@ export const createOpenComponentModal = ({
                     const img = document.createElement(
                         'img'
                     ) as HTMLImageElement;
-                    img.src =
-                        item.value ?? '/public/assets/images/missing-image.svg';
+                    img.src = item.value ?? missingImageFallback;
                     img.alt =
                         item.label ?? 'Thumbnail image preview of component.';
                     img.width = 20;
@@ -317,7 +318,7 @@ export const createOpenComponentModal = ({
                     img.decoding = 'async';
                     img.onerror = () => {
                         img.onerror = null; // prevent infinite loop
-                        img.src = '/public/assets/images/missing-image.svg';
+                        img.src = missingImageFallback;
                     };
                     media.appendChild(img);
                     thumb.appendChild(media);
