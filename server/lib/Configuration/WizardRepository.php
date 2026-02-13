@@ -180,6 +180,24 @@ final class WizardRepository
         return $stmt->rowCount() > 0;
     }
 
+    public function completeDraft(int $configurationId, int $userId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE configurations
+             SET status = :completed_status,
+                 current_component_id = NULL,
+                 updated_at = CURRENT_TIMESTAMP
+             WHERE id = :id AND user_id = :user_id AND status = :draft_status'
+        );
+        $stmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':completed_status', 'submitted');
+        $stmt->bindValue(':draft_status', 'draft');
+        $stmt->execute();
+
+        return $stmt->rowCount() > 0;
+    }
+
     /**
      * @return array<string, mixed>|null
      */

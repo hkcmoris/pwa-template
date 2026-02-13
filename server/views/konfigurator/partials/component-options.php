@@ -15,6 +15,7 @@ $BASE = rtrim($BASE, '/');
 $stepTitle = $currentComponent['effective_title'] ?? $currentComponent['definition_title'] ?? 'Začněte výběrem';
 $hasSelections = !empty($selectedPath);
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
+$isComplete = !empty($summary['is_complete']);
 ?>
 <div id="component-options" data-island="konfigurator-option-cards">
     <div class="component-options-header">
@@ -89,6 +90,17 @@ $configurationId = isset($summary['configuration_id']) ? (int) $summary['configu
             <?php else : ?>
                 <p>Zatím nebyly vybrány žádné položky.</p>
             <?php endif; ?>
+            <?php if ($isComplete && $configurationId > 0) : ?>
+                <button
+                    type="button"
+                    class="component-options-finish"
+                    data-wizard-finish
+                    data-draft-id="<?= $configurationId ?>"
+                >
+                    Dokončit konfiguraci
+                </button>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
+    <div class="component-options-finish-modal hidden" aria-hidden="true"></div>
 </div>
