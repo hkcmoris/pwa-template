@@ -49,7 +49,7 @@ $hasMultipleImages = count($optionImages) > 1;
                         <?= $index === 0 ? '' : 'hidden' ?>
                         onerror="
                             this.onerror = null;
-                            this.src = '<?= htmlspecialchars($BASE) ?>/images/missing-image.svg';
+                            this.src = '<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg';
                         "
                     >
                 <?php endforeach; ?>

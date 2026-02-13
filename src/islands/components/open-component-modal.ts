@@ -279,7 +279,7 @@ export const createOpenComponentModal = ({
                 ? initialImages.map((value) => ({ value, label: value }))
                 : [];
 
-        const missingImageFallback = `${base}/images/missing-image.svg`;
+        const missingImageFallback = `${base}/public/assets/images/missing-image.svg`;
 
         const syncSelectedImages = () => {
             const values = selectedImages.map((item) => item.value);
