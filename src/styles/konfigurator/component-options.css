@@ -71,6 +71,18 @@
     margin: 0;
 }
 
+
+.options-card-description {
+    color: var(--muted-text, #555);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.options-card-price {
+    font-weight: 700;
+    margin: 0;
+}
+
 .options-card-action {
     align-self: flex-start;
     border: none;
