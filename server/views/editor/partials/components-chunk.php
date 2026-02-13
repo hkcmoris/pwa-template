@@ -297,6 +297,22 @@ foreach ($items as $node) {
           </button>
           <button
             type="button"
+            class="component-action"
+            data-action="clone"
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-clone"></use>
+            </svg>
+          </button>
+          <button
+            type="button"
             class="component-action component-action--danger"
             data-action="delete"
           >

@@ -227,6 +227,12 @@ if (!in_array($active, ['definitions','components','images'], true)) {
           "
         />
       </symbol>
+      <symbol id="icon-clone" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h3Zm2-2v2h5a2 2 0 0 1 2 2v5h2V5h-9Zm5 14v-9H5v9h10Z"
+        />
+      </symbol>
       <symbol id="icon-add" viewBox="0 0 512 512">
         <g
           id="Page-1"
