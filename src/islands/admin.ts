@@ -66,6 +66,13 @@ export default (root: HTMLElement) => {
     );
     const feedback = root.querySelector<HTMLElement>('#admin-messages');
 
+    const resultModal = root.querySelector<HTMLElement>(
+        '#admin-import-result-modal'
+    );
+    const resultMessage = resultModal?.querySelector<HTMLElement>(
+        '#admin-import-result-message'
+    );
+
     let currentMode: 'import' | 'export' = 'export';
 
     const showFeedback = (message: string, status: 'success' | 'error') => {
@@ -79,6 +86,38 @@ export default (root: HTMLElement) => {
             status === 'success'
         );
         feedback.classList.toggle('admin-feedback--error', status === 'error');
+    };
+
+
+    const openResultModal = (message: string, status: 'success' | 'error') => {
+        if (!resultModal || !resultMessage) {
+            showFeedback(message, status);
+            return;
+        }
+        resultMessage.textContent = message;
+        resultMessage.classList.toggle(
+            'admin-import-result-message--success',
+            status === 'success'
+        );
+        resultMessage.classList.toggle(
+            'admin-import-result-message--error',
+            status === 'error'
+        );
+        resultModal.classList.remove('hidden');
+        resultModal.setAttribute('aria-hidden', 'false');
+    };
+
+    const closeResultModal = () => {
+        if (!resultModal || !resultMessage) {
+            return;
+        }
+        resultModal.classList.add('hidden');
+        resultModal.setAttribute('aria-hidden', 'true');
+        resultMessage.textContent = '';
+        resultMessage.classList.remove(
+            'admin-import-result-message--success',
+            'admin-import-result-message--error'
+        );
     };
 
     const hideFeedback = () => {
@@ -262,6 +301,18 @@ export default (root: HTMLElement) => {
             button.addEventListener('click', () => closeModal());
         });
 
+    resultModal
+        ?.querySelectorAll<HTMLElement>('[data-admin-result-close]')
+        .forEach((button) => {
+            button.addEventListener('click', () => closeResultModal());
+        });
+
+    resultModal?.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeResultModal();
+        }
+    });
+
     fileInput?.addEventListener('change', () => {
         refreshSubmitState();
         if (currentMode !== 'import') {
@@ -373,7 +424,12 @@ export default (root: HTMLElement) => {
             });
             if (!response.ok) {
                 const message = await parseErrorMessage(response);
-                showFeedback(message, 'error');
+                if (currentMode === 'import') {
+                    closeModal();
+                    openResultModal(message, 'error');
+                } else {
+                    showFeedback(message, 'error');
+                }
                 return;
             }
             if (currentMode === 'export') {
@@ -390,13 +446,19 @@ export default (root: HTMLElement) => {
                 const payload = (await response.json().catch(() => null)) as {
                     message?: string;
                 } | null;
-                showFeedback(
-                    payload?.message || 'Import proběhl úspěšně.',
-                    'success'
-                );
+                const importMessage =
+                    payload?.message || 'Import proběhl úspěšně.';
+                closeModal();
+                openResultModal(importMessage, 'success');
+                return;
             }
             closeModal();
         } catch {
+            if (currentMode === 'import') {
+                closeModal();
+                openResultModal('Operaci se nepodařilo dokončit.', 'error');
+                return;
+            }
             showFeedback('Operaci se nepodařilo dokončit.', 'error');
         }
     });

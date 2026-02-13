@@ -102,6 +102,21 @@ if ($__editorRole != 'superadmin') {
       </form>
     </div>
   </div>
+  <div id="admin-import-result-modal" class="admin-modal hidden" aria-hidden="true">
+    <div class="admin-modal-overlay" data-admin-result-close></div>
+    <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-import-result-title">
+      <header class="admin-modal-header">
+        <h3 id="admin-import-result-title">Výsledek importu</h3>
+        <button type="button" class="admin-modal-close" data-admin-result-close aria-label="Zavřít">×</button>
+      </header>
+      <div class="admin-modal-body">
+        <p id="admin-import-result-message" class="admin-import-result-message"></p>
+        <div class="admin-modal-actions">
+          <button type="button" class="admin-action admin-action--primary" data-admin-result-close>Rozumím</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 <textarea
   id="admin-sql-query-input"
