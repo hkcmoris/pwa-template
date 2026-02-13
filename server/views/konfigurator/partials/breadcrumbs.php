@@ -2,7 +2,7 @@
 /** @var array<int, array<string, mixed>> $selectedPath */
 /** @var array<int, array<string, mixed>> $breadcrumbPath */
 /** @var array<string, mixed>|null $summary */
-$breadcrumbPath = $breadcrumbPath ?? $selectedPath ?? [];
+$breadcrumbPath = $breadcrumbPath ?? $selectedPath;
 $summary = $summary ?? [];
 $BASE = isset($BASE) ? (string) $BASE : '';
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
