@@ -3,6 +3,7 @@
 /** @var Configuration\ConfigurationWizard $wizard */
 
 $selectedPath = $wizard->getSelectedPath();
+$breadcrumbPath = $wizard->getBreadcrumbPath();
 $currentComponent = $wizard->getCurrentComponent();
 $availableOptions = $wizard->getAvailableOptions();
 $summary = $wizard->buildSummary();
