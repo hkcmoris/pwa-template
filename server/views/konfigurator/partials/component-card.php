@@ -72,7 +72,9 @@ $hasMultipleImages = count($optionImages) > 1;
                         aria-label="Předchozí obrázek"
                         data-option-image-nav="prev"
                     >
-                        &#8249;
+                        <svg class="options-card-image-arrow-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                            <path d="M10.25 3.25L5.5 8l4.75 4.75" />
+                        </svg>
                     </button>
                     <button
                         class="options-card-image-arrow options-card-image-arrow--right"
@@ -80,7 +82,9 @@ $hasMultipleImages = count($optionImages) > 1;
                         aria-label="Další obrázek"
                         data-option-image-nav="next"
                     >
-                        &#8250;
+                        <svg class="options-card-image-arrow-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                            <path d="M5.75 3.25L10.5 8l-4.75 4.75" />
+                        </svg>
                     </button>
                 <?php endif; ?>
                 <button
