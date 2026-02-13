@@ -136,7 +136,6 @@
     color: #fff;
     cursor: pointer;
     display: inline-flex;
-    font-size: 1.25rem;
     height: 28px;
     justify-content: center;
     position: absolute;
@@ -144,6 +143,17 @@
     transform: translateY(-50%);
     width: 28px;
     z-index: 2;
+}
+
+.options-card-image-arrow-icon {
+    display: block;
+    fill: none;
+    height: 14px;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    width: 14px;
 }
 
 .options-card-image-arrow--left {
