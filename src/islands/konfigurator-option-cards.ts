@@ -97,7 +97,7 @@ const recalculateCardMediaHeights = (root: HTMLElement) => {
         }
 
         const cardRect = card.getBoundingClientRect();
-        const viewportBottomSpacing = 16;
+        const viewportBottomSpacing = 64;
         const availableHeight = Math.floor(
             window.innerHeight - cardRect.top - viewportBottomSpacing
         );
