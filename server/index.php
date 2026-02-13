@@ -120,6 +120,7 @@ $controllerRoutes = [
     'POST configurator/configuration/update'     => __DIR__ . '/controllers/configurator/configuration/update.php',
     'POST configurator/configuration/delete'     => __DIR__ . '/controllers/configurator/configuration/delete.php',
     'GET configurator/configuration/page'        => __DIR__ . '/controllers/configurator/configuration/page.php',
+    'GET configurator/configuration/pdf'         => __DIR__ . '/controllers/configurator/configuration/pdf.php',
     'POST configurator/wizard/select'            => __DIR__ . '/controllers/configurator/wizard/select.php',
     'POST configurator/wizard/back'              => __DIR__ . '/controllers/configurator/wizard/back.php',
     'POST configurator/wizard/goto-step'         => __DIR__ . '/controllers/configurator/wizard/goto-step.php',
@@ -134,6 +135,7 @@ $controllerRoutes = [
 $nonHtmxControllers = [
     'POST admin/export',
     'POST admin/import',
+    'GET configurator/configuration/pdf',
 ];
 
 $key = $method . ' ' . $route;
