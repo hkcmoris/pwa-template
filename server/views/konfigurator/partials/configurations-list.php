@@ -2,6 +2,7 @@
 
 /** @var array<int, array<string, mixed>> $configurations */
 $configurations = $configurations ?? [];
+$BASE = isset($BASE) ? (string) $BASE : '';
 
 $finishedConfigurations = array_values(array_filter(
     $configurations,
@@ -16,6 +17,7 @@ $finishedConfigurations = array_values(array_filter(
 <?php else : ?>
   <ul class="configurations-list">
     <?php foreach ($finishedConfigurations as $configuration) : ?>
+      <?php $configurationId = (int) ($configuration['id'] ?? 0); ?>
       <li>
         <div class="configuration-entry-main">
           <strong>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></strong>
@@ -25,6 +27,14 @@ $finishedConfigurations = array_values(array_filter(
             </time>
           <?php endif; ?>
         </div>
+        <?php if ($configurationId > 0) : ?>
+          <div class="configuration-entry-actions">
+            <a
+              class="configuration-entry-action configuration-entry-action--solid"
+              href="<?= htmlspecialchars($BASE) ?>/configurator/configuration/pdf?configuration_id=<?= htmlspecialchars((string) $configurationId) ?>"
+            >Generovat PDF</a>
+          </div>
+        <?php endif; ?>
       </li>
     <?php endforeach; ?>
   </ul>
