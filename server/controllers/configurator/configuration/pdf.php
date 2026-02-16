@@ -274,7 +274,10 @@ $preparePdfImage = static function (string $imagePath): ?array {
         }
     }
 
-    if (function_exists('imagecreatefromstring') && function_exists('imagejpeg') && function_exists('imagesx') && function_exists('imagesy')) {
+    if (
+        function_exists('imagecreatefromstring') && function_exists('imagejpeg') &&
+        function_exists('imagesx') && function_exists('imagesy')
+    ) {
         $source = @imagecreatefromstring($rawData);
         if ($source !== false) {
             $width = imagesx($source);
@@ -456,7 +459,10 @@ $objects[] = <<<'PDF'
 /Type /Font
 /Subtype /Type1
 /BaseFont /Helvetica
-/Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [128 /Aacute /Ccaron /Dcaron /Eacute /Ecaron /Iacute /Ncaron /Oacute /Rcaron /Scaron /Tcaron /Uacute /Uring /Yacute /Zcaron /aacute /ccaron /dcaron /eacute /ecaron /iacute /ncaron /oacute /rcaron /scaron /tcaron /uacute /uring /yacute /zcaron] >>
+/Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences 
+[128 /Aacute /Ccaron /Dcaron /Eacute /Ecaron /Iacute /Ncaron /Oacute /Rcaron /Scaron /Tcaron /Uacute /Uring /Yacute 
+/Zcaron /aacute /ccaron /dcaron /eacute /ecaron 
+/iacute /ncaron /oacute /rcaron /scaron /tcaron /uacute /uring /yacute /zcaron] >>
 >> endobj
 PDF;
 
@@ -468,7 +474,8 @@ foreach ($embeddedImages as $imageLabel => $imageData) {
 
     $imageBytes = $imageData['data'];
     $objects[] = sprintf(
-        "%d 0 obj << /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length %d >> stream\n",
+        "%d 0 obj << /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8
+        /Filter /DCTDecode /Length %d >> stream\n",
         $objectNumber,
         (int) $imageData['width'],
         (int) $imageData['height'],

@@ -71,7 +71,8 @@ $finishedConfigurations = array_values(array_filter(
           <div class="configuration-entry-actions">
             <a
               class="configuration-entry-action configuration-entry-action--solid"
-              href="<?= htmlspecialchars($BASE) ?>/configurator/configuration/pdf?configuration_id=<?= htmlspecialchars((string) $configurationId) ?>"
+              href="<?= htmlspecialchars($BASE) ?>/configurator/configuration/pdf?configuration_id=
+                <?= htmlspecialchars((string) $configurationId) ?>"
             >
               <svg
                 fill="currentColor"
