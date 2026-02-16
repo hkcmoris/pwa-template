@@ -246,7 +246,7 @@ $preparePdfImage = static function (string $imagePath): ?array {
 
     if (class_exists('Imagick')) {
         try {
-            $imagick = new Imagick();
+            $imagick = new \Imagick();
             $imagick->readImageBlob($rawData);
             if ((int) $imagick->getNumberImages() > 1) {
                 $imagick = $imagick->coalesceImages();

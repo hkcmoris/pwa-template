@@ -45,7 +45,11 @@ const closeFinishModal = (modal: HTMLElement) => {
     modal.innerHTML = '';
 };
 
-const openFinishModal = (modal: HTMLElement, message: string, success: boolean) => {
+const openFinishModal = (
+    modal: HTMLElement,
+    message: string,
+    success: boolean
+) => {
     modal.innerHTML = `
         <div class="component-options-finish-modal-overlay" data-finish-modal-close></div>
         <div class="component-options-finish-modal-panel" role="dialog" aria-modal="true" aria-label="Výsledek dokončení konfigurace">
@@ -60,9 +64,11 @@ const openFinishModal = (modal: HTMLElement, message: string, success: boolean) 
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
 
-    modal.querySelectorAll<HTMLElement>('[data-finish-modal-close]').forEach((button) => {
-        button.addEventListener('click', () => closeFinishModal(modal));
-    });
+    modal
+        .querySelectorAll<HTMLElement>('[data-finish-modal-close]')
+        .forEach((button) => {
+            button.addEventListener('click', () => closeFinishModal(modal));
+        });
 };
 
 const finishConfiguration = async (
@@ -120,11 +126,7 @@ const finishConfiguration = async (
 
         finishButton.disabled = false;
     } catch {
-        openFinishModal(
-            modal,
-            'Dokončení konfigurace se nezdařilo.',
-            false
-        );
+        openFinishModal(modal, 'Dokončení konfigurace se nezdařilo.', false);
         finishButton.disabled = false;
     }
 };
@@ -183,35 +185,42 @@ const initializeCardImages = (root: HTMLElement) => {
 };
 
 const recalculateCardMediaHeights = (root: HTMLElement) => {
-    root.querySelectorAll<HTMLElement>('.options-card-inner').forEach((card) => {
-        const media = card.querySelector<HTMLElement>('.options-card-media');
-        if (!media) {
-            return;
+    root.querySelectorAll<HTMLElement>('.options-card-inner').forEach(
+        (card) => {
+            const media = card.querySelector<HTMLElement>(
+                '.options-card-media'
+            );
+            if (!media) {
+                return;
+            }
+
+            card.style.removeProperty('--options-card-media-max-height');
+
+            const mediaHeight = media.offsetHeight;
+            if (!mediaHeight) {
+                return;
+            }
+
+            const cardRect = card.getBoundingClientRect();
+            const viewportBottomSpacing = 64;
+            const availableHeight = Math.floor(
+                window.innerHeight - cardRect.top - viewportBottomSpacing
+            );
+            if (availableHeight <= 0) {
+                return;
+            }
+
+            const nonMediaHeight = Math.max(0, card.scrollHeight - mediaHeight);
+            const mediaMaxHeight = Math.max(
+                160,
+                availableHeight - nonMediaHeight
+            );
+            card.style.setProperty(
+                '--options-card-media-max-height',
+                `${mediaMaxHeight}px`
+            );
         }
-
-        card.style.removeProperty('--options-card-media-max-height');
-
-        const mediaHeight = media.offsetHeight;
-        if (!mediaHeight) {
-            return;
-        }
-
-        const cardRect = card.getBoundingClientRect();
-        const viewportBottomSpacing = 64;
-        const availableHeight = Math.floor(
-            window.innerHeight - cardRect.top - viewportBottomSpacing
-        );
-        if (availableHeight <= 0) {
-            return;
-        }
-
-        const nonMediaHeight = Math.max(0, card.scrollHeight - mediaHeight);
-        const mediaMaxHeight = Math.max(160, availableHeight - nonMediaHeight);
-        card.style.setProperty(
-            '--options-card-media-max-height',
-            `${mediaMaxHeight}px`
-        );
-    });
+    );
 };
 
 const setupCardMediaHeightRecalculation = (root: HTMLElement) => {
@@ -226,9 +235,11 @@ const setupCardMediaHeightRecalculation = (root: HTMLElement) => {
         });
     };
 
-    root.querySelectorAll<HTMLImageElement>('[data-option-image]').forEach((image) => {
-        image.addEventListener('load', scheduleRecalculation);
-    });
+    root.querySelectorAll<HTMLImageElement>('[data-option-image]').forEach(
+        (image) => {
+            image.addEventListener('load', scheduleRecalculation);
+        }
+    );
 
     window.addEventListener('resize', scheduleRecalculation, { passive: true });
     scheduleRecalculation();
@@ -285,7 +296,9 @@ export default (root: HTMLElement) => {
             return;
         }
 
-        const finishButton = target.closest<HTMLButtonElement>('[data-wizard-finish]');
+        const finishButton = target.closest<HTMLButtonElement>(
+            '[data-wizard-finish]'
+        );
         if (finishButton) {
             const draftId = finishButton.dataset.draftId ?? '';
             if (!draftId) {
@@ -296,7 +309,9 @@ export default (root: HTMLElement) => {
         }
     });
 
-    const finishModal = root.querySelector<HTMLElement>('.component-options-finish-modal');
+    const finishModal = root.querySelector<HTMLElement>(
+        '.component-options-finish-modal'
+    );
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !modal.classList.contains('hidden')) {

@@ -88,7 +88,6 @@ export default (root: HTMLElement) => {
         feedback.classList.toggle('admin-feedback--error', status === 'error');
     };
 
-
     const openResultModal = (message: string, status: 'success' | 'error') => {
         if (!resultModal || !resultMessage) {
             showFeedback(message, status);
