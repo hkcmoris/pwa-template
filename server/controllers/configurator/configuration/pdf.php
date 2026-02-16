@@ -52,8 +52,7 @@ $optionsStmt = $pdo->prepare(
         COALESCE(NULLIF(c.alternate_title, ''), d.title) AS option_title,
         COALESCE(JSON_UNQUOTE(JSON_EXTRACT(c.images, '$[0]')), '') AS option_image,
         lp.amount AS option_price_amount,
-        UPPER(COALESCE(NULLIF(lp.currency, ''), 'CZK')) AS option_price_currency,
-        o.position
+        UPPER(COALESCE(NULLIF(lp.currency, ''), 'CZK')) AS option_price_currency
     FROM configuration_selections o
     INNER JOIN components c ON c.id = o.component_id
     INNER JOIN definitions d ON d.id = c.definition_id
@@ -69,12 +68,12 @@ $optionsStmt = $pdo->prepare(
             AND latest_price.max_created_at = p.created_at
     ) lp ON lp.component_id = c.id
     WHERE o.configuration_id = :configuration_id
-    ORDER BY o.position ASC, o.id ASC
+    ORDER BY o.id ASC
     SQL
 );
 $optionsStmt->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
 $optionsStmt->execute();
-/** @var list<array{option_title: string|null, option_image: string|null, option_price_amount: string|null, option_price_currency: string|null, position: int|string}> $options */
+/** @var list<array{option_title: string|null, option_image: string|null, option_price_amount: string|null, option_price_currency: string|null}> $options */
 $options = $optionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $lines = [
