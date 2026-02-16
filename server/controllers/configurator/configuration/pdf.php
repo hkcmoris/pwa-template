@@ -50,7 +50,7 @@ $optionsStmt = $pdo->prepare(
     <<<'SQL'
     SELECT
         COALESCE(NULLIF(c.alternate_title, ''), d.title) AS option_title,
-        COALESCE(NULLIF(c.image, ''), JSON_UNQUOTE(JSON_EXTRACT(c.images, '$[0]')), '') AS option_image,
+        COALESCE(JSON_UNQUOTE(JSON_EXTRACT(c.images, '$[0]')), '') AS option_image,
         lp.amount AS option_price_amount,
         UPPER(COALESCE(NULLIF(lp.currency, ''), 'CZK')) AS option_price_currency,
         o.position
