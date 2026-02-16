@@ -220,14 +220,37 @@ $pdfEscape = static function (string $value): string {
 
 $lineHeight = 16;
 $fontSize = 12;
+$metaFontSize = 10;
 $startY = 800;
 $pageHeight = 842;
+$pageWidth = 595;
 $leftX = 48;
+$rightPadding = 48;
 $maxImageWidth = 120;
 $maxImageHeight = 90;
 $imageGap = 12;
 $contentParts = ['BT', '/F1 12 Tf'];
 $currentY = $startY;
+
+$estimateTextWidth = static function (string $text, int $size): float {
+    return strlen($text) * $size * 0.52;
+};
+
+$placeRightX = static function (string $text, int $size) use ($pageWidth, $rightPadding, $estimateTextWidth): int {
+    $x = (int) floor($pageWidth - $rightPadding - $estimateTextWidth($text, $size));
+    return max(0, $x);
+};
+
+$renderedAtText = 'Generated: ' . date('Y-m-d H:i:s');
+$renderedAtSanitized = $toPdfText($renderedAtText);
+$contentParts[] = sprintf(
+    '/F1 %d Tf 1 0 0 1 %d %d Tm (%s) Tj',
+    $metaFontSize,
+    $placeRightX($renderedAtSanitized, $metaFontSize),
+    $startY + 16,
+    $pdfEscape($renderedAtSanitized)
+);
+$contentParts[] = sprintf('/F1 %d Tf', $fontSize);
 
 /**
  * @param string $imagePath
@@ -299,7 +322,7 @@ $preparePdfImage = static function (string $imagePath): ?array {
 
     if (function_exists('exec') && function_exists('tempnam')) {
         $temporaryJpegPath = tempnam(sys_get_temp_dir(), 'pdf-img-');
-        if (is_string($temporaryJpegPath) && $temporaryJpegPath !== '') {
+        if (is_string($temporaryJpegPath)) {
             @unlink($temporaryJpegPath);
             $temporaryJpegPath .= '.jpg';
 
@@ -328,8 +351,8 @@ $preparePdfImage = static function (string $imagePath): ?array {
                     continue;
                 }
 
-                $width = isset($size[0]) ? (int) $size[0] : 0;
-                $height = isset($size[1]) ? (int) $size[1] : 0;
+                $width = (int) $size[0];
+                $height = (int) $size[1];
                 if ($width <= 0 || $height <= 0) {
                     continue;
                 }
@@ -371,13 +394,11 @@ $resolveImagePath = static function (string $imageLabel) use ($appBase): string 
     $serverRoot = dirname(__DIR__, 3);
 
     $basePath = '';
-    if ($appBase !== '' && $appBase !== '/') {
+    if ($appBase !== '') {
         $parsedBasePath = parse_url($appBase, PHP_URL_PATH);
-        if (is_string($parsedBasePath)) {
-            $basePath = trim($parsedBasePath);
-            if ($basePath !== '') {
-                $basePath = '/' . trim($basePath, '/');
-            }
+        $basePath = trim((string) $parsedBasePath);
+        if ($basePath !== '') {
+            $basePath = '/' . trim($basePath, '/');
         }
     }
 
@@ -477,6 +498,15 @@ foreach ($lines as $lineIndex => $line) {
     );
     $currentY -= (int) ceil($drawHeight + $imageGap);
 }
+
+$pageLabelText = 'Page 1/1';
+$pageLabelSanitized = $toPdfText($pageLabelText);
+$contentParts[] = sprintf(
+    '/F1 %d Tf 1 0 0 1 %d 24 Tm (%s) Tj',
+    $metaFontSize,
+    $placeRightX($pageLabelSanitized, $metaFontSize),
+    $pdfEscape($pageLabelSanitized)
+);
 
 $contentParts[] = 'ET';
 $content = implode("\n", $contentParts) . "\n";
