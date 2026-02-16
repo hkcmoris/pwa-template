@@ -237,7 +237,6 @@ $preparePdfImage = static function (string $imagePath): ?array {
     if ($imagePath === '' || !is_file($imagePath) || !is_readable($imagePath)) {
         return null;
     }
-    log_message('Preparing image', 'DEBUG');
 
     $rawData = file_get_contents($imagePath);
     if ($rawData === false || $rawData === '') {
@@ -271,10 +270,7 @@ $preparePdfImage = static function (string $imagePath): ?array {
             }
         } catch (Throwable $exception) {
             // Ignore and continue to GD fallback.
-            log_message(json_encode($exception, JSON_PRETTY_PRINT), 'DEBUG');
         }
-    } else {
-        log_message('Imagick doesn\'t exist', 'DEBUG');
     }
 
     if (
@@ -301,7 +297,53 @@ $preparePdfImage = static function (string $imagePath): ?array {
         }
     }
 
-    log_message('Image failed', 'DEBUG');
+    if (function_exists('exec') && function_exists('tempnam')) {
+        $temporaryJpegPath = tempnam(sys_get_temp_dir(), 'pdf-img-');
+        if (is_string($temporaryJpegPath) && $temporaryJpegPath !== '') {
+            @unlink($temporaryJpegPath);
+            $temporaryJpegPath .= '.jpg';
+
+            $sourceArg = escapeshellarg($imagePath);
+            $targetArg = escapeshellarg($temporaryJpegPath);
+            $commands = [
+                'magick ' . $sourceArg . ' -auto-orient -strip -quality 82 ' . $targetArg,
+                'convert ' . $sourceArg . ' -auto-orient -strip -quality 82 ' . $targetArg,
+                'ffmpeg -v error -y -i ' . $sourceArg . ' -frames:v 1 -q:v 3 ' . $targetArg,
+            ];
+
+            foreach ($commands as $command) {
+                $output = [];
+                $statusCode = 1;
+                @exec($command . ' 2>/dev/null', $output, $statusCode);
+
+                if ($statusCode !== 0 || !is_file($temporaryJpegPath)) {
+                    continue;
+                }
+
+                $jpegData = file_get_contents($temporaryJpegPath);
+                $size = @getimagesize($temporaryJpegPath);
+                @unlink($temporaryJpegPath);
+
+                if ($jpegData === false || $jpegData === '' || !is_array($size)) {
+                    continue;
+                }
+
+                $width = isset($size[0]) ? (int) $size[0] : 0;
+                $height = isset($size[1]) ? (int) $size[1] : 0;
+                if ($width <= 0 || $height <= 0) {
+                    continue;
+                }
+
+                return [
+                    'width' => $width,
+                    'height' => $height,
+                    'data' => $jpegData,
+                ];
+            }
+
+            @unlink($temporaryJpegPath);
+        }
+    }
 
     return null;
 };
