@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination;
+
 require_once __DIR__ . '/../../../bootstrap.php';
 
 $user = app_get_current_user();
@@ -76,550 +79,217 @@ $optionsStmt->execute();
 /** @var list<array{option_title: string|null, option_image: string|null, option_price_amount: string|null, option_price_currency: string|null}> $options */
 $options = $optionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-$lines = [
-    'Configuration #' . $configurationId,
-    'Updated: ' . (string) ($configuration['updated_at'] ?? ''),
-    '',
-    'Selected options:',
-];
-
-if ($options === []) {
-    $lines[] = '- No selected options';
-} else {
-    $finalPriceByCurrency = [];
-
-    foreach ($options as $index => $option) {
-        $title = trim((string) ($option['option_title'] ?? 'Option'));
-        if ($title === '') {
-            $title = 'Option';
-        }
-
-        $priceAmountRaw = trim((string) ($option['option_price_amount'] ?? ''));
-        $priceCurrency = strtoupper(trim((string) ($option['option_price_currency'] ?? 'CZK')));
-        if ($priceCurrency === '') {
-            $priceCurrency = 'CZK';
-        }
-
-        $priceLabel = 'N/A';
-        if ($priceAmountRaw !== '' && is_numeric($priceAmountRaw)) {
-            $normalised = number_format((float) $priceAmountRaw, 2, '.', ' ');
-            $priceLabel = $normalised . ' ' . $priceCurrency;
-
-            if (!isset($finalPriceByCurrency[$priceCurrency])) {
-                $finalPriceByCurrency[$priceCurrency] = 0.0;
-            }
-            $finalPriceByCurrency[$priceCurrency] += (float) $priceAmountRaw;
-        }
-
-        $imageLabel = trim((string) ($option['option_image'] ?? ''));
-        if ($imageLabel === '') {
-            $imageLabel = 'N/A';
-        }
-
-        $lines[] = sprintf(
-            '%d. %s | Price: %s | Image: %s',
-            $index + 1,
-            $title,
-            $priceLabel,
-            $imageLabel
-        );
-    }
-
-    $lines[] = '';
-    if ($finalPriceByCurrency === []) {
-        $lines[] = 'Final price: N/A';
-    } else {
-        foreach ($finalPriceByCurrency as $currency => $amount) {
-            $lines[] = sprintf(
-                'Final price (%s): %s',
-                $currency,
-                number_format($amount, 2, '.', ' ')
-            );
-        }
-    }
-}
-
-$czechMap = [
-    'Á' => 128,
-    'Č' => 129,
-    'Ď' => 130,
-    'É' => 131,
-    'Ě' => 132,
-    'Í' => 133,
-    'Ň' => 134,
-    'Ó' => 135,
-    'Ř' => 136,
-    'Š' => 137,
-    'Ť' => 138,
-    'Ú' => 139,
-    'Ů' => 140,
-    'Ý' => 141,
-    'Ž' => 142,
-    'á' => 143,
-    'č' => 144,
-    'ď' => 145,
-    'é' => 146,
-    'ě' => 147,
-    'í' => 148,
-    'ň' => 149,
-    'ó' => 150,
-    'ř' => 151,
-    'š' => 152,
-    'ť' => 153,
-    'ú' => 154,
-    'ů' => 155,
-    'ý' => 156,
-    'ž' => 157,
-];
-
-$toPdfText = static function (string $value) use ($czechMap): string {
-    $buffer = '';
-    $chars = preg_split('//u', $value, -1, PREG_SPLIT_NO_EMPTY);
-    if (!is_array($chars)) {
+/**
+ * Convert stored image URL/path to a local filesystem path for mPDF.
+ * Returns '' if not resolvable or not readable.
+ */
+$resolveLocalImagePath = static function (string $image): string {
+    $image = trim($image);
+    if ($image === '') {
         return '';
     }
 
-    foreach ($chars as $char) {
-        if (isset($czechMap[$char])) {
-            $buffer .= chr($czechMap[$char]);
-            continue;
-        }
-
-        if (strlen($char) === 1) {
-            $ord = ord($char);
-            if ($ord >= 32 && $ord <= 126) {
-                $buffer .= $char;
-            }
-        }
+    // Strip query string etc.
+    $path = (string) parse_url($image, PHP_URL_PATH);
+    if ($path === '') {
+        $path = $image;
     }
+    $path = rawurldecode($path);
 
-    return $buffer;
-};
-
-$pdfEscape = static function (string $value): string {
-    $escaped = '';
-    $length = strlen($value);
-
-    for ($i = 0; $i < $length; $i++) {
-        $byte = ord($value[$i]);
-        if ($byte === 40 || $byte === 41 || $byte === 92) {
-            $escaped .= '\\' . chr($byte);
-            continue;
-        }
-
-        if ($byte < 32 || $byte > 126) {
-            $escaped .= sprintf('\\%03o', $byte);
-            continue;
-        }
-
-        $escaped .= chr($byte);
-    }
-
-    return $escaped;
-};
-
-$lineHeight = 16;
-$fontSize = 12;
-$metaFontSize = 10;
-$startY = 800;
-$pageHeight = 842;
-$pageWidth = 595;
-$leftX = 48;
-$rightPadding = 48;
-$maxImageWidth = 120;
-$maxImageHeight = 90;
-$imageGap = 12;
-$contentParts = ['BT', '/F1 12 Tf'];
-$currentY = $startY;
-
-$estimateTextWidth = static function (string $text, int $size): float {
-    return strlen($text) * $size * 0.52;
-};
-
-$placeRightX = static function (string $text, int $size) use ($pageWidth, $rightPadding, $estimateTextWidth): int {
-    $x = (int) floor($pageWidth - $rightPadding - $estimateTextWidth($text, $size));
-    return max(0, $x);
-};
-
-$renderedAtText = 'Generated: ' . date('Y-m-d H:i:s');
-$renderedAtSanitized = $toPdfText($renderedAtText);
-$contentParts[] = sprintf(
-    '/F1 %d Tf 1 0 0 1 %d %d Tm (%s) Tj',
-    $metaFontSize,
-    $placeRightX($renderedAtSanitized, $metaFontSize),
-    $startY + 16,
-    $pdfEscape($renderedAtSanitized)
-);
-$contentParts[] = sprintf('/F1 %d Tf', $fontSize);
-
-/**
- * @param string $imagePath
- * @return array{width: int, height: int, data: string}|null
- */
-$preparePdfImage = static function (string $imagePath): ?array {
-    if ($imagePath === '' || !is_file($imagePath) || !is_readable($imagePath)) {
-        return null;
-    }
-
-    $rawData = file_get_contents($imagePath);
-    if ($rawData === false || $rawData === '') {
-        return null;
-    }
-
-    if (class_exists('Imagick')) {
-        try {
-            $imagick = new \Imagick();
-            $imagick->readImageBlob($rawData);
-            if ((int) $imagick->getNumberImages() > 1) {
-                $imagick = $imagick->coalesceImages();
-                $imagick->setFirstIterator();
-                $imagick = $imagick->getImage();
-            }
-
-            $imagick->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
-            $imagick->setImageBackgroundColor(new \ImagickPixel('white'));
-            $imagick = $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
-            $imagick->setImageFormat('jpeg');
-            $imagick->setImageCompressionQuality(82);
-
-            $jpegData = $imagick->getImageBlob();
-            $width = (int) $imagick->getImageWidth();
-            $height = (int) $imagick->getImageHeight();
-            $imagick->clear();
-            $imagick->destroy();
-
-            if ($jpegData !== '') {
-                return [
-                    'width' => $width,
-                    'height' => $height,
-                    'data' => $jpegData,
-                ];
-            }
-        } catch (Throwable $exception) {
-            // Ignore and continue to GD fallback.
-        }
-    }
-
-    if (
-        function_exists('imagecreatefromstring') && function_exists('imagejpeg') &&
-        function_exists('imagesx') && function_exists('imagesy') &&
-        function_exists('imagecreatetruecolor') && function_exists('imagefilledrectangle') &&
-        function_exists('imagecopy')
-    ) {
-        $source = @imagecreatefromstring($rawData);
-        if ($source !== false) {
-            $width = imagesx($source);
-            $height = imagesy($source);
-
-            $flattened = imagecreatetruecolor($width, $height);
-            if ($flattened === false) {
-                imagedestroy($source);
-                return null;
-            }
-
-            $white = imagecolorallocate($flattened, 255, 255, 255);
-            if ($white === false) {
-                imagedestroy($source);
-                imagedestroy($flattened);
-                return null;
-            }
-
-            imagefilledrectangle($flattened, 0, 0, $width, $height, $white);
-            imagecopy($flattened, $source, 0, 0, 0, 0, $width, $height);
-
-            ob_start();
-            imagejpeg($flattened, null, 82);
-            $jpegData = (string) ob_get_clean();
-            imagedestroy($source);
-            imagedestroy($flattened);
-
-            if ($jpegData !== '') {
-                return [
-                    'width' => $width,
-                    'height' => $height,
-                    'data' => $jpegData,
-                ];
-            }
-        }
-    }
-
-    if (function_exists('exec') && function_exists('tempnam')) {
-        $temporaryJpegPath = tempnam(sys_get_temp_dir(), 'pdf-img-');
-        if ($temporaryJpegPath !== false) {
-            @unlink($temporaryJpegPath);
-            $temporaryJpegPath .= '.jpg';
-
-            $sourceArg = escapeshellarg($imagePath);
-            $targetArg = escapeshellarg($temporaryJpegPath);
-            $commands = [
-                'magick ' . $sourceArg
-                    . ' -auto-orient -background white -alpha remove -alpha off -strip -quality 82 '
-                    . $targetArg,
-                'convert ' . $sourceArg
-                    . ' -auto-orient -background white -alpha remove -alpha off -strip -quality 82 '
-                    . $targetArg,
-                'ffmpeg -v error -y -i ' . $sourceArg . ' -frames:v 1 -q:v 3 ' . $targetArg,
-            ];
-
-            foreach ($commands as $command) {
-                $output = [];
-                $statusCode = 1;
-                @exec($command . ' 2>/dev/null', $output, $statusCode);
-
-                if ($statusCode !== 0 || !is_file($temporaryJpegPath)) {
-                    continue;
-                }
-
-                $jpegData = file_get_contents($temporaryJpegPath);
-                $size = @getimagesize($temporaryJpegPath);
-                @unlink($temporaryJpegPath);
-
-                if ($jpegData === false || $jpegData === '' || !is_array($size)) {
-                    continue;
-                }
-
-                $width = (int) $size[0];
-                $height = (int) $size[1];
-                if ($width <= 0 || $height <= 0) {
-                    continue;
-                }
-
-                return [
-                    'width' => $width,
-                    'height' => $height,
-                    'data' => $jpegData,
-                ];
-            }
-
-            @unlink($temporaryJpegPath);
-        }
-    }
-
-    return null;
-};
-
-$appBase = defined('BASE_PATH') ? (string) BASE_PATH : '';
-
-log_message("AppBase: $appBase", 'DEBUG');
-
-/**
- * @param string $imageLabel
- */
-$resolveImagePath = static function (string $imageLabel) use ($appBase): string {
-    $trimmed = trim($imageLabel);
-    if ($trimmed === '') {
+    // Must be root-relative or assets/public path you control
+    if ($path[0] !== '/') {
         return '';
     }
 
-    $parsedPath = (string) parse_url($trimmed, PHP_URL_PATH);
-    if ($parsedPath === '') {
-        $parsedPath = $trimmed;
-    }
-
-    $decodedPath = rawurldecode($parsedPath);
-
-    $serverRoot = dirname(__DIR__, 3);
-
-    $basePath = trim((string) parse_url((string) $appBase, PHP_URL_PATH));
-    if ($basePath !== '' && $basePath !== '/') {
-        $basePath = '/' . trim($basePath, '/');
-    } else {
+    /** @var string $basePath */
+    $basePath = defined('BASE_PATH') ? (string) BASE_PATH : '';
+    if ($basePath === '/') {
         $basePath = '';
     }
-
-    $normalizedPath = '/' . ltrim($decodedPath, '/');
-
-    if ($basePath !== '' && strpos($normalizedPath, $basePath . '/') === 0) {
-        $normalizedPath = substr($normalizedPath, strlen($basePath));
-        if ($normalizedPath === false) {
-            $normalizedPath = '';
-        }
-        $normalizedPath = '/' . ltrim($normalizedPath, '/');
+    if ($basePath !== '' && str_starts_with($path, $basePath . '/')) {
+        $path = substr($path, strlen($basePath));
     }
 
-    if (strpos($normalizedPath, '/assets/') === 0) {
-        $normalizedPath = '/public/' . ltrim(substr($normalizedPath, strlen('/assets/')), '/');
-    }
+    // server/ absolute path
+    $serverRoot = dirname(__DIR__, 3); // controllers/... -> server/
+    $candidate = $serverRoot . $path;
 
-    if (strpos($normalizedPath, '/public/') === 0) {
-        $candidate = $serverRoot . $normalizedPath;
-        return is_file($candidate) ? $candidate : '';
-    }
+    // Normalize slashes for Windows
+    $candidate = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate);
+    
+    if (!is_file($candidate)) log_message("Missing image: $candidate", 'DEBUG');
 
-    return '';
+    return (is_file($candidate) && is_readable($candidate)) ? $candidate : '';
 };
 
-/** @var array<string, array{width: int, height: int, data: string}> $embeddedImages */
-$embeddedImages = [];
-/** @var array<int, string> $lineImageRefs */
-$lineImageRefs = [];
+// ---- Build view model ----
+$finalPriceByCurrency = [];
+$items = [];
 
-foreach ($lines as $line) {
-    $lineImageRefs[] = '';
-}
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'] ?? '';
+$origin = ($host !== '') ? ($scheme . '://' . $host) : '';
 
-foreach ($options as $index => $option) {
-    $imageLabel = trim((string) ($option['option_image'] ?? ''));
-    if ($imageLabel === '') {
-        continue;
+foreach ($options as $option) {
+    $title = trim((string)($option['option_title'] ?? ''));
+    if ($title === '') {
+        $title = 'Option';
+    }
+    $amountRaw = trim((string)($option['option_price_amount'] ?? ''));
+    $currency = strtoupper(trim((string)($option['option_price_currency'] ?? 'CZK')));
+    if ($currency === '') {
+        $currency = 'CZK';
     }
 
-    if (!isset($embeddedImages[$imageLabel])) {
-        $imagePath = $resolveImagePath($imageLabel);
-        $preparedImage = $preparePdfImage($imagePath);
-        if ($preparedImage !== null) {
-            $embeddedImages[$imageLabel] = $preparedImage;
+    $amount = null;
+    $priceLabel = 'N/A';
+    if ($amountRaw !== '' && is_numeric($amountRaw)) {
+        $amount = (float)$amountRaw;
+        $priceLabel = number_format($amount, 2, '.', ' ') . ' ' . $currency;
+
+        $finalPriceByCurrency[$currency] = ($finalPriceByCurrency[$currency] ?? 0.0) + $amount;
+    }
+
+    $imageRaw = trim((string)($option['option_image'] ?? ''));
+    $imageLocal = $resolveLocalImagePath($imageRaw);
+
+    $items[] = [
+      'title' => $title,
+      'image_local' => $imageLocal,   // <- use this
+      'price_label' => $priceLabel,
+    ];
+}
+
+$updatedAt = (string)($configuration['updated_at'] ?? '');
+$generatedAt = date('Y-m-d H:i:s');
+
+$escape = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+
+// ---- HTML for PDF ----
+$css = <<<CSS
+@page { margin: 12mm; }
+body { font-family: sans-serif; font-size: 11pt; color: #111; }
+h1 { font-size: 16pt; margin: 0 0 4mm 0; }
+.meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
+.hr { height: 1px; background: #ddd; margin: 4mm 0; }
+
+table { width: 100%; border-collapse: collapse; }
+thead th { text-align: left; font-size: 9pt; color: #444; border-bottom: 2px solid #ddd; padding: 3mm 2mm; }
+tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top; }
+.col-no { width: 10mm; color:#666; }
+.col-img { width: 35mm; }
+.thumb {
+  max-width: 32mm;
+  max-height: 22mm;
+  width: auto;
+  height: auto;
+  border: 0.2mm solid #eee;
+  border-radius: 2mm;
+  background: #fafafa;
+  display: block;
+}
+.price { white-space: nowrap; }
+
+.totals { margin-top: 6mm; }
+.totals-box { border: 0.2mm solid #ddd; border-radius: 3mm; padding: 3mm; width: 70mm; margin-left: auto; }
+.totals-title { font-weight: bold; margin-bottom: 2mm; }
+.totals-row { display: flex; justify-content: space-between; padding: 1mm 0; }
+CSS;
+
+$rowsHtml = '';
+if ($items === []) {
+    $rowsHtml = '<tr><td colspan="4">Žádné vybrané možnosti.</td></tr>';
+} else {
+    foreach ($items as $i => $item) {
+        $imgHtml = '—';
+        if ($item['image_local'] !== '') {
+            $imgHtml = '<img class="thumb" src="' . $escape($item['image_local']) . '" alt="">';
         }
+
+        $rowsHtml .= '<tr>'
+            . '<td class="col-no">' . ($i + 1) . '</td>'
+            . '<td><strong>' . $escape($item['title']) . '</strong></td>'
+            . '<td class="col-img">' . $imgHtml . '</td>'
+            . '<td class="price">' . $escape($item['price_label']) . '</td>'
+            . '</tr>';
     }
+}
 
-    if (!isset($embeddedImages[$imageLabel])) {
-        continue;
+$totalsHtml = '';
+if ($finalPriceByCurrency === []) {
+    $totalsHtml = '<div class="totals-row"><span>—</span><strong>N/A</strong></div>';
+} else {
+    foreach ($finalPriceByCurrency as $cur => $amount) {
+        $totalsHtml .= '<div class="totals-row"><span>' . $escape((string)$cur) . '</span><strong>'
+            . $escape(number_format((float)$amount, 2, '.', ' '))
+            . '</strong></div>';
     }
-
-    $linePosition = 4 + $index;
-    $lineImageRefs[$linePosition] = $imageLabel;
 }
 
-$imageAliasByLabel = [];
-$imageAliasCounter = 1;
-foreach ($embeddedImages as $imageLabel => $_imageData) {
-    $imageAliasByLabel[$imageLabel] = 'Im' . $imageAliasCounter;
-    $imageAliasCounter++;
-}
+$html = <<<HTML
+<h1>Konfigurace #{$configurationId}</h1>
+<div class="meta">
+  Aktualizace: {$escape($updatedAt)}<br>
+  Vygenerováno: {$escape($generatedAt)}
+</div>
+<div class="hr"></div>
 
-foreach ($lines as $lineIndex => $line) {
-    $sanitized = $toPdfText($line);
-    $contentParts[] = sprintf('1 0 0 1 %d %d Tm (%s) Tj', $leftX, $currentY, $pdfEscape($sanitized));
-    $currentY -= $lineHeight;
+<table>
+  <thead>
+    <tr>
+      <th class="col-no">#</th>
+      <th>Volba</th>
+      <th class="col-img">Obrázek</th>
+      <th class="price">Cena</th>
+    </tr>
+  </thead>
+  <tbody>
+    {$rowsHtml}
+  </tbody>
+</table>
 
-    $imageLabel = $lineImageRefs[$lineIndex] ?? '';
-    if ($imageLabel === '' || !isset($embeddedImages[$imageLabel], $imageAliasByLabel[$imageLabel])) {
-        continue;
+<div class="totals">
+  <div class="totals-box">
+    <div class="totals-title">Celková cena</div>
+    {$totalsHtml}
+  </div>
+</div>
+HTML;
+
+// ---- Render PDF ----
+try {
+    $tempDir = dirname(__DIR__, 3) . '/tmp/mpdf';
+    if (!is_dir($tempDir)) {
+        @mkdir($tempDir, 0777, true);
     }
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'tempDir' => $tempDir,
+        'margin_left' => 12,
+        'margin_right' => 12,
+        'margin_top' => 12,
+        'margin_bottom' => 12,
+    ]);
 
-    $sourceWidth = (int) $embeddedImages[$imageLabel]['width'];
-    $sourceHeight = (int) $embeddedImages[$imageLabel]['height'];
-    if ($sourceWidth <= 0 || $sourceHeight <= 0) {
-        continue;
-    }
+    // Helps with images over HTTPS with odd certs (optional):
+    // $mpdf->curlAllowUnsafeSslRequests = true;
 
-    $ratio = min($maxImageWidth / $sourceWidth, $maxImageHeight / $sourceHeight, 1.0);
-    $drawWidth = max(1.0, round($sourceWidth * $ratio, 2));
-    $drawHeight = max(1.0, round($sourceHeight * $ratio, 2));
+    $mpdf->SetTitle("Konfigurace #{$configurationId}");
+    $mpdf->SetAuthor('HAGEMANN konfigurátor');
+    $mpdf->SetDisplayMode('fullpage');
 
-    $imageTop = $currentY - 2;
-    $imageBottom = $imageTop - $drawHeight;
-    if ($imageBottom < 40) {
-        break;
-    }
+    // Footer/page numbers
+    $mpdf->SetHTMLFooter('<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nbpg}</div>');
 
-    $contentParts[] = sprintf(
-        'q %.2F 0 0 %.2F %d %.2F cm /%s Do Q',
-        $drawWidth,
-        $drawHeight,
-        $leftX + 16,
-        $imageBottom,
-        $imageAliasByLabel[$imageLabel]
-    );
-    $currentY -= (int) ceil($drawHeight + $imageGap);
+    $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
+    $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
+
+    $filename = "configuration-{$configurationId}.pdf";
+    // mPDF will send headers + output
+    $mpdf->Output($filename, Destination::DOWNLOAD);
+} catch (\Throwable $e) {
+    http_response_code(500);
+    log_message($e->getMessage(), 'ERROR');
+    echo 'Nepodařilo se vygenerovat PDF.';
 }
-
-$pageLabelText = 'Page 1/1';
-$pageLabelSanitized = $toPdfText($pageLabelText);
-$contentParts[] = sprintf(
-    '/F1 %d Tf 1 0 0 1 %d 24 Tm (%s) Tj',
-    $metaFontSize,
-    $placeRightX($pageLabelSanitized, $metaFontSize),
-    $pdfEscape($pageLabelSanitized)
-);
-
-$contentParts[] = 'ET';
-$content = implode("\n", $contentParts) . "\n";
-
-$objects = [];
-$objects[] = '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj';
-$objects[] = '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj';
-$xObjectResources = '';
-$imageObjectNumbers = [];
-$nextObjectNumber = 6;
-
-foreach ($embeddedImages as $imageLabel => $imageData) {
-    $imageObjectNumbers[$imageLabel] = $nextObjectNumber;
-    $alias = $imageAliasByLabel[$imageLabel] ?? '';
-    if ($alias !== '') {
-        $xObjectResources .= sprintf('/%s %d 0 R ', $alias, $nextObjectNumber);
-    }
-
-    $nextObjectNumber++;
-}
-
-$resources = '/Font << /F1 5 0 R >>';
-if ($xObjectResources !== '') {
-    $resources .= ' /XObject << ' . trim($xObjectResources) . ' >>';
-}
-
-$objects[] = sprintf(
-    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 %d] /Contents 4 0 R /Resources << %s >> >> endobj',
-    $pageHeight,
-    $resources
-);
-$objects[] = '4 0 obj << /Length ' . strlen($content) . ' >> stream' . "\n" . $content . 'endstream endobj';
-$objects[] = <<<'PDF'
-5 0 obj <<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
-/Encoding << /Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences 
-[128 /Aacute /Ccaron /Dcaron /Eacute /Ecaron /Iacute /Ncaron /Oacute /Rcaron /Scaron /Tcaron /Uacute /Uring /Yacute 
-/Zcaron /aacute /ccaron /dcaron /eacute /ecaron 
-/iacute /ncaron /oacute /rcaron /scaron /tcaron /uacute /uring /yacute /zcaron] >>
->> endobj
-PDF;
-
-foreach ($embeddedImages as $imageLabel => $imageData) {
-    $objectNumber = $imageObjectNumbers[$imageLabel] ?? 0;
-    if ($objectNumber <= 0) {
-        continue;
-    }
-
-    $imageBytes = $imageData['data'];
-    $objects[] = sprintf(
-        "%d 0 obj << /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace /DeviceRGB /BitsPerComponent 8
-        /Filter /DCTDecode /Length %d >> stream\n",
-        $objectNumber,
-        (int) $imageData['width'],
-        (int) $imageData['height'],
-        strlen($imageBytes)
-    ) . $imageBytes . "\nendstream endobj";
-}
-
-$pdf = "%PDF-1.4\n";
-$offsets = [0];
-foreach ($objects as $object) {
-    $offsets[] = strlen($pdf);
-    $pdf .= $object . "\n";
-}
-
-$xrefOffset = strlen($pdf);
-$pdf .= 'xref' . "\n";
-$pdf .= '0 ' . (count($objects) + 1) . "\n";
-$pdf .= "0000000000 65535 f \n";
-
-for ($i = 1; $i <= count($objects); $i++) {
-    $pdf .= sprintf('%010d 00000 n ', $offsets[$i]) . "\n";
-}
-
-$pdf .= 'trailer << /Size ' . (count($objects) + 1) . ' /Root 1 0 R >>' . "\n";
-$pdf .= 'startxref' . "\n";
-$pdf .= $xrefOffset . "\n";
-$pdf .= '%%EOF';
-
-$filename = sprintf('configuration-%d.pdf', $configurationId);
-if (!headers_sent()) {
-    header('Content-Type: application/pdf');
-    header('Content-Disposition: attachment; filename="' . $filename . '"');
-    header('Cache-Control: private, no-store, max-age=0');
-    header('Pragma: no-cache');
-}
-
-echo $pdf;

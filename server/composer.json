@@ -24,5 +24,8 @@
             "@lint:php:cs",
             "@lint:php:stan"
         ]
+    },
+    "require": {
+        "mpdf/mpdf": "^8.2"
     }
 }
