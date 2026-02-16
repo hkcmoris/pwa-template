@@ -324,10 +324,7 @@ $resolveImagePath = static function (string $imageLabel) use ($appBase): string 
 
     $decodedPath = rawurldecode($parsedPath);
 
-    if (strpos($decodedPath, '/public/') === 0) {
-        $candidate = dirname(__DIR__, 3) . $decodedPath;
-        return is_file($candidate) ? $candidate : '';
-    }
+    $serverRoot = dirname(__DIR__, 3);
 
     $basePath = '';
     if ($appBase !== '' && $appBase !== '/') {
@@ -341,12 +338,24 @@ $resolveImagePath = static function (string $imageLabel) use ($appBase): string 
         $decodedPath = substr($decodedPath, strlen($basePath));
     }
 
+    if ($basePath !== '' && strpos($decodedPath, $basePath . '/assets/') === 0) {
+        $decodedPath = '/public/' . ltrim(substr($decodedPath, strlen($basePath . '/assets/')), '/');
+    }
+
     if (strpos($decodedPath, 'public/') === 0) {
         $decodedPath = '/' . $decodedPath;
     }
 
+    if (strpos($decodedPath, 'assets/') === 0) {
+        $decodedPath = '/public/' . ltrim(substr($decodedPath, strlen('assets/')), '/');
+    }
+
+    if (strpos($decodedPath, '/assets/') === 0) {
+        $decodedPath = '/public/' . ltrim(substr($decodedPath, strlen('/assets/')), '/');
+    }
+
     if (strpos($decodedPath, '/public/') === 0) {
-        $candidate = dirname(__DIR__, 3) . $decodedPath;
+        $candidate = $serverRoot . $decodedPath;
         return is_file($candidate) ? $candidate : '';
     }
 
