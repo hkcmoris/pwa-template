@@ -167,7 +167,10 @@ $escape = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_
 
 // ---- HTML for PDF ----
 $css = <<<CSS
-@page { margin: 12mm; }
+table.head { width: 100%; border-collapse: collapse; }
+.head-left { width: 70%; vertical-align: top; }
+.head-right { width: 30%; vertical-align: top; text-align: right; }
+.head h1 { margin: 0 0 1mm 0; }
 body { font-family: sans-serif; font-size: 11pt; color: #111; }
 h1 { font-size: 16pt; margin: 0 0 4mm 0; }
 .meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
@@ -227,11 +230,17 @@ if ($finalPriceByCurrency === []) {
 }
 
 $html = <<<HTML
-<h1>Konfigurace #{$configurationId}</h1>
-<div class="meta">
-  Aktualizace: {$escape($updatedAt)}<br>
-  Vygenerováno: {$escape($generatedAt)}
-</div>
+<table class="head">
+  <tr>
+    <td class="head-left">
+      <h1>Konfigurace #{$configurationId}</h1>
+      <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
+    </td>
+    <td class="head-right">
+      <div class="meta">Vygenerováno: {$escape($generatedAt)}</div>
+    </td>
+  </tr>
+</table>
 <div class="hr"></div>
 
 <table>
@@ -269,7 +278,7 @@ try {
         'margin_left' => 12,
         'margin_right' => 12,
         'margin_top' => 12,
-        'margin_bottom' => 12,
+        'margin_bottom' => 18,
     ]);
 
     // Helps with images over HTTPS with odd certs (optional):
@@ -278,9 +287,12 @@ try {
     $mpdf->SetTitle("Konfigurace #{$configurationId}");
     $mpdf->SetAuthor('HAGEMANN konfigurátor');
     $mpdf->SetDisplayMode('fullpage');
+    $mpdf->AliasNbPages();
 
     // Footer/page numbers
-    $mpdf->SetHTMLFooter('<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nbpg}</div>');
+    $mpdf->SetHTMLFooter(
+      '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>'
+    );
 
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
