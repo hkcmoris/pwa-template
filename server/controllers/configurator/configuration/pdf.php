@@ -275,6 +275,10 @@ $preparePdfImage = static function (string $imagePath): ?array {
                 $imagick->setFirstIterator();
                 $imagick = $imagick->getImage();
             }
+
+            $imagick->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE);
+            $imagick->setImageBackgroundColor(new \ImagickPixel('white'));
+            $imagick = $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
             $imagick->setImageFormat('jpeg');
             $imagick->setImageCompressionQuality(82);
 
@@ -298,17 +302,36 @@ $preparePdfImage = static function (string $imagePath): ?array {
 
     if (
         function_exists('imagecreatefromstring') && function_exists('imagejpeg') &&
-        function_exists('imagesx') && function_exists('imagesy')
+        function_exists('imagesx') && function_exists('imagesy') &&
+        function_exists('imagecreatetruecolor') && function_exists('imagefilledrectangle') &&
+        function_exists('imagecopy')
     ) {
         $source = @imagecreatefromstring($rawData);
         if ($source !== false) {
             $width = imagesx($source);
             $height = imagesy($source);
 
+            $flattened = imagecreatetruecolor($width, $height);
+            if ($flattened === false) {
+                imagedestroy($source);
+                return null;
+            }
+
+            $white = imagecolorallocate($flattened, 255, 255, 255);
+            if ($white === false) {
+                imagedestroy($source);
+                imagedestroy($flattened);
+                return null;
+            }
+
+            imagefilledrectangle($flattened, 0, 0, $width, $height, $white);
+            imagecopy($flattened, $source, 0, 0, 0, 0, $width, $height);
+
             ob_start();
-            imagejpeg($source, null, 82);
+            imagejpeg($flattened, null, 82);
             $jpegData = (string) ob_get_clean();
             imagedestroy($source);
+            imagedestroy($flattened);
 
             if ($jpegData !== '') {
                 return [
@@ -322,15 +345,19 @@ $preparePdfImage = static function (string $imagePath): ?array {
 
     if (function_exists('exec') && function_exists('tempnam')) {
         $temporaryJpegPath = tempnam(sys_get_temp_dir(), 'pdf-img-');
-        if (is_string($temporaryJpegPath)) {
+        if ($temporaryJpegPath !== false) {
             @unlink($temporaryJpegPath);
             $temporaryJpegPath .= '.jpg';
 
             $sourceArg = escapeshellarg($imagePath);
             $targetArg = escapeshellarg($temporaryJpegPath);
             $commands = [
-                'magick ' . $sourceArg . ' -auto-orient -strip -quality 82 ' . $targetArg,
-                'convert ' . $sourceArg . ' -auto-orient -strip -quality 82 ' . $targetArg,
+                'magick ' . $sourceArg
+                    . ' -auto-orient -background white -alpha remove -alpha off -strip -quality 82 '
+                    . $targetArg,
+                'convert ' . $sourceArg
+                    . ' -auto-orient -background white -alpha remove -alpha off -strip -quality 82 '
+                    . $targetArg,
                 'ffmpeg -v error -y -i ' . $sourceArg . ' -frames:v 1 -q:v 3 ' . $targetArg,
             ];
 
@@ -393,13 +420,11 @@ $resolveImagePath = static function (string $imageLabel) use ($appBase): string 
 
     $serverRoot = dirname(__DIR__, 3);
 
-    $basePath = '';
-    if ($appBase !== '') {
-        $parsedBasePath = parse_url($appBase, PHP_URL_PATH);
-        $basePath = trim((string) $parsedBasePath);
-        if ($basePath !== '') {
-            $basePath = '/' . trim($basePath, '/');
-        }
+    $basePath = trim((string) parse_url((string) $appBase, PHP_URL_PATH));
+    if ($basePath !== '' && $basePath !== '/') {
+        $basePath = '/' . trim($basePath, '/');
+    } else {
+        $basePath = '';
     }
 
     $normalizedPath = '/' . ltrim($decodedPath, '/');
