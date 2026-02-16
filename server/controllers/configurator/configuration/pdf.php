@@ -238,6 +238,7 @@ $preparePdfImage = static function (string $imagePath): ?array {
     if ($imagePath === '' || !is_file($imagePath) || !is_readable($imagePath)) {
         return null;
     }
+    log_message('Preparing image', 'DEBUG');
 
     $rawData = file_get_contents($imagePath);
     if ($rawData === false || $rawData === '') {
@@ -271,7 +272,10 @@ $preparePdfImage = static function (string $imagePath): ?array {
             }
         } catch (Throwable $exception) {
             // Ignore and continue to GD fallback.
+            log_message(json_encode($exception, JSON_PRETTY_PRINT), 'DEBUG');
         }
+    } else {
+        log_message('Imagick doesn\'t exist', 'DEBUG');
     }
 
     if (
@@ -297,6 +301,8 @@ $preparePdfImage = static function (string $imagePath): ?array {
             }
         }
     }
+
+    log_message('Image failed', 'DEBUG');
 
     return null;
 };
