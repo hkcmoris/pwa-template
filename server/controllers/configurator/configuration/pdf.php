@@ -348,11 +348,14 @@ $preparePdfImage = static function (string $imagePath): ?array {
     return null;
 };
 
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$appBase = isset($base) && is_string($base) ? $base : '';
+
+log_message(`AppBase: $base`, 'DEBUG');
+
 /**
  * @param string $imageLabel
  */
-$appBase = isset($BASE) && is_string($BASE) ? $BASE : '';
-
 $resolveImagePath = static function (string $imageLabel) use ($appBase): string {
     $trimmed = trim($imageLabel);
     if ($trimmed === '') {
