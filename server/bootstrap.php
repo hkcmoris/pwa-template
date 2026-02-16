@@ -14,6 +14,10 @@ require_once __DIR__ . '/lib/csrf.php';
 // Start session early so CSRF can safely read/write cookies/tokens later.
 csrf_ensure_session();
 
+if (!headers_sent()) {
+    header("Content-Security-Policy: object-src 'none'");
+}
+
 require_once __DIR__ . '/lib/assets.php';
 
 $namespaces = [
