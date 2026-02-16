@@ -348,10 +348,9 @@ $preparePdfImage = static function (string $imagePath): ?array {
     return null;
 };
 
-$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
-$appBase = isset($base) && is_string($base) ? $base : '';
+$appBase = defined('BASE_PATH') ? (string) BASE_PATH : '';
 
-log_message(`AppBase: $base`, 'DEBUG');
+log_message("AppBase: $appBase", 'DEBUG');
 
 /**
  * @param string $imageLabel
