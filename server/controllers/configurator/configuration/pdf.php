@@ -330,32 +330,29 @@ $resolveImagePath = static function (string $imageLabel) use ($appBase): string 
     if ($appBase !== '' && $appBase !== '/') {
         $parsedBasePath = parse_url($appBase, PHP_URL_PATH);
         if (is_string($parsedBasePath)) {
-            $basePath = $parsedBasePath;
+            $basePath = trim($parsedBasePath);
+            if ($basePath !== '') {
+                $basePath = '/' . trim($basePath, '/');
+            }
         }
     }
 
-    if ($basePath !== '' && strpos($decodedPath, $basePath . '/public/') === 0) {
-        $decodedPath = substr($decodedPath, strlen($basePath));
+    $normalizedPath = '/' . ltrim($decodedPath, '/');
+
+    if ($basePath !== '' && strpos($normalizedPath, $basePath . '/') === 0) {
+        $normalizedPath = substr($normalizedPath, strlen($basePath));
+        if ($normalizedPath === false) {
+            $normalizedPath = '';
+        }
+        $normalizedPath = '/' . ltrim($normalizedPath, '/');
     }
 
-    if ($basePath !== '' && strpos($decodedPath, $basePath . '/assets/') === 0) {
-        $decodedPath = '/public/' . ltrim(substr($decodedPath, strlen($basePath . '/assets/')), '/');
+    if (strpos($normalizedPath, '/assets/') === 0) {
+        $normalizedPath = '/public/' . ltrim(substr($normalizedPath, strlen('/assets/')), '/');
     }
 
-    if (strpos($decodedPath, 'public/') === 0) {
-        $decodedPath = '/' . $decodedPath;
-    }
-
-    if (strpos($decodedPath, 'assets/') === 0) {
-        $decodedPath = '/public/' . ltrim(substr($decodedPath, strlen('assets/')), '/');
-    }
-
-    if (strpos($decodedPath, '/assets/') === 0) {
-        $decodedPath = '/public/' . ltrim(substr($decodedPath, strlen('/assets/')), '/');
-    }
-
-    if (strpos($decodedPath, '/public/') === 0) {
-        $candidate = $serverRoot . $decodedPath;
+    if (strpos($normalizedPath, '/public/') === 0) {
+        $candidate = $serverRoot . $normalizedPath;
         return is_file($candidate) ? $candidate : '';
     }
 
