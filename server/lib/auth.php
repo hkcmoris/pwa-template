@@ -124,6 +124,7 @@ function app_get_current_user(): ?array
 
                     $newAccessPayload = [
                         'sub' => (int)$refreshRow['user_id'],
+                        'username' => $row['username'] ?? '',
                         'email' => $row['email'] ?? '',
                         'role' => $row['role'] ?? 'user',
                     ];

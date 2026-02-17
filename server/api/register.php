@@ -45,7 +45,12 @@ try {
 $accessTtl = 600;
 $base = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $cookiePath = '/' . trim($base, '/');
-$token = generate_jwt(['sub' => $userId, 'email' => $email], $jwtSecret, $accessTtl);
+$token = generate_jwt([
+    'sub' => (int)$userId,
+    'username' => $username,
+    'email' => $email,
+    'role' => 'user',
+], $jwtSecret, $accessTtl);
 setcookie('token', $token, [
     'httponly' => true,
     'samesite' => 'Lax',
