@@ -201,11 +201,7 @@ foreach ($items as $node) {
                                     height="48px"
                                     loading="lazy"
                                     decoding="async"
-                                    onerror="
-                                      this.onerror = null;
-                                      this.src = 
-                                        '<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg';
-                                    "
+                                    data-fallback-src="<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg"
                                   >
                                 </div>
                               </figure>

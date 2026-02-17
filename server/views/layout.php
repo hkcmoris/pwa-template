@@ -44,6 +44,12 @@ foreach ($viewStyles as $styleId => $entry) {
         $resolvedViewStyles[(string) $styleId] = $href;
     }
 }
+$cspNonce = isset($GLOBALS['csp_nonce']) && is_string($GLOBALS['csp_nonce'])
+    ? $GLOBALS['csp_nonce']
+    : '';
+$cspNonceAttr = $cspNonce !== ''
+    ? ' nonce="' . htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') . '"'
+    : '';
 ?>
 <!doctype html>
   <html
@@ -178,7 +184,7 @@ foreach ($viewStyles as $styleId => $entry) {
             $safeHref = htmlspecialchars($href, ENT_QUOTES);
             echo '<link rel="preload" as="style" href="' . $safeHref . '">' . "\n";
             echo '<link rel="stylesheet"' . $idAttr .
-              ' href="' . $safeHref . '" media="print" onload="this.media=\'all\'">' . "\n";
+              ' href="' . $safeHref . '">' . "\n";
             echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
         };
         ?>
@@ -204,17 +210,9 @@ foreach ($viewStyles as $styleId => $entry) {
         endif;
         if ($fontsCss && !empty($fontsCss['file'])) : ?>
       <link
-        rel="preload"
-        as="style"
+        rel="stylesheet"
         href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-        onload="this.rel='stylesheet'"
       >
-      <noscript>
-        <link
-          rel="stylesheet"
-          href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-        >
-      </noscript>
             <?php
         endif;
         foreach ($resolvedViewStyles as $styleId => $href) : ?>
@@ -499,7 +497,6 @@ foreach ($viewStyles as $styleId => $entry) {
           rel="preload"
           as="style"
           href="http://localhost:5173/src/styles/fonts.css"
-          onload="this.rel='stylesheet'"
         >
         <noscript>
           <link
@@ -538,7 +535,7 @@ foreach ($viewStyles as $styleId => $entry) {
       $lhci = strtolower(trim((string) getenv('LHCI'))) === '1';
     ?>
     <?php if (!$lhci && (!defined('SW_ENABLED') || SW_ENABLED)) : ?>
-    <script>
+    <script<?= $cspNonceAttr ?>>
       if ('serviceWorker' in navigator) {
         const registerSw = () => {
           navigator.serviceWorker
@@ -551,7 +548,7 @@ foreach ($viewStyles as $styleId => $entry) {
       }
     </script>
     <?php elseif (!$lhci) : ?>
-    <script>
+    <script<?= $cspNonceAttr ?>>
       if ('serviceWorker' in navigator) {
         const baseScope = <?= $swScopeJson ?>;
         const killUrls = <?= $swKillJson ?>;
@@ -603,8 +600,23 @@ foreach ($viewStyles as $styleId => $entry) {
       }
     </script>
     <?php endif; ?>
+
+    <script<?= $cspNonceAttr ?>>
+      document.querySelectorAll('img[data-fallback-src]').forEach((image) => {
+        image.addEventListener('error', () => {
+          const fallbackSrc = image.getAttribute('data-fallback-src');
+
+          if (!fallbackSrc || image.getAttribute('src') === fallbackSrc) {
+            return;
+          }
+
+          image.setAttribute('src', fallbackSrc);
+        }, { once: true });
+      });
+    </script>
+
     <?php if (!$prettyUrlsEnabled) : ?>
-    <script>
+    <script<?= $cspNonceAttr ?>>
       // Fallback: rewrite in-app links to query-string routing when pretty URLs are blocked by parent .htaccess
       (function () {
         const base = document.documentElement.getAttribute('data-base') || '';
