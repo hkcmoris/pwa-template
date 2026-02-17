@@ -1,4 +1,4 @@
-@import './shared.css';
+@import url('./shared.css');
 
 .component-primary {
     text-decoration: none;

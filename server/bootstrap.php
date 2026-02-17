@@ -16,6 +16,12 @@ csrf_ensure_session();
 
 if (!headers_sent()) {
     header("Content-Security-Policy: object-src 'none'");
+
+    // Enable gzip for dynamic output if the server doesn't do it
+    if (extension_loaded('zlib') && !ini_get('zlib.output_compression')) {
+        ini_set('zlib.output_compression', '1');
+        ini_set('zlib.output_compression_level', '5'); // 1-9
+    }
 }
 
 require_once __DIR__ . '/lib/assets.php';

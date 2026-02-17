@@ -1,4 +1,4 @@
-@import './shared.css';
+@import url('./shared.css');
 
 .definition-toolbar {
     margin: 1rem 0;

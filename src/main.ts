@@ -1,18 +1,15 @@
 import { API_BASE, apiFetch, getCsrfToken } from './utils/api';
 
-const HOME_BG_LIGHT = new URL('./assets/bg-light.webp', import.meta.url).href;
-const HOME_BG_DARK = new URL('./assets/bg-dark.webp', import.meta.url).href;
+const BG_LIGHT_TINY = new URL('./assets/bg-light.avif', import.meta.url).href;
+const BG_DARK_TINY = new URL('./assets/bg-dark.avif', import.meta.url).href;
 
-if (typeof document !== 'undefined') {
-    document.documentElement.style.setProperty(
-        '--home-bg-light',
-        `url("${HOME_BG_LIGHT}")`
-    );
-    document.documentElement.style.setProperty(
-        '--home-bg-dark',
-        `url("${HOME_BG_DARK}")`
-    );
-}
+const BG_LIGHT_HD = new URL('./assets/bg-light.webp', import.meta.url).href;
+const BG_DARK_HD = new URL('./assets/bg-dark.webp', import.meta.url).href;
+
+const root = document.documentElement;
+
+root.style.setProperty('--home-bg-light', `url("${BG_LIGHT_TINY}")`);
+root.style.setProperty('--home-bg-dark', `url("${BG_DARK_TINY}")`);
 
 const normalizeRoute = (value: string) => value.replace(/^\/+|\/+$/g, '');
 const getCurrentRoute = () => {
@@ -672,5 +669,29 @@ document.body.addEventListener('htmx:oobAfterSwap', (event) => {
     } else {
         mountIslands();
         initNavActions();
+    }
+});
+
+function preload(url: string) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.decoding = 'async';
+        img.onload = () => resolve(url);
+        img.onerror = reject;
+        img.src = url;
+    });
+}
+
+window.addEventListener('load', async () => {
+    try {
+        // You can preload both, or only the one you need right now
+        await Promise.all([preload(BG_LIGHT_HD), preload(BG_DARK_HD)]);
+
+        // Swap the vars to HD once cached
+        root.style.setProperty('--home-bg-light', `url("${BG_LIGHT_HD}")`);
+        root.style.setProperty('--home-bg-dark', `url("${BG_DARK_HD}")`);
+        root.classList.add('bg-hd'); // optional flag
+    } catch {
+        // ignore, keep tiny
     }
 });

@@ -7,9 +7,10 @@
 AddType application/manifest+json .webmanifest
 
 <IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml
+    AddOutputFilterByType DEFLATE text/plain text/html text/css text/xml text/javascript
     AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/rss+xml
     AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
     # Don’t recompress already-compressed formats
     # AddOutputFilterByType DEFLATE font/woff2
 </IfModule>
@@ -62,6 +63,7 @@ AddType application/manifest+json .webmanifest
     Header always set Cache-Control "no-store, no-cache, must-revalidate" env=MICROCACHE_BYPASS
     Header always set Pragma "no-cache" env=MICROCACHE_BYPASS
     Header always set Expires "0" env=MICROCACHE_BYPASS
+    Header append Vary Accept-Encoding
 
     # Optional: make caches vary by cookies if anything slips through
     Header always merge Vary "Cookie" env=MICROCACHE_BYPASS

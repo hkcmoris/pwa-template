@@ -116,8 +116,10 @@ $resolveLocalImagePath = static function (string $image): string {
 
     // Normalize slashes for Windows
     $candidate = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate);
-    
-    if (!is_file($candidate)) log_message("Missing image: $candidate", 'DEBUG');
+
+    if (!is_file($candidate)) {
+        log_message("Missing image: $candidate", 'DEBUG');
+    }
 
     return (is_file($candidate) && is_readable($candidate)) ? $candidate : '';
 };
@@ -291,7 +293,7 @@ try {
 
     // Footer/page numbers
     $mpdf->SetHTMLFooter(
-      '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>'
+        '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>'
     );
 
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
