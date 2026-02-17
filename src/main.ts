@@ -704,4 +704,3 @@ const startHd = () => {
 
 window.addEventListener('pointerdown', startHd, { once: true });
 window.addEventListener('keydown', startHd, { once: true });
-window.addEventListener('mousemove', startHd, { once: true });
