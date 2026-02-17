@@ -168,23 +168,33 @@ foreach ($viewStyles as $styleId => $entry) {
         max-width: initial;
       }
     </style>
+    <?php
+        $css_link_async = static function (string $href, ?string $id = null): void {
+            $idAttr = $id ? ' id="' . htmlspecialchars($id, ENT_QUOTES) . '"' : '';
+            $safeHref = htmlspecialchars($href, ENT_QUOTES);
+            echo '<link rel="preload" as="style" href="' . $safeHref . '">' . "\n";
+            echo '<link rel="stylesheet"' . $idAttr .
+              ' href="' . $safeHref . '" media="print" onload="this.media=\'all\'">' . "\n";
+            echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
+        };
+        ?>
+
     <?php if (!$isDevEnv) :
+        $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
         $main = vite_asset('src/main.ts');
         $layoutCss = vite_asset('src/styles/layout.css');
         $fontsCss = vite_asset('src/styles/fonts.css');
         if ($layoutCss && !empty($layoutCss['file'])) : ?>
-      <link
-        rel="stylesheet"
-        href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($layoutCss['file']) ?>"
-      >
+            <?php
+            $css_link_async($assetBase . $layoutCss['file']);
+            ?>
             <?php
         endif;
         if ($main && !empty($main['css'])) :
             foreach ($main['css'] as $css) : ?>
-      <link
-        rel="stylesheet"
-        href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($css) ?>"
-      >
+                <?php
+                $css_link_async($assetBase . $css);
+                ?>
                 <?php
             endforeach;
         endif;
