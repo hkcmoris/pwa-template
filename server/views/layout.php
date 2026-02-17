@@ -6,6 +6,7 @@ require_once __DIR__ . '/../lib/csrf.php';
 $currentUser = app_get_current_user();
 $role = $currentUser['role'] ?? 'guest';
 $email = $currentUser['email'] ?? null;
+$isAuthenticated = is_string($email) && $email !== '';
 $username = isset($username) && is_string($username) && $username !== ''
     ? $username
     : (is_string($email) && $email !== '' ? $email : 'Návštěvník');
@@ -51,6 +52,9 @@ foreach ($viewStyles as $styleId => $entry) {
     data-base="<?= htmlspecialchars($BASE) ?>"
     data-pretty="<?= $prettyUrlsEnabled ? '1' : '0' ?>"
     data-csrf="<?= htmlspecialchars($csrfToken) ?>"
+    data-authenticated="<?= $isAuthenticated ? '1' : '0' ?>"
+    data-auth-email="<?= htmlspecialchars((string) ($email ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+    data-auth-role="<?= htmlspecialchars((string) $role, ENT_QUOTES, 'UTF-8') ?>"
   >
   <head>
     <meta charset="UTF-8" />
@@ -434,6 +438,7 @@ foreach ($viewStyles as $styleId => $entry) {
             </span>
             <a
               id="login-link"
+              class="<?= $isAuthenticated ? 'hidden' : '' ?>"
               href="<?= htmlspecialchars($BASE) ?>/login"
               hx-get="<?= htmlspecialchars($BASE) ?>/login"
               hx-push-url="true"
@@ -445,6 +450,7 @@ foreach ($viewStyles as $styleId => $entry) {
             </a>
             <a
               id="register-link"
+              class="<?= $isAuthenticated ? 'hidden' : '' ?>"
               href="<?= htmlspecialchars($BASE) ?>/register"
               hx-get="<?= htmlspecialchars($BASE) ?>/register"
               hx-push-url="true"
@@ -454,7 +460,7 @@ foreach ($viewStyles as $styleId => $entry) {
             >
               Registrovat se
             </a>
-            <button id="logout-btn" class="hidden">Odhlásit se</button>
+            <button id="logout-btn" class="<?= $isAuthenticated ? '' : 'hidden' ?>">Odhlásit se</button>
             <button id="theme-toggle">Přepnout motiv</button>
           </div>
         </div>

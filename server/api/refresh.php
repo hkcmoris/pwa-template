@@ -24,7 +24,7 @@ if (!$row) {
 
 $userId = (int)$row['user_id'];
 $db = get_db_connection();
-$stmt = $db->prepare('SELECT email, role FROM users WHERE id = :id');
+$stmt = $db->prepare('SELECT username, email, role FROM users WHERE id = :id');
 $stmt->execute([':id' => $userId]);
 $user = $stmt->fetch();
 if (!$user) {
@@ -56,7 +56,12 @@ setcookie('refresh_token', $newRefresh, [
 
 // Issue new access token (10 minutes)
 $access = generate_jwt(
-    ['sub' => $userId, 'email' => $user['email'], 'role' => $user['role'] ?? 'user'],
+    [
+        'sub' => $userId,
+        'username' => isset($user['username']) ? (string)$user['username'] : '',
+        'email' => $user['email'],
+        'role' => $user['role'] ?? 'user',
+    ],
     $jwtSecret,
     600
 );

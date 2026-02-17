@@ -250,6 +250,9 @@ const configuratorLink = document.getElementById(
 ) as HTMLAnchorElement | null;
 const USER_KEY = 'userEmail';
 const ROLE_KEY = 'userRole';
+const SSR_AUTHENTICATED = root.dataset.authenticated === '1';
+const SSR_AUTH_EMAIL = root.dataset.authEmail || '';
+const SSR_AUTH_ROLE = root.dataset.authRole || 'guest';
 
 type AuthChangedDetail = {
     email: string;
@@ -370,12 +373,11 @@ const FETCH_RETRY_MS = 500;
 
 async function fetchMeAndUpdate(
     expectedEpoch: number = authEpoch,
-    options: { preventDowngrade?: boolean } = {}
+    options: { preventDowngrade?: boolean; skipRefresh?: boolean } = {}
 ) {
-    const { preventDowngrade = false } = options;
+    const { preventDowngrade = false, skipRefresh = false } = options;
     try {
-        // Allow refresh on 401 so links don't disappear when access expires.
-        const res = await apiFetch('/me.php');
+        const res = await apiFetch('/me.php', undefined, { skipRefresh });
         if (expectedEpoch !== authEpoch) {
             return;
         }
@@ -420,13 +422,39 @@ async function fetchMeAndUpdate(
 }
 
 const storedUser = localStorage.getItem(USER_KEY);
-updateAuthUI(storedUser);
-// Also restore role-based UI from storage (best effort) and then refresh via API
-setRoleUI(localStorage.getItem(ROLE_KEY));
-const initialEpoch = authEpoch;
-onIdle(() =>
-    fetchMeAndUpdate(initialEpoch, { preventDowngrade: Boolean(storedUser) })
-);
+const initialEmail = SSR_AUTHENTICATED
+    ? SSR_AUTH_EMAIL
+    : storedUser || null;
+const initialRole = SSR_AUTHENTICATED
+    ? SSR_AUTH_ROLE
+    : localStorage.getItem(ROLE_KEY);
+
+updateAuthUI(initialEmail);
+setRoleUI(initialRole);
+
+if (SSR_AUTHENTICATED && SSR_AUTH_EMAIL) {
+    localStorage.setItem(USER_KEY, SSR_AUTH_EMAIL);
+    localStorage.setItem(ROLE_KEY, SSR_AUTH_ROLE);
+}
+
+if (SSR_AUTHENTICATED) {
+    const initialEpoch = authEpoch;
+    const deferredCheck = () => {
+        window.setTimeout(() => {
+            onIdle(() =>
+                fetchMeAndUpdate(initialEpoch, {
+                    preventDowngrade: true,
+                    skipRefresh: true,
+                })
+            );
+        }, 3000);
+    };
+    if (document.readyState === 'complete') {
+        deferredCheck();
+    } else {
+        window.addEventListener('load', deferredCheck, { once: true });
+    }
+}
 
 document.addEventListener('auth-changed', (event) => {
     authEpoch += 1;
