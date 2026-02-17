@@ -20,7 +20,7 @@ if (!$email || !$password) {
 }
 
 $db = get_db_connection();
-$stmt = $db->prepare('SELECT id, password, role FROM users WHERE email = :email');
+$stmt = $db->prepare('SELECT id, username, password, role FROM users WHERE email = :email');
 $stmt->execute([':email' => $email]);
 $user = $stmt->fetch();
 if (!$user || !password_verify($password, $user['password'])) {
@@ -32,7 +32,12 @@ if (!$user || !password_verify($password, $user['password'])) {
 
 $accessTtl = 600;
 $token = generate_jwt(
-    ['sub' => $user['id'], 'email' => $email, 'role' => $user['role'] ?? 'user'],
+    [
+        'sub' => (int)$user['id'],
+        'username' => isset($user['username']) ? (string)$user['username'] : '',
+        'email' => $email,
+        'role' => $user['role'] ?? 'user',
+    ],
     $jwtSecret,
     $accessTtl
 );

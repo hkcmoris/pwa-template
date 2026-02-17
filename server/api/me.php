@@ -21,19 +21,20 @@ if (!$payload) {
     exit;
 }
 
-$db = get_db_connection();
-$stmt = $db->prepare('SELECT id, username, email, role, created_at FROM users WHERE id = :id');
-$stmt->execute([':id' => (int)$payload['sub']]);
-$user = $stmt->fetch();
-if (!$user) {
+$userId = isset($payload['sub']) ? (int)$payload['sub'] : 0;
+if ($userId <= 0) {
     http_response_code(401);
-    echo json_encode(['error' => 'Uživatel nenalezen']);
+    echo json_encode(['error' => 'Neplatný token']);
     exit;
 }
 
+$email = isset($payload['email']) ? (string)$payload['email'] : '';
+$username = isset($payload['username']) ? (string)$payload['username'] : $email;
+$role = isset($payload['role']) && $payload['role'] !== '' ? (string)$payload['role'] : 'user';
+
 echo json_encode(['user' => [
-    'id' => (int)$user['id'],
-    'username' => $user['username'],
-    'email' => $user['email'],
-    'role' => $user['role'] ?? 'user',
+    'id' => $userId,
+    'username' => $username,
+    'email' => $email,
+    'role' => $role,
 ]]);
