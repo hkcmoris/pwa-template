@@ -10,6 +10,7 @@
     --fg-muted: #4b5563;
     --home-bg-light: none;
     --home-bg-dark: none;
+    --home-bg: var(--home-bg-light);
 }
 
 *,
@@ -28,6 +29,7 @@
     --primary-contrast: #0f172a;
     --primary-hover: color-mix(in srgb, var(--primary) 70%, white);
     --fg-muted: #cbd5e1;
+    --home-bg: var(--home-bg-dark);
 }
 
 body {
@@ -279,14 +281,10 @@ body[data-route='konfigurator'] main {
 
 body[data-route='home'] {
     background-color: var(--bg);
-    background-image: var(--home-bg-light, none);
+    background-image: var(--home-bg, none);
     background-position: center bottom;
     background-repeat: no-repeat;
     background-size: cover;
-}
-
-[data-theme='dark'] body[data-route='home'] {
-    background-image: var(--home-bg-dark, none);
 }
 
 .hidden {

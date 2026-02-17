@@ -682,7 +682,7 @@ function preload(url: string) {
     });
 }
 
-window.addEventListener('load', async () => {
+async function preloadAndSwapHdBg() {
     try {
         // You can preload both, or only the one you need right now
         await Promise.all([preload(BG_LIGHT_HD), preload(BG_DARK_HD)]);
@@ -694,4 +694,14 @@ window.addEventListener('load', async () => {
     } catch {
         // ignore, keep tiny
     }
-});
+}
+
+const startHd = () => {
+    window.removeEventListener('pointerdown', startHd);
+    window.removeEventListener('keydown', startHd);
+    preloadAndSwapHdBg();
+};
+
+window.addEventListener('pointerdown', startHd, { once: true });
+window.addEventListener('keydown', startHd, { once: true });
+window.addEventListener('mousemove', startHd, { once: true });
