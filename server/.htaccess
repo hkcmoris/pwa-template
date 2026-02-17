@@ -55,7 +55,7 @@ AddType application/manifest+json .webmanifest
 
 <IfModule mod_headers.c>
     # Long-term caching for hashed static assets
-    <FilesMatch "\.(css|js|mjs|png|jpg|jpeg|gif|svg|webp|avif|ico|webmanifest)$">
+    <FilesMatch "\.(css|js|mjs|png|jpg|jpeg|gif|svg|webp|avif|ico|webmanifest|woff2|woff|ttf|otf)$">
         Header set Cache-Control "public, max-age=31536000, immutable"
     </FilesMatch>
 
