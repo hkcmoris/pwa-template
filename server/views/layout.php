@@ -184,7 +184,7 @@ $cspNonceAttr = $cspNonce !== ''
             $safeHref = htmlspecialchars($href, ENT_QUOTES);
             echo '<link rel="preload" as="style" href="' . $safeHref . '">' . "\n";
             echo '<link rel="stylesheet"' . $idAttr .
-              ' href="' . $safeHref . '">' . "\n";
+              ' href="' . $safeHref . '" media="print" data-async-style="1">' . "\n";
             echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
         };
         ?>
@@ -209,10 +209,9 @@ $cspNonceAttr = $cspNonce !== ''
             endforeach;
         endif;
         if ($fontsCss && !empty($fontsCss['file'])) : ?>
-      <link
-        rel="stylesheet"
-        href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-      >
+            <?php
+            $css_link_async($assetBase . $fontsCss['file']);
+            ?>
             <?php
         endif;
         foreach ($resolvedViewStyles as $styleId => $href) : ?>
@@ -223,6 +222,15 @@ $cspNonceAttr = $cspNonce !== ''
       >
         <?php endforeach;
     endif; ?>
+
+    <script<?= $cspNonceAttr ?>>
+      document.querySelectorAll('link[data-async-style="1"]').forEach((link) => {
+        link.addEventListener('load', () => {
+          link.media = 'all';
+        }, { once: true });
+      });
+    </script>
+
   </head>
     <body data-route="<?= htmlspecialchars($view ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <header id="main-header">
