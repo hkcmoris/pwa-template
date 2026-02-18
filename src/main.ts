@@ -422,9 +422,7 @@ async function fetchMeAndUpdate(
 }
 
 const storedUser = localStorage.getItem(USER_KEY);
-const initialEmail = SSR_AUTHENTICATED
-    ? SSR_AUTH_EMAIL
-    : storedUser || null;
+const initialEmail = SSR_AUTHENTICATED ? SSR_AUTH_EMAIL : storedUser || null;
 const initialRole = SSR_AUTHENTICATED
     ? SSR_AUTH_ROLE
     : localStorage.getItem(ROLE_KEY);
