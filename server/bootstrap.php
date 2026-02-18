@@ -24,12 +24,16 @@ if (!headers_sent()) {
     $GLOBALS['csp_nonce'] = $cspNonce;
 
     $scriptSrc = ["'self'", "'nonce-{$cspNonce}'"];
-    $styleSrc = ["'self'", "'unsafe-inline'"];
+    $styleSrc = ["'self'", "'nonce-{$cspNonce}'"];
+    $imgSrc = ["'self'", "data:", "blob:"];
+    $fontSrc = ["'self'", "data:"];
     $connectSrc = ["'self'"];
 
     if ($isDevEnv) {
         $scriptSrc[] = 'http://localhost:5173';
         $styleSrc[] = 'http://localhost:5173';
+        $imgSrc[] = 'http://localhost:5173';
+        $fontSrc[] = 'http://localhost:5173';
         $connectSrc[] = 'http://localhost:5173';
         $connectSrc[] = 'ws://localhost:5173';
     }
@@ -41,8 +45,8 @@ if (!headers_sent()) {
         "frame-ancestors 'none'",
         'script-src ' . implode(' ', $scriptSrc),
         'style-src ' . implode(' ', $styleSrc),
-        "img-src 'self' data: blob:",
-        "font-src 'self' data:",
+        'img-src ' . implode(' ', $imgSrc),
+        'font-src ' . implode(' ', $fontSrc),
         'connect-src ' . implode(' ', $connectSrc),
         "trusted-types default",
         "upgrade-insecure-requests",

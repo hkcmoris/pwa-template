@@ -7,9 +7,28 @@ const BG_LIGHT_HD = new URL('./assets/bg-light.webp', import.meta.url).href;
 const BG_DARK_HD = new URL('./assets/bg-dark.webp', import.meta.url).href;
 
 const root = document.documentElement;
+const nonce = root.dataset.cspNonce || '';
 
-root.style.setProperty('--home-bg-light', `url("${BG_LIGHT_TINY}")`);
-root.style.setProperty('--home-bg-dark', `url("${BG_DARK_TINY}")`);
+function ensureBgStyleTag() {
+    let el = document.getElementById('bg-vars') as HTMLStyleElement | null;
+    if (!el) {
+        el = document.createElement('style');
+        el.id = 'bg-vars';
+        if (nonce) el.setAttribute('nonce', nonce);
+        document.head.appendChild(el);
+    }
+    return el;
+}
+
+function setBgVars(light: string, dark: string) {
+    const styleEl = ensureBgStyleTag();
+    styleEl.textContent = `
+    :root { --home-bg-light: url("${light}"); --home-bg-dark: url("${dark}"); }
+  `;
+}
+
+setBgVars(BG_LIGHT_TINY, BG_DARK_TINY);
+root.classList.add('bg-tiny');
 
 const normalizeRoute = (value: string) => value.replace(/^\/+|\/+$/g, '');
 const getCurrentRoute = () => {
@@ -713,10 +732,9 @@ async function preloadAndSwapHdBg() {
         // You can preload both, or only the one you need right now
         await Promise.all([preload(BG_LIGHT_HD), preload(BG_DARK_HD)]);
 
-        // Swap the vars to HD once cached
-        root.style.setProperty('--home-bg-light', `url("${BG_LIGHT_HD}")`);
-        root.style.setProperty('--home-bg-dark', `url("${BG_DARK_HD}")`);
-        root.classList.add('bg-hd'); // optional flag
+        setBgVars(BG_LIGHT_HD, BG_DARK_HD);
+        root.classList.remove('bg-tiny');
+        root.classList.add('bg-hd');
     } catch {
         // ignore, keep tiny
     }

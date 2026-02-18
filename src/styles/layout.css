@@ -8,9 +8,23 @@
     --border: rgb(from var(--fg) r g b / 20%);
     --shadow: rgb(from var(--fg) r g b / 10%);
     --fg-muted: #4b5563;
-    --home-bg-light: none;
-    --home-bg-dark: none;
+    --home-bg: none;
+}
+
+:root.bg-tiny[data-theme='light'] {
     --home-bg: var(--home-bg-light);
+}
+
+:root.bg-tiny[data-theme='dark'] {
+    --home-bg: var(--home-bg-dark);
+}
+
+:root.bg-hd[data-theme='light'] {
+    --home-bg: var(--home-bg-light);
+}
+
+:root.bg-hd[data-theme='dark'] {
+    --home-bg: var(--home-bg-dark);
 }
 
 *,
@@ -29,7 +43,6 @@
     --primary-contrast: #0f172a;
     --primary-hover: color-mix(in srgb, var(--primary) 70%, white);
     --fg-muted: #cbd5e1;
-    --home-bg: var(--home-bg-dark);
 }
 
 body {

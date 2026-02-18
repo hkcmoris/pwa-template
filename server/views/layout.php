@@ -61,6 +61,7 @@ $cspNonceAttr = $cspNonce !== ''
     data-authenticated="<?= $isAuthenticated ? '1' : '0' ?>"
     data-auth-email="<?= htmlspecialchars((string) ($email ?? ''), ENT_QUOTES, 'UTF-8') ?>"
     data-auth-role="<?= htmlspecialchars((string) $role, ENT_QUOTES, 'UTF-8') ?>"
+    data-csp-nonce="<?= htmlspecialchars((string)($GLOBALS['csp_nonce'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
   >
   <head>
     <meta charset="UTF-8" />
@@ -74,7 +75,7 @@ $cspNonceAttr = $cspNonce !== ''
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
     <?php endif; ?>
     <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
-    <style>
+    <style<?= $cspNonceAttr ?>>
       :root {
         --bg: #fff;
         --fg: #111;
@@ -83,8 +84,7 @@ $cspNonceAttr = $cspNonce !== ''
         --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
         --danger: #dc2626;
         --fg-muted: #4b5563;
-        --home-bg-light: none;
-        --home-bg-dark: none;
+        --home-bg: none;
       }
 
       *,
