@@ -57,12 +57,9 @@ $hasMultipleImages = count($optionImages) > 1;
                         width="100%"
                         loading="lazy"
                         decoding="async"
+                        data-fallback-src="<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg"
                         data-option-image
                         <?= $index === 0 ? '' : 'hidden' ?>
-                        onerror="
-                            this.onerror = null;
-                            this.src = '<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg';
-                        "
                     >
                 <?php endforeach; ?>
                 <?php if ($hasMultipleImages) : ?>

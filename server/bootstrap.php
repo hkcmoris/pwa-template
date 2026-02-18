@@ -15,14 +15,49 @@ require_once __DIR__ . '/lib/csrf.php';
 csrf_ensure_session();
 
 if (!headers_sent()) {
-    header("Content-Security-Policy: object-src 'none'");
+    $appEnvValue = getenv('APP_ENV');
+    if (!is_string($appEnvValue) || $appEnvValue === '') {
+        $appEnvValue = defined('APP_ENV') ? (string) APP_ENV : 'dev';
+    }
+    $isDevEnv = ($appEnvValue === 'dev');
+    $cspNonce = base64_encode(random_bytes(16));
+    $GLOBALS['csp_nonce'] = $cspNonce;
+
+    $scriptSrc = ["'self'", "'nonce-{$cspNonce}'"];
+    $styleSrc = ["'self'", "'unsafe-inline'"];
+    $connectSrc = ["'self'"];
+
+    if ($isDevEnv) {
+        $scriptSrc[] = 'http://localhost:5173';
+        $styleSrc[] = 'http://localhost:5173';
+        $connectSrc[] = 'http://localhost:5173';
+        $connectSrc[] = 'ws://localhost:5173';
+    }
+
+    $cspDirectives = [
+        "default-src 'self'",
+        "base-uri 'self'",
+        "object-src 'none'",
+        "frame-ancestors 'none'",
+        'script-src ' . implode(' ', $scriptSrc),
+        'style-src ' . implode(' ', $styleSrc),
+        "img-src 'self' data: blob:",
+        "font-src 'self' data:",
+        'connect-src ' . implode(' ', $connectSrc),
+        "trusted-types default",
+        "upgrade-insecure-requests",
+    ];
+
+    header('Content-Security-Policy: ' . implode('; ', $cspDirectives));
+    header('Cross-Origin-Opener-Policy: same-origin');
+    header('X-Frame-Options: DENY');
 
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)
         || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower((string) $_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https');
 
     if ($isHttps) {
-        header('Strict-Transport-Security: max-age=31536000; includeSubDomains');
+        header('Strict-Transport-Security: max-age=31536000; includeSubDomains; preload');
     }
 
     // Enable gzip for dynamic output if the server doesn't do it
