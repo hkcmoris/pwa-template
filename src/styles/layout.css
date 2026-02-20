@@ -45,6 +45,20 @@
     --fg-muted: #cbd5e1;
 }
 
+.htmx-indicator {
+    opacity: 0;
+}
+
+.htmx-request .htmx-indicator {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+}
+
+.htmx-request.htmx-indicator {
+    opacity: 1;
+    transition: opacity 200ms ease-in;
+}
+
 body {
     margin: 0;
     background: var(--bg);

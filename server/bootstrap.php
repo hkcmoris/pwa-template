@@ -24,18 +24,21 @@ if (!headers_sent()) {
     $GLOBALS['csp_nonce'] = $cspNonce;
 
     $scriptSrc = ["'self'", "'nonce-{$cspNonce}'"];
-    $styleSrc = ["'self'", "'nonce-{$cspNonce}'"];
+    $styleSrc = ["'self'"];
     $imgSrc = ["'self'", "data:", "blob:"];
     $fontSrc = ["'self'", "data:"];
     $connectSrc = ["'self'"];
 
     if ($isDevEnv) {
         $scriptSrc[] = 'http://localhost:5173';
+        $styleSrc[] = "'unsafe-inline'";
         $styleSrc[] = 'http://localhost:5173';
         $imgSrc[] = 'http://localhost:5173';
         $fontSrc[] = 'http://localhost:5173';
         $connectSrc[] = 'http://localhost:5173';
         $connectSrc[] = 'ws://localhost:5173';
+    } else {
+        $styleSrc[] = "'nonce-{$cspNonce}'";
     }
 
     $cspDirectives = [
