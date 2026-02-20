@@ -71,6 +71,10 @@ $cspNonceAttr = $cspNonce !== ''
       name="description"
       content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor') ?>"
     />
+    <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
+    <?php if ($isDevEnv && $cspNonce !== '') : ?>
+    <meta property="csp-nonce" content="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endif; ?>
     <?php if ($csrfToken !== '') : ?>
     <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
     <?php endif; ?>
@@ -187,41 +191,41 @@ $cspNonceAttr = $cspNonce !== ''
               ' href="' . $safeHref . '" media="print" data-async-style="1">' . "\n";
             echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
         };
-        ?>
 
-    <?php if (!$isDevEnv) :
-        $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
-        $main = vite_asset('src/main.ts');
-        $layoutCss = vite_asset('src/styles/layout.css');
-        $fontsCss = vite_asset('src/styles/fonts.css');
-        if ($layoutCss && !empty($layoutCss['file'])) : ?>
-            <?php
-            $css_link_async($assetBase . $layoutCss['file']);
-            ?>
-            <?php
-        endif;
-        if ($main && !empty($main['css'])) :
-            foreach ($main['css'] as $css) : ?>
+        if (!$isDevEnv) :
+            $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
+            $main = vite_asset('src/main.ts');
+            $layoutCss = vite_asset('src/styles/layout.css');
+            $fontsCss = vite_asset('src/styles/fonts.css');
+            if ($layoutCss && !empty($layoutCss['file'])) : ?>
                 <?php
-                $css_link_async($assetBase . $css);
+                $css_link_async($assetBase . $layoutCss['file']);
                 ?>
                 <?php
-            endforeach;
-        endif;
-        if ($fontsCss && !empty($fontsCss['file'])) : ?>
-            <?php
-            $css_link_async($assetBase . $fontsCss['file']);
-            ?>
-            <?php
-        endif;
-        foreach ($resolvedViewStyles as $styleId => $href) : ?>
+            endif;
+            if ($main && !empty($main['css'])) :
+                foreach ($main['css'] as $css) : ?>
+                    <?php
+                    $css_link_async($assetBase . $css);
+                    ?>
+                    <?php
+                endforeach;
+            endif;
+            if ($fontsCss && !empty($fontsCss['file'])) : ?>
+            <link
+              rel="stylesheet"
+              href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
+            >
+                <?php
+            endif;
+            foreach ($resolvedViewStyles as $styleId => $href) : ?>
       <link
         rel="stylesheet"
         id="<?= htmlspecialchars($styleId) ?>"
         href="<?= htmlspecialchars($href) ?>"
       >
-        <?php endforeach;
-    endif; ?>
+            <?php endforeach;
+        endif; ?>
 
     <script<?= $cspNonceAttr ?>>
       document.querySelectorAll('link[data-async-style="1"]').forEach((link) => {
@@ -487,6 +491,11 @@ $cspNonceAttr = $cspNonce !== ''
         Verze <strong>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, 'UTF-8') ?></strong>
       </span>
     </div>
+      <script<?= $cspNonceAttr ?>>
+        window.htmx = window.htmx || {};
+        window.htmx.config = window.htmx.config || {};
+        window.htmx.config.includeIndicatorStyles = false;
+      </script>
       <script src="<?= htmlspecialchars($BASE) ?>/public/vendor/htmx-2.0.7.min.js" defer></script>
       <?php if ($isDevEnv) : ?>
         <script
