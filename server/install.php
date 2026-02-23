@@ -301,6 +301,18 @@ SQL;
     SQL;
     $pdo->exec($configurationSelectionsTableSql);
 
+    $appSettingsSql = <<<'SQL'
+    CREATE TABLE IF NOT EXISTS app_settings (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        k VARCHAR(64) PRIMARY KEY,
+        v TEXT NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        PRIMARY KEY (id),
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    SQL;
+    $pdo->exec($appSettingsSql);
+
     echo "Database setup complete\n";
 } catch (PDOException $e) {
     fwrite(STDERR, 'Error: ' . $e->getMessage() . "\n");
