@@ -303,12 +303,11 @@ SQL;
 
     $appSettingsSql = <<<'SQL'
     CREATE TABLE IF NOT EXISTS app_settings (
-        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
         k VARCHAR(64) PRIMARY KEY,
         v TEXT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-        PRIMARY KEY (id),
+        UNIQUE KEY uq_app_settings_k (k)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     SQL;
     $pdo->exec($appSettingsSql);
