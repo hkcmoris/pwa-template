@@ -325,17 +325,6 @@ $cspNonceAttr = $cspNonce !== ''
           >
             O aplikaci
           </a>
-          <a
-            id="demo-link"
-            href="<?= htmlspecialchars($BASE) ?>/demo"
-            hx-get="<?= htmlspecialchars($BASE) ?>/demo"
-            hx-push-url="true"
-            hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
-          >
-            Demo
-          </a>
         </div>
         <div class="nav-actions">
           <div class="nav-actions-icon" id="nav-actions-icon">
