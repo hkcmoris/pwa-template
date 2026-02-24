@@ -13,9 +13,9 @@ final class Repository
 {
     private const DEFAULT_LOGO_PATH = 'default-logo.svg';
 
-    private const DEFAULT_LOGO_WIDTH = 130;
+    private const MAX_LOGO_WIDTH = 130;
 
-    private const DEFAULT_LOGO_HEIGHT = 30;
+    private const MAX_LOGO_HEIGHT = 30;
 
     private PDO $pdo;
 
@@ -91,8 +91,8 @@ final class Repository
         $settings = $this->getMany(['logo_path', 'logo_width', 'logo_height', 'logo_updated_at']);
         return [
             'path' => $settings['logo_path'] ?? self::DEFAULT_LOGO_PATH,
-            'width' => isset($settings['logo_width']) ? (float) $settings['logo_width'] : self::DEFAULT_LOGO_WIDTH,
-            'height' => isset($settings['logo_height']) ? (float) $settings['logo_height'] : self::DEFAULT_LOGO_HEIGHT,
+            'width' => isset($settings['logo_width']) ? (float) $settings['logo_width'] : self::MAX_LOGO_WIDTH,
+            'height' => isset($settings['logo_height']) ? (float) $settings['logo_height'] : self::MAX_LOGO_HEIGHT,
             'updated_at' => $settings['logo_updated_at'] ?? '',
         ];
     }
@@ -127,7 +127,30 @@ final class Repository
             $w = 130;
             $h = 30;
         }
+        
+        [$w, $h] = $this->clampLogo((float)$w, (float)$h);
+
         return [$w, $h];
+    }
+
+    /**
+     * Clamp dimensions to max allowed, preserving aspect ratio. Returns [width, height].
+     * @return array{0: float, 1: float}
+     */
+    private function clampLogo(float $w, float $h): array
+    {
+        if ($w <= 0 || $h <= 0) {
+            return [self::MAX_LOGO_WIDTH, self::MAX_LOGO_HEIGHT];
+        }
+
+        // scale down only (never upscale)
+        $scale = min(
+            1.0,
+            self::MAX_LOGO_WIDTH / $w,
+            self::MAX_LOGO_HEIGHT / $h
+        );
+
+        return [$w * $scale, $h * $scale];
     }
 
     /**
