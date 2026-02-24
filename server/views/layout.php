@@ -197,9 +197,7 @@ $cspNonceAttr = $cspNonce !== ''
             $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
             $main = vite_asset('src/main.ts');
             $layoutCss = vite_asset('src/styles/layout.css');
-            $fontsEntry = 'src/styles/fonts.css';
-            $fontsHref = vite_asset_href($fontsEntry, $isDevEnv, $BASE);
-            // $fontsCss = vite_asset('src/styles/fonts.css');
+            $fontsCss = vite_asset('src/styles/fonts.css');
             // <link rel="stylesheet" href="http://localhost:5173/src/styles/fonts.css">
             if ($layoutCss && !empty($layoutCss['file'])) : ?>
                 <?php
@@ -215,9 +213,13 @@ $cspNonceAttr = $cspNonce !== ''
                     <?php
                 endforeach;
             endif;
-            if ($fontsHref): ?>
-              <link rel="stylesheet" href="<?= htmlspecialchars($fontsHref, ENT_QUOTES, 'UTF-8') ?>">
-            <?php endif;
+            if ($fontsCss && !empty($fontsCss['file'])) : ?>
+            <link
+              rel="stylesheet"
+              href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
+            >
+                <?php
+            endif;
             foreach ($resolvedViewStyles as $styleId => $href) : ?>
       <link
         rel="stylesheet"
