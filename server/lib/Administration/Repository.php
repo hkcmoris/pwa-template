@@ -127,7 +127,7 @@ final class Repository
             $w = 130;
             $h = 30;
         }
-        
+
         [$w, $h] = $this->clampLogo((float)$w, (float)$h);
 
         return [$w, $h];
