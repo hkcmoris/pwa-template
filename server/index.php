@@ -136,6 +136,7 @@ $controllerRoutes = [
 $nonHtmxControllers = [
     'POST admin/export',
     'POST admin/import',
+    'POST admin/logo',
     'GET configurator/configuration/pdf',
 ];
 
