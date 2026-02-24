@@ -18,8 +18,11 @@ if ($role !== 'superadmin') {
     exit;
 }
 
+log_message("Admin logo upload attempt by user {$user['username']} ID {$user['id']}", 'INFO');
+
 if (!isset($_FILES['svg_file'])) {
     http_response_code(422);
+    log_message("No file uploaded for logo", 'WARNING');
     echo json_encode(['error' => 'Vyberte SVG soubor k nahrání.']);
     exit;
 }
@@ -27,6 +30,7 @@ if (!isset($_FILES['svg_file'])) {
 $upload = $_FILES['svg_file'];
 if (!is_array($upload) || ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
     http_response_code(422);
+    log_message("File upload error for logo: " . ($upload['error'] ?? 'unknown'), 'WARNING');
     echo json_encode(['error' => 'Soubor se nepodařilo nahrát.']);
     exit;
 }
@@ -34,6 +38,7 @@ if (!is_array($upload) || ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ER
 $tmpName = (string) ($upload['tmp_name'] ?? '');
 if ($tmpName === '' || !is_uploaded_file($tmpName)) {
     http_response_code(422);
+    log_message("Uploaded file is not valid for logo: tmp_name={$tmpName}", 'WARNING');
     echo json_encode(['error' => 'Nahraný soubor není dostupný.']);
     exit;
 }
@@ -42,6 +47,7 @@ if ($tmpName === '' || !is_uploaded_file($tmpName)) {
 $maxBytes = 200 * 1024;
 if (($upload['size'] ?? 0) > $maxBytes) {
     http_response_code(422);
+    log_message("Uploaded SVG is too large for logo: size={$upload['size']} bytes", 'WARNING');
     echo json_encode(['error' => 'SVG je příliš velké (max 200 KB).']);
     exit;
 }
@@ -49,6 +55,7 @@ if (($upload['size'] ?? 0) > $maxBytes) {
 $rawSvg = file_get_contents($tmpName);
 if ($rawSvg === false || trim($rawSvg) === '') {
     http_response_code(422);
+    log_message("Uploaded SVG file is empty or unreadable for logo", 'WARNING');
     echo json_encode(['error' => 'SVG soubor je prázdný nebo nečitelný.']);
     exit;
 }
@@ -56,14 +63,19 @@ if ($rawSvg === false || trim($rawSvg) === '') {
 // quick “is it SVG” check
 if (stripos($rawSvg, '<svg') === false) {
     http_response_code(422);
+    log_message("Uploaded file does not appear to be SVG for logo", 'WARNING');
     echo json_encode(['error' => 'Soubor nevypadá jako SVG.']);
     exit;
 }
 
+log_message("SVG file uploaded for logo, size={$upload['size']} bytes", 'INFO');
 $repository = new Repository();
+log_message("Repository initialized for logo upload", 'DEBUG');
 
 try {
+    log_message("Sanitizing SVG content for logo upload", 'DEBUG');
     $cleanSvg = $repository->sanitizeSvg($rawSvg);
+    log_message("Getting dimensions from SVG for logo upload", 'DEBUG');
     [$w, $h] = $repository->svgDimensions($cleanSvg);
 
     // store file with stable name (caching can use query param with updated_at)
@@ -87,6 +99,7 @@ try {
     rename($tmpOut, $logoPathAbs);
 
     $now = (string)time();
+    log_message("Logo uploaded successfully: path=$logoPathRel, width=$w, height=$h", 'INFO');
     $repository->saveLogoSettings($logoPathRel, $w, $h, $now);
 
     echo json_encode([

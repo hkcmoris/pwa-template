@@ -26,6 +26,7 @@ final class Repository
 
     public function set(string $key, string $value): void
     {
+        log_message("Saving setting: $key = $value", 'DEBUG');
         $stmt = $this->pdo->prepare(
             'INSERT INTO app_settings (k, v) VALUES (:k, :v)
              ON DUPLICATE KEY UPDATE v = VALUES(v), updated_at = CURRENT_TIMESTAMP'
@@ -39,6 +40,7 @@ final class Repository
      */
     public function getMany(array $keys): array
     {
+        log_message("Fetching settings for keys: " . implode(', ', $keys), 'DEBUG');
         if ($keys === []) {
             return [];
         }
@@ -68,6 +70,7 @@ final class Repository
 
     public function saveLogoSettings(string $path, float $width, float $height, string $updatedAt): void
     {
+        log_message("Saving logo settings: path=$path, width=$width, height=$height, updated_at=$updatedAt", 'DEBUG');
         $this->pdo->beginTransaction();
         try {
             $this->set('logo_path', $path);
@@ -88,6 +91,7 @@ final class Repository
      */
     public function readLogoSettings(): array
     {
+        log_message("Reading logo settings", 'DEBUG');
         $settings = $this->getMany(['logo_path', 'logo_width', 'logo_height', 'logo_updated_at']);
         return [
             'path' => $settings['logo_path'] ?? self::DEFAULT_LOGO_PATH,
@@ -127,6 +131,7 @@ final class Repository
             $w = 130;
             $h = 30;
         }
+        log_message("Extracted SVG dimensions: width=$w, height=$h", 'DEBUG');
         return [$w, $h];
     }
 
@@ -135,6 +140,7 @@ final class Repository
      */
     public function sanitizeSvg(string $svg): string
     {
+        log_message("Sanitizing SVG content", 'DEBUG');
         // remove scripts
         $svg = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $svg) ?? $svg;
         // remove foreignObject (html embedding)
