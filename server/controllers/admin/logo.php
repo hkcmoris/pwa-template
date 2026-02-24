@@ -68,23 +68,21 @@ if (stripos($rawSvg, '<svg') === false) {
     exit;
 }
 
-log_message("SVG file uploaded for logo, size={$upload['size']} bytes", 'INFO');
 $repository = new Repository();
-log_message("Repository initialized for logo upload", 'DEBUG');
 
 try {
-    log_message("Sanitizing SVG content for logo upload", 'DEBUG');
     $cleanSvg = $repository->sanitizeSvg($rawSvg);
-    log_message("Getting dimensions from SVG for logo upload", 'DEBUG');
     [$w, $h] = $repository->svgDimensions($cleanSvg);
 
     // store file with stable name (caching can use query param with updated_at)
     $baseDir = realpath(__DIR__ . '/../../public/assets');
     if ($baseDir === false) {
+        log_message("Public assets directory not found for logo upload: " . __DIR__ . '/../../public/assets', 'ERROR');
         throw new RuntimeException('Public dir not found');
     }
     $logoDir = $baseDir . '/logo';
     if (!is_dir($logoDir) && !mkdir($logoDir, 0775, true)) {
+        log_message("Failed to create logo upload directory: $logoDir", 'ERROR');
         throw new RuntimeException('Cannot create upload dir');
     }
 
@@ -94,6 +92,7 @@ try {
     // atomic write
     $tmpOut = $logoPathAbs . '.tmp';
     if (file_put_contents($tmpOut, $cleanSvg, LOCK_EX) === false) {
+        log_message("Failed to write sanitized SVG to temp file for logo upload", 'ERROR');
         throw new RuntimeException('Cannot write SVG');
     }
     rename($tmpOut, $logoPathAbs);

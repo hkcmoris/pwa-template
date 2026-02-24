@@ -5,6 +5,7 @@ require_once __DIR__ . '/../lib/csrf.php';
 require_once __DIR__ . '/../lib/Administration/Repository.php';
 
 use Administration\Repository as AdministrationRepository;
+
 // Resolve current user for SSR gating and header state
 $currentUser = app_get_current_user();
 $role = $currentUser['role'] ?? 'guest';
@@ -238,7 +239,7 @@ $cspNonceAttr = $cspNonce !== ''
     <header id="main-header">
       <div class="logo">
         <img
-          src="<?= htmlspecialchars($BASE) ?>/public/assets/logo/<?= (int)$logoUrl ?>"
+          src="<?= htmlspecialchars($BASE) ?><?= $logoUrl ?>"
           alt="Logo"
           width="<?= (int)$logoW ?>"
           height="<?= (int)$logoH ?>"
