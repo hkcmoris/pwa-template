@@ -91,6 +91,7 @@
 .admin-logo-preview {
     --pad: 0.5rem;
     --pad-2x: calc(var(--pad) * 2);
+
     width: calc(130px + var(--pad-2x));
     height: calc(30px + var(--pad-2x));
     padding: var(--pad);
