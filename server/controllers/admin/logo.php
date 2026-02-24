@@ -86,22 +86,8 @@ try {
     }
     rename($tmpOut, $logoPathAbs);
 
-    $pdo = get_db_connection();
-    $pdo->beginTransaction();
-
-    $stmt = $pdo->prepare(
-        "INSERT INTO app_settings (k, v) VALUES (:k, :v)
-         ON DUPLICATE KEY UPDATE v = VALUES(v), updated_at = CURRENT_TIMESTAMP"
-    );
-
     $now = (string)time();
-
-    $stmt->execute([':k' => 'logo_path', ':v' => $logoPathRel]);
-    $stmt->execute([':k' => 'logo_width', ':v' => (string)$w]);
-    $stmt->execute([':k' => 'logo_height', ':v' => (string)$h]);
-    $stmt->execute([':k' => 'logo_updated_at', ':v' => $now]);
-
-    $pdo->commit();
+    $repository->saveLogoSettings($logoPathRel, $w, $h, $now);
 
     echo json_encode([
         'message' => 'Nahrání loga proběhlo úspěšně.',
@@ -111,9 +97,6 @@ try {
         'updated_at' => $now,
     ]);
 } catch (Throwable $e) {
-    if (isset($pdo) && $pdo->inTransaction()) {
-        $pdo->rollBack();
-    }
     http_response_code(500);
     log_message('Admin logo upload failed: ' . $e->getMessage(), 'ERROR');
     echo json_encode(['error' => 'Nahrání loga selhalo: ' . $e->getMessage()]);

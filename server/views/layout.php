@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/../lib/csrf.php';
+require_once __DIR__ . '/../lib/Administration/Repository.php';
+
+use Administration\Repository as AdministrationRepository;
 // Resolve current user for SSR gating and header state
 $currentUser = app_get_current_user();
 $role = $currentUser['role'] ?? 'guest';
@@ -16,10 +19,11 @@ $theme  = $_COOKIE['theme'] ?? 'light';
 if ($theme !== 'dark' && $theme !== 'light') {
     $theme = 'light';
 }
-// TODO: read $logoW, $logoH and $logoUrl keys from the app_settings table in the database
-$logoW = 130;
-$logoH = 30;
-$logoUrl = 'default-logo.svg';
+$logoRepository = new AdministrationRepository();
+$logoSettings = $logoRepository->readLogoSettings();
+$logoW = $logoSettings['width'];
+$logoH = $logoSettings['height'];
+$logoUrl = $logoSettings['path'];
 
 $csrfToken = csrf_token_if_active();
 
