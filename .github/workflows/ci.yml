@@ -1,58 +1,58 @@
 name: CI
 
 permissions:
-  contents: read
+    contents: read
 
 on:
-  pull_request:
-  push:
-    branches: [main]
+    pull_request:
+    push:
+        branches: [main]
 
 jobs:
-  build-test:
-    runs-on: ubuntu-latest
+    build-test:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        steps:
+            - name: Checkout
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
-        with:
-          php-version: '7.4'
-          tools: composer
+            - name: Setup PHP
+              uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+              with:
+                  php-version: '7.4'
+                  tools: composer
 
-      - name: Get Composer cache dir
-        id: composer-cache
-        working-directory: server
-        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+            - name: Get Composer cache dir
+              id: composer-cache
+              working-directory: server
+              run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
-      - name: Cache Composer
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('server/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+            - name: Cache Composer
+              uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v4
+              with:
+                  path: ${{ steps.composer-cache.outputs.dir }}
+                  key: ${{ runner.os }}-composer-${{ hashFiles('server/composer.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-composer-
 
-      - name: Composer install
-        working-directory: server
-        run: composer install --no-interaction --no-progress --prefer-dist
+            - name: Composer install
+              working-directory: server
+              run: composer install --no-interaction --no-progress --prefer-dist
 
-      - name: Setup Node
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v4
-        with:
-          node-version: 20
-          cache: npm
+            - name: Setup Node
+              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v4
+              with:
+                  node-version: 20
+                  cache: npm
 
-      - name: NPM install
-        run: npm ci
+            - name: NPM install
+              run: npm ci
 
-      - name: Lint
-        run: npm run lint
+            - name: Lint
+              run: npm run lint
 
-      - name: Frontend tests
-        run: npm test -- --runInBand
+            - name: Frontend tests
+              run: npm test -- --runInBand
 
-      - name: Build
-        run: npm run build
+            - name: Build
+              run: npm run build
