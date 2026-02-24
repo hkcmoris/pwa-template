@@ -191,7 +191,7 @@ export const initAdminLogo = (root: HTMLElement) => {
             'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
         );
         firstFocusable?.focus();
-        
+
         if (title) {
             title.textContent = 'Nahrání loga';
         }
