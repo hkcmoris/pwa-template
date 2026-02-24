@@ -4,12 +4,97 @@ declare(strict_types=1);
 
 namespace Administration;
 
+use PDO;
+use Throwable;
+
+use function get_db_connection;
+
 final class Repository
 {
-    // TODO: implement read/write functions with PDO
+    private const DEFAULT_LOGO_PATH = 'default-logo.svg';
 
-    public function __construct()
+    private const DEFAULT_LOGO_WIDTH = 130;
+
+    private const DEFAULT_LOGO_HEIGHT = 30;
+
+    private PDO $pdo;
+
+    public function __construct(?PDO $pdo = null)
     {
+        $this->pdo = $pdo ?? get_db_connection();
+    }
+
+    public function set(string $key, string $value): void
+    {
+        $stmt = $this->pdo->prepare(
+            'INSERT INTO app_settings (k, v) VALUES (:k, :v)
+             ON DUPLICATE KEY UPDATE v = VALUES(v), updated_at = CURRENT_TIMESTAMP'
+        );
+        $stmt->execute([':k' => $key, ':v' => $value]);
+    }
+
+    /**
+     * @param list<string> $keys
+     * @return array<string, string>
+     */
+    public function getMany(array $keys): array
+    {
+        if ($keys === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach ($keys as $index => $key) {
+            $placeholder = ':k' . $index;
+            $placeholders[] = $placeholder;
+            $params[$placeholder] = $key;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT k, v FROM app_settings WHERE k IN (' . implode(', ', $placeholders) . ')'
+        );
+        $stmt->execute($params);
+
+        /** @var array<int, array{k: string, v: string}> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(string) $row['k']] = (string) $row['v'];
+        }
+
+        return $result;
+    }
+
+    public function saveLogoSettings(string $path, float $width, float $height, string $updatedAt): void
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $this->set('logo_path', $path);
+            $this->set('logo_width', (string) $width);
+            $this->set('logo_height', (string) $height);
+            $this->set('logo_updated_at', $updatedAt);
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * @return array{path: string, width: float, height: float, updated_at: string}
+     */
+    public function readLogoSettings(): array
+    {
+        $settings = $this->getMany(['logo_path', 'logo_width', 'logo_height', 'logo_updated_at']);
+        return [
+            'path' => $settings['logo_path'] ?? self::DEFAULT_LOGO_PATH,
+            'width' => isset($settings['logo_width']) ? (float) $settings['logo_width'] : self::DEFAULT_LOGO_WIDTH,
+            'height' => isset($settings['logo_height']) ? (float) $settings['logo_height'] : self::DEFAULT_LOGO_HEIGHT,
+            'updated_at' => $settings['logo_updated_at'] ?? '',
+        ];
     }
 
     /**
