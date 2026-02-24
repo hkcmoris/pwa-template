@@ -1,5 +1,32 @@
 import { getCsrfToken } from '../../utils/api';
 
+type LogoUploadOk = {
+    message: string;
+    path: string;
+    width: number;
+    height: number;
+    updated_at: string;
+};
+
+function isLogoUploadOk(x: unknown): x is LogoUploadOk {
+    if (typeof x !== 'object' || x === null) return false;
+
+    const r = x as Record<string, unknown>;
+    return (
+        typeof r.path === 'string' &&
+        typeof r.width === 'number' &&
+        typeof r.height === 'number' &&
+        typeof r.updated_at === 'string' &&
+        typeof r.message === 'string'
+    );
+}
+
+function getLogoUploadError(x: unknown): string | null {
+    if (typeof x !== 'object' || x === null) return null;
+    const r = x as Record<string, unknown>;
+    return typeof r.error === 'string' ? r.error : null;
+}
+
 const buildAdminUrl = (path: string) => {
     const base = document.documentElement?.dataset?.base ?? '';
     return `${base}${path}`;
@@ -260,6 +287,26 @@ export const initAdminLogo = (root: HTMLElement) => {
         return text || 'Operaci se nepodařilo dokončit.';
     };
 
+    function updateLogoInLayout(payload: {
+        path: string;
+        width: number;
+        height: number;
+        updated_at: string;
+    }) {
+        const base = document.documentElement?.dataset?.base ?? '';
+        const url = `${base}${payload.path}?v=${encodeURIComponent(payload.updated_at)}`;
+
+        // pick whatever you use
+        const img = document.querySelector<HTMLImageElement>('[data-app-logo]');
+        if (!img) return;
+
+        img.src = url;
+        img.width = Math.round(payload.width);
+        img.height = Math.round(payload.height);
+
+        // if you also want to update any link preload etc, you can do that too
+    }
+
     form?.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!form) {
@@ -286,13 +333,22 @@ export const initAdminLogo = (root: HTMLElement) => {
                 openResultModal(message, 'error');
                 return;
             }
-            const payload = (await response.json().catch(() => null)) as {
-                message?: string;
-            } | null;
-            const importMessage =
-                payload?.message || 'Nahrání loga proběhlo úspěšně.';
+            const payload = (await response
+                .json()
+                .catch(() => null)) as unknown;
+            if (isLogoUploadOk(payload)) {
+                updateLogoInLayout(payload);
+                closeModal();
+                openResultModal(payload.message, 'success');
+                return;
+            }
+
+            const err = getLogoUploadError(payload);
             closeModal();
-            openResultModal(importMessage, 'success');
+            openResultModal(
+                err ?? 'Nahrání loga proběhlo úspěšně.',
+                err ? 'error' : 'success'
+            );
             return;
         } catch {
             closeModal();

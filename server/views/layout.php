@@ -245,6 +245,7 @@ $cspNonceAttr = $cspNonce !== ''
           width="<?= (int)$logoW ?>"
           height="<?= (int)$logoH ?>"
           decoding="async"
+          data-app-logo
         >
       </div>
       <button id="menu-toggle" aria-label="Menu">☰</button>
