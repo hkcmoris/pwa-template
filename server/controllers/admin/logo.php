@@ -1,13 +1,12 @@
 <?php
 
+use Administration\Repository;
+
 require_once __DIR__ . '/../../bootstrap.php';
 
 if (!headers_sent()) {
     header('Content-Type: application/json; charset=UTF-8');
 }
-
-log_message(json_encode($_POST, JSON_PRETTY_PRINT), 'DEBUG');
-log_message(json_encode(csrf_require_valid($_POST, 'json'), JSON_PRETTY_PRINT), 'DEBUG');
 
 csrf_require_valid($_POST, 'json');
 
@@ -61,41 +60,11 @@ if (stripos($rawSvg, '<svg') === false) {
     exit;
 }
 
-function svg_dimensions(string $svg): array {
-    $w = $h = null;
-
-    if (preg_match('/<svg[^>]*\bwidth=["\']([^"\']+)["\']/i', $svg, $m)) {
-        $w = (float)preg_replace('/[^0-9.]/', '', $m[1]);
-    }
-    if (preg_match('/<svg[^>]*\bheight=["\']([^"\']+)["\']/i', $svg, $m)) {
-        $h = (float)preg_replace('/[^0-9.]/', '', $m[1]);
-    }
-    if ((!$w || !$h) && preg_match('/\bviewBox=["\']\s*[-0-9.]+\s+[-0-9.]+\s+([0-9.]+)\s+([0-9.]+)\s*["\']/i', $svg, $m)) {
-        $w = $w ?: (float)$m[1];
-        $h = $h ?: (float)$m[2];
-    }
-
-    if (!$w || !$h) { $w = 130; $h = 30; }
-    return [$w, $h];
-}
-
-// VERY basic sanitization (good enough for “logo svg”)
-// If you ever inline SVG, this matters a lot.
-function sanitize_svg(string $svg): string {
-    // remove scripts
-    $svg = preg_replace('#<script\b[^>]*>.*?</script>#is', '', $svg) ?? $svg;
-    // remove foreignObject (html embedding)
-    $svg = preg_replace('#<foreignObject\b[^>]*>.*?</foreignObject>#is', '', $svg) ?? $svg;
-    // remove event handlers like onload=, onclick=...
-    $svg = preg_replace('/\son[a-z]+\s*=\s*(["\']).*?\1/i', '', $svg) ?? $svg;
-    // remove external hrefs (http/https/javascript:)
-    $svg = preg_replace('/\b(href|xlink:href)\s*=\s*(["\'])(https?:|javascript:).*?\2/i', '', $svg) ?? $svg;
-    return $svg;
-}
+$repository = new Repository();
 
 try {
-    $cleanSvg = sanitize_svg($rawSvg);
-    [$w, $h] = svg_dimensions($cleanSvg);
+    $cleanSvg = $repository->sanitizeSvg($rawSvg);
+    [$w, $h] = $repository->svgDimensions($cleanSvg);
 
     // store file with stable name (caching can use query param with updated_at)
     $baseDir = realpath(__DIR__ . '/../../public/assets');
