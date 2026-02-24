@@ -4,6 +4,8 @@ require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/../lib/csrf.php';
 require_once __DIR__ . '/../lib/Administration/Repository.php';
 
+log_message('layout.php render, HX=' . (isset($_SERVER['HTTP_HX_REQUEST']) ? '1' : '0') . ' URI=' . ($_SERVER['REQUEST_URI'] ?? ''), 'DEBUG');
+
 use Administration\Repository as AdministrationRepository;
 
 // Resolve current user for SSR gating and header state
@@ -195,7 +197,10 @@ $cspNonceAttr = $cspNonce !== ''
             $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
             $main = vite_asset('src/main.ts');
             $layoutCss = vite_asset('src/styles/layout.css');
-            $fontsCss = vite_asset('src/styles/fonts.css');
+            $fontsEntry = 'src/styles/fonts.css';
+            $fontsHref = vite_asset_href($fontsEntry, $isDevEnv, $BASE);
+            // $fontsCss = vite_asset('src/styles/fonts.css');
+            // <link rel="stylesheet" href="http://localhost:5173/src/styles/fonts.css">
             if ($layoutCss && !empty($layoutCss['file'])) : ?>
                 <?php
                 $css_link_async($assetBase . $layoutCss['file']);
@@ -210,13 +215,9 @@ $cspNonceAttr = $cspNonce !== ''
                     <?php
                 endforeach;
             endif;
-            if ($fontsCss && !empty($fontsCss['file'])) : ?>
-            <link
-              rel="stylesheet"
-              href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-            >
-                <?php
-            endif;
+            if ($fontsHref): ?>
+              <link rel="stylesheet" href="<?= htmlspecialchars($fontsHref, ENT_QUOTES, 'UTF-8') ?>">
+            <?php endif;
             foreach ($resolvedViewStyles as $styleId => $href) : ?>
       <link
         rel="stylesheet"
