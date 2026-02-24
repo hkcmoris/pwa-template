@@ -142,8 +142,12 @@ header#main-header {
     z-index: 999;
 }
 
+header#main-header .logo {
+    display: flex;
+}
+
 /* light theme = black logo */
-[data-theme='dark'] .logo img {
+[data-theme='dark'] header#main-header .logo img {
     filter: invert(1);
 }
 
@@ -179,6 +183,10 @@ nav {
 
 .nav-actions svg path {
     fill: currentcolor;
+}
+
+.nav-actions-icon {
+    display: flex;
 }
 
 .nav-actions-icon svg {
