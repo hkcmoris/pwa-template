@@ -4,8 +4,6 @@ require_once __DIR__ . '/../lib/auth.php';
 require_once __DIR__ . '/../lib/csrf.php';
 require_once __DIR__ . '/../lib/Administration/Repository.php';
 
-log_message('layout.php render, HX=' . (isset($_SERVER['HTTP_HX_REQUEST']) ? '1' : '0') . ' URI=' . ($_SERVER['REQUEST_URI'] ?? ''), 'DEBUG');
-
 use Administration\Repository as AdministrationRepository;
 
 // Resolve current user for SSR gating and header state
@@ -247,6 +245,7 @@ $cspNonceAttr = $cspNonce !== ''
           width="<?= (int)$logoW ?>"
           height="<?= (int)$logoH ?>"
           decoding="async"
+          data-app-logo
         >
       </div>
       <button id="menu-toggle" aria-label="Menu">☰</button>
