@@ -142,14 +142,9 @@ header#main-header {
     z-index: 999;
 }
 
-.logo {
-    font-weight: bold;
-    line-height: 0;
-}
-
-.logo img,
-.logo svg {
-    display: block;
+/* light theme = black logo */
+[data-theme='dark'] .logo img {
+    filter: invert(1);
 }
 
 nav {

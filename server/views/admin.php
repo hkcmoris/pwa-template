@@ -37,87 +37,144 @@ if ($__editorRole != 'superadmin') {
 }
 ?>
 <h1>Administrace</h1>
-<section class="admin-transfer" data-island="admin">
-  <h2>Import a export databáze</h2>
-  <p>Vyberte, která data chcete importovat nebo exportovat.</p>
-  <div class="admin-transfer-actions">
-    <button type="button" class="admin-action" data-admin-modal="export">
-      Export databáze
-    </button>
-    <button type="button" class="admin-action admin-action--danger" data-admin-modal="import">
-      Import databáze
-    </button>
-  </div>
-  <div id="admin-transfer-modal" class="admin-modal hidden" aria-hidden="true">
-    <div class="admin-modal-overlay" data-admin-modal-close></div>
-    <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-transfer-title">
-      <header class="admin-modal-header">
-        <h3 id="admin-transfer-title">Export databáze</h3>
-        <button type="button" class="admin-modal-close" data-admin-modal-close aria-label="Zavřít">×</button>
-      </header>
-      <form id="admin-transfer-form" class="admin-modal-body" enctype="multipart/form-data">
-        <?= csrf_field(); ?>
-        <fieldset data-admin-data>
-          <legend>Vyberte data</legend>
-          <label class="admin-checkbox">
-            <input type="checkbox" name="definitions" checked>
-            <span>Definice</span>
-          </label>
-          <label class="admin-checkbox">
-            <input type="checkbox" name="components" checked>
-            <span>Komponenty</span>
-          </label>
-          <label class="admin-checkbox">
-            <input type="checkbox" name="prices" checked>
-            <span>Ceníky</span>
-          </label>
-          <label class="admin-checkbox">
-            <input type="checkbox" name="users" checked>
-            <span>Uživatelé</span>
-          </label>
-        </fieldset>
-        <fieldset class="admin-modal-file hidden" data-admin-file>
-          <legend>SQL soubor</legend>
-          <label class="admin-file">
-            <input type="file" name="sql_file" accept=".sql">
-            <span class="admin-file-label">Vyberte SQL soubor k importu</span>
-          </label>
-          <p class="admin-file-hint">
-            Import podporuje pouze export z této aplikace.
-          </p>
-        </fieldset>
-        <fieldset class="admin-modal-confirm hidden" data-admin-confirm>
-          <legend>Potvrzení importu</legend>
-          <label class="admin-checkbox">
-            <input type="checkbox" name="confirm_overwrite">
-            <span>Chci přepsat aktuální data importem.</span>
-          </label>
-        </fieldset>
-        <div class="admin-modal-actions">
-          <button type="button" class="admin-action" data-admin-modal-close>Storno</button>
-          <button type="submit" class="admin-action admin-action--primary" data-admin-submit>
-            Exportovat
-          </button>
-        </div>
-      </form>
+<div class="admin-panel">
+  <section class="admin-transfer" data-island="admin">
+    <h2>Import a export databáze</h2>
+    <p>Vyberte, která data chcete importovat nebo exportovat.</p>
+    <div class="admin-transfer-actions">
+      <button type="button" class="admin-action" data-admin-modal="export">
+        Export databáze
+      </button>
+      <button type="button" class="admin-action admin-action--danger" data-admin-modal="import">
+        Import databáze
+      </button>
     </div>
-  </div>
-  <div id="admin-import-result-modal" class="admin-modal hidden" aria-hidden="true">
-    <div class="admin-modal-overlay" data-admin-result-close></div>
-    <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-import-result-title">
-      <header class="admin-modal-header">
-        <h3 id="admin-import-result-title">Výsledek importu</h3>
-        <button type="button" class="admin-modal-close" data-admin-result-close aria-label="Zavřít">×</button>
-      </header>
-      <div class="admin-modal-body">
-        <p id="admin-import-result-message" class="admin-import-result-message"></p>
-        <div class="admin-modal-actions">
-          <button type="button" class="admin-action admin-action--primary" data-admin-result-close>Rozumím</button>
+    <div id="admin-transfer-modal" class="admin-modal hidden" aria-hidden="true">
+      <div class="admin-modal-overlay" data-admin-modal-close></div>
+      <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-transfer-title">
+        <header class="admin-modal-header">
+          <h3 id="admin-transfer-title">Export databáze</h3>
+          <button type="button" class="admin-modal-close" data-admin-modal-close aria-label="Zavřít">×</button>
+        </header>
+        <form id="admin-transfer-form" class="admin-modal-body" enctype="multipart/form-data">
+          <?= csrf_field(); ?>
+          <fieldset data-admin-data>
+            <legend>Vyberte data</legend>
+            <label class="admin-checkbox">
+              <input type="checkbox" name="definitions" checked>
+              <span>Definice</span>
+            </label>
+            <label class="admin-checkbox">
+              <input type="checkbox" name="components" checked>
+              <span>Komponenty</span>
+            </label>
+            <label class="admin-checkbox">
+              <input type="checkbox" name="prices" checked>
+              <span>Ceníky</span>
+            </label>
+            <label class="admin-checkbox">
+              <input type="checkbox" name="users" checked>
+              <span>Uživatelé</span>
+            </label>
+          </fieldset>
+          <fieldset class="admin-modal-file hidden" data-admin-file>
+            <legend>SQL soubor</legend>
+            <label class="admin-file">
+              <input type="file" name="sql_file" accept=".sql">
+              <span class="admin-file-label">Vyberte SQL soubor k importu</span>
+            </label>
+            <p class="admin-file-hint">
+              Import podporuje pouze export z této aplikace.
+            </p>
+          </fieldset>
+          <fieldset class="admin-modal-confirm hidden" data-admin-confirm>
+            <legend>Potvrzení importu</legend>
+            <label class="admin-checkbox">
+              <input type="checkbox" name="confirm_overwrite">
+              <span>Chci přepsat aktuální data importem.</span>
+            </label>
+          </fieldset>
+          <div class="admin-modal-actions">
+            <button type="button" class="admin-action" data-admin-modal-close>Storno</button>
+            <button type="submit" class="admin-action admin-action--primary" data-admin-submit>
+              Exportovat
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="admin-import-result-modal" class="admin-modal hidden" aria-hidden="true">
+      <div class="admin-modal-overlay" data-admin-result-close></div>
+      <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-import-result-title">
+        <header class="admin-modal-header">
+          <h3 id="admin-import-result-title">Výsledek importu</h3>
+          <button type="button" class="admin-modal-close" data-admin-result-close aria-label="Zavřít">×</button>
+        </header>
+        <div class="admin-modal-body">
+          <p id="admin-import-result-message" class="admin-import-result-message"></p>
+          <div class="admin-modal-actions">
+            <button type="button" class="admin-action admin-action--primary" data-admin-result-close>Rozumím</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+  <section class="admin-logo" data-island="admin">
+    <h2>Nahrát logo</h2>
+    <p>Nahrajte logo ve formátu svg</p>
+    <div class="admin-logo-actions">
+      <button type="button" class="admin-action" data-admin-modal-logo>
+        Vybrat soubor
+      </button>
+    </div>
+    <div id="admin-logo-modal" class="admin-modal hidden" aria-hidden="true">
+      <div class="admin-modal-overlay" data-admin-modal-close></div>
+      <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-logo-title">
+        <header class="admin-modal-header">
+          <h3 id="admin-logo-title">Nahrát logo</h3>
+          <button type="button" class="admin-modal-close" data-admin-modal-close aria-label="Zavřít">×</button>
+        </header>
+        <form id="admin-logo-form" class="admin-modal-body" enctype="multipart/form-data">
+          <?= csrf_field(); ?>
+          <fieldset class="admin-modal-file hidden" data-admin-file>
+            <legend>SVG soubor</legend>
+            <label class="admin-file">
+              <input type="file" name="svg_file" accept=".svg,image/svg+xml">
+              <span class="admin-file-label">Vyberte SVG soubor k importu</span>
+            </label>
+            <p class="admin-file-hint">
+              Import podporuje pouze SVG soubory.
+            </p>
+          </fieldset>
+          <div class="admin-logo-preview hidden">
+            <img id="admin-logo-preview-img" alt="Logo preview">
+          </div>
+          <div class="admin-modal-actions">
+            <button type="button" class="admin-action" data-admin-modal-close>Storno</button>
+            <button type="submit" class="admin-action admin-action--primary" data-admin-submit>
+              Nahrát
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div id="admin-logo-result-modal" class="admin-modal hidden" aria-hidden="true">
+      <div class="admin-modal-overlay" data-admin-result-close></div>
+      <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-logo-result-title">
+        <header class="admin-modal-header">
+          <h3 id="admin-logo-result-title">Výsledek nahrání</h3>
+          <button type="button" class="admin-modal-close" data-admin-result-close aria-label="Zavřít">×</button>
+        </header>
+        <div class="admin-modal-body">
+          <p id="admin-logo-result-message" class="admin-logo-result-message"></p>
+          <div class="admin-modal-actions">
+            <button type="button" class="admin-action admin-action--primary" data-admin-result-close>Rozumím</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 <textarea
   id="admin-sql-query-input"
   name="sql_query"
