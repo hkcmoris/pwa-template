@@ -178,9 +178,20 @@ export const initAdminLogo = (root: HTMLElement) => {
         return [cw, ch];
     };
 
-    const openModal = () => {
+    let lastOpener: HTMLElement | null = null;
+
+    const openModal = (opener?: HTMLElement) => {
+        lastOpener = opener ?? (document.activeElement as HTMLElement | null);
+
         modal.classList.remove('hidden');
+        modal.removeAttribute('inert');
         modal.setAttribute('aria-hidden', 'false');
+
+        const firstFocusable = modal.querySelector<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        firstFocusable?.focus();
+        
         if (title) {
             title.textContent = 'Nahrání loga';
         }
@@ -199,7 +210,13 @@ export const initAdminLogo = (root: HTMLElement) => {
     };
 
     const closeModal = () => {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && modal.contains(active)) {
+            (lastOpener ?? document.body).focus?.();
+        }
+
         modal.classList.add('hidden');
+        modal.setAttribute('inert', '');
         modal.setAttribute('aria-hidden', 'true');
         modal.removeAttribute('data-mode');
 
@@ -213,7 +230,7 @@ export const initAdminLogo = (root: HTMLElement) => {
     root.querySelectorAll<HTMLButtonElement>('[data-admin-modal-logo]').forEach(
         (button) => {
             button.addEventListener('click', () => {
-                openModal();
+                openModal(button);
             });
         }
     );
