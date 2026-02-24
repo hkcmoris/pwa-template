@@ -17,6 +17,9 @@ if ($theme !== 'dark' && $theme !== 'light') {
     $theme = 'light';
 }
 // TODO: read $logoW, $logoH and $logoUrl keys from the app_settings table in the database
+$logoW = 130;
+$logoH = 30;
+$logoUrl = 'default-logo.svg';
 
 $csrfToken = csrf_token_if_active();
 
