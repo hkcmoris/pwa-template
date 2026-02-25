@@ -31,6 +31,9 @@ jobs:
               run: npm ci
 
             - name: Build assets (staging)
+              env:
+                  APP_BASE: ${{ secrets.APP_BASE }}
+                  VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
               run: npm run build-staging
 
             - name: Install PHP deps (prod)
@@ -47,6 +50,7 @@ jobs:
                     --exclude "tests" \
                     --exclude "var/log" \
                     --exclude ".env*" \
+                    --exclude "server/src" \
                     server/ deploy/
 
                   ls -la deploy
@@ -67,14 +71,28 @@ jobs:
                   set ftp:ssl-force true
                   set ftp:ssl-protect-data true
                   set ssl:verify-certificate no
+                  
                   set net:timeout 20
                   set net:max-retries 2
                   set net:reconnect-interval-base 3
+
                   open -u "$USER","$PASS" ftp://$HOST
                   cd "$REMOTE_DIR"
                   ls
                   pwd
-                  mirror -R --delete --verbose deploy/ "$REMOTE_DIR"
+                  mirror -R \
+                    --delete \
+                    --verbose \
+                    --only-newer \
+                    --no-perms \
+                    --no-unmask \
+                    --parallel=6 \
+                    --exclude-glob .env \
+                    --exclude-glob .env.* \
+                    --exclude-glob logs \
+                    --exclude-glob public/assets/logo/logo.svg \
+                    --exclude-glob public/assets/images/upload/* \
+                    deploy/ .
                   bye
                   LFTP
 
