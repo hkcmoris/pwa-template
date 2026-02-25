@@ -1,9 +1,8 @@
 <div data-island="about">
-    <h1>About</h1>
+    <h1>O aplikaci</h1>
     <p>
-        This template demonstrates a progressive web app built with
-        server-rendered PHP views and htmx-enhanced navigation.
-        TypeScript islands are bundled with Vite and loaded on demand
-        to keep the first visit tiny and fast.
+        Konfigurátor pro sestavení vozidla a nástavby Hagemann<br>
+        Verze aplikace: <?= htmlspecialchars(APP_VERSION, ENT_QUOTES, 'UTF-8') ?><br>
+        2025 Hagemann a.s.
     </p>
 </div>

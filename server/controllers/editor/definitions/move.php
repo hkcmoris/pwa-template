@@ -1,0 +1,99 @@
+<?php
+
+use Definitions\Repository;
+
+require_once __DIR__ . '/../../../bootstrap.php';
+require_once __DIR__ . '/../../../views/editor/definitions-response.php';
+
+if (!headers_sent()) {
+    header('Content-Type: text/html; charset=utf-8');
+    header('Vary: HX-Request, HX-Boosted, X-Requested-With, Cookie');
+}
+
+$wrapper_id = 'definitions-list';
+$errors_container_id = 'definition-form-errors';
+
+$user = app_get_current_user();
+$role = $user['role'] ?? 'guest';
+if (!in_array($role, ['admin', 'superadmin'], true)) {
+    http_response_code(403);
+    echo '<div id="' . $wrapper_id . '"></div>';
+    echo '<div id="' . $errors_container_id . '"'
+        . ' hx-swap-oob="true"'
+        . ' class="form-feedback form-feedback--error"'
+        . '>'
+        . 'Nemáte oprávnění spravovat definice.'
+        . '</div>';
+    return;
+}
+
+$pdo = get_db_connection();
+$repository = new Repository($pdo);
+
+$idParam = $_POST['id'] ?? '';
+$parentParam = null;
+if (isset($_POST['parent_id'])) {
+    $rawParentValue = $_POST['parent_id'];
+    if (is_scalar($rawParentValue)) {
+        $trimmedParent = trim((string) $rawParentValue);
+        if ($trimmedParent !== '') {
+            $parentParam = $trimmedParent;
+        }
+    }
+}
+$positionParam = $_POST['position'] ?? '';
+
+if (!preg_match('/^\d+$/', (string) $idParam)) {
+    http_response_code(422);
+    definitions_render_fragments($pdo, [
+        'message' => 'Neplatné ID definice.',
+        'message_type' => 'error',
+    ]);
+    return;
+}
+
+$id = (int) $idParam;
+$parentId = null;
+if ($parentParam !== null) {
+    if (!preg_match('/^\d+$/', (string) $parentParam)) {
+        http_response_code(422);
+        definitions_render_fragments($pdo, [
+            'message' => 'Neplatný rodič.',
+            'message_type' => 'error',
+        ]);
+        return;
+    }
+    $parentId = (int) $parentParam;
+}
+
+if (!preg_match('/^\d+$/', (string) $positionParam)) {
+    http_response_code(422);
+    definitions_render_fragments($pdo, [
+        'message' => 'Neplatná pozice.',
+        'message_type' => 'error',
+    ]);
+    return;
+}
+
+$position = (int) $positionParam;
+
+try {
+    $repository->move($id, $parentId, $position);
+    print($id . ': [' . $parentId . ', ' . $position . ']');
+    definitions_render_fragments($pdo, [
+        'message' => 'Definice byla přesunuta.',
+        'message_type' => 'success',
+    ]);
+} catch (RuntimeException $e) {
+    http_response_code(422);
+    definitions_render_fragments($pdo, [
+        'message' => $e->getMessage(),
+        'message_type' => 'error',
+    ]);
+} catch (Throwable $e) {
+    http_response_code(500);
+    definitions_render_fragments($pdo, [
+        'message' => 'Přesun se nezdařil.',
+        'message_type' => 'error',
+    ]);
+}

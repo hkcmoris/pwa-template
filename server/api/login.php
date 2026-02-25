@@ -1,46 +1,53 @@
 <?php
-require_once __DIR__.'/cors.php';
-require_once __DIR__.'/../lib/db.php';
-require_once __DIR__.'/../lib/jwt.php';
-require_once __DIR__.'/../lib/auth.php';
-require_once __DIR__.'/../lib/logger.php';
 
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
-
+$jwtSecret = config_jwt_secret();
 $input = json_decode(file_get_contents('php://input'), true);
+$body = is_array($input) ? $input : null;
+csrf_require_valid($body, 'json');
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
-
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$cookiePath = '/' . trim($base, '/');
 log_message("Login attempt for {$email}");
-
 if (!$email || !$password) {
     log_message('Login failed: missing email or password', 'ERROR');
     http_response_code(400);
-    echo json_encode(['error' => 'Email and password required']);
+    echo json_encode(['error' => 'Email a heslo jsou povinné']);
     exit;
 }
 
 $db = get_db_connection();
-$stmt = $db->prepare('SELECT id, password FROM users WHERE email = :email');
+$stmt = $db->prepare('SELECT id, username, password, role FROM users WHERE email = :email');
 $stmt->execute([':email' => $email]);
 $user = $stmt->fetch();
-
 if (!$user || !password_verify($password, $user['password'])) {
     log_message("Login failed: invalid credentials for {$email}", 'ERROR');
     http_response_code(401);
-    echo json_encode(['error' => 'Invalid credentials']);
+    echo json_encode(['error' => 'Neplatné přihlašovací údaje']);
     exit;
 }
 
 $accessTtl = 600;
-$token = generate_jwt(['sub' => $user['id'], 'email' => $email], JWT_SECRET, $accessTtl);
+$token = generate_jwt(
+    [
+        'sub' => (int)$user['id'],
+        'username' => isset($user['username']) ? (string)$user['username'] : '',
+        'email' => $email,
+        'role' => $user['role'] ?? 'user',
+    ],
+    $jwtSecret,
+    $accessTtl
+);
 setcookie('token', $token, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $accessTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
+    'secure' => !app_is_dev(),
 ]);
-
 // Issue refresh token (14 days) and set cookie
 $refreshTtl = 14 * 24 * 3600;
 $refresh = create_refresh_token((int)$user['id'], $refreshTtl);
@@ -48,9 +55,12 @@ setcookie('refresh_token', $refresh, [
     'httponly' => true,
     'samesite' => 'Lax',
     'expires' => time() + $refreshTtl,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
+    'path' => $cookiePath,
+    'secure' => !app_is_dev(),
 ]);
-
 log_message("User logged in: {$email}");
-
-echo json_encode(['token' => $token]);
+$role = $user['role'] ?? 'user';
+echo json_encode(['token' => $token, 'user' => [
+    'email' => $email,
+    'role' => $role,
+]]);

@@ -1,27 +1,28 @@
 <div data-island="login">
-    <h1>Login</h1>
+    <h1>Přihlášení</h1>
     <form id="login-form" class="auth-form">
-        <label class="auth-form__field">
-            Email
+        <?= csrf_field(); ?>
+        <label class="auth-form-field">
+            E‑mail
             <input
                 type="email"
                 name="email"
                 required
                 autocomplete="username"
-                class="auth-form__input"
+                class="auth-form-input"
             />
         </label>
-        <label class="auth-form__field">
-            Password
+        <label class="auth-form-field">
+            Heslo
             <input
                 type="password"
                 name="password"
                 required
                 autocomplete="current-password"
-                class="auth-form__input"
+                class="auth-form-input"
             />
         </label>
-        <button type="submit">Login</button>
+        <button type="submit">PŘIHLÁSIT SE</button>
     </form>
     <div id="login-message"></div>
 </div>

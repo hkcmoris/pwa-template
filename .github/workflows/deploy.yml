@@ -1,0 +1,81 @@
+name: Deploy
+
+on:
+    push:
+        branches: [main]
+
+permissions:
+    contents: read
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # v2
+              with:
+                  php-version: '7.4'
+                  tools: composer
+
+            - name: Setup Node
+              uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: Install JS deps
+              run: npm ci
+
+            - name: Build assets (staging)
+              run: npm run build-staging
+
+            - name: Install PHP deps (prod)
+              working-directory: server
+              run: composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+            - name: Prepare deploy directory
+              run: |
+                  rm -rf deploy
+                  mkdir -p deploy
+
+                  rsync -av --delete \
+                    --exclude ".git" \
+                    --exclude "tests" \
+                    --exclude "var/log" \
+                    --exclude ".env*" \
+                    server/ deploy/
+
+                  ls -la deploy
+                  ls -la deploy/public
+                  ls -la deploy/public/assets
+
+            - name: Deploy via SFTP (lftp mirror)
+              env:
+                  HOST: ${{ secrets.HOST }}
+                  PORT: ${{ secrets.PORT }}
+                  USER: ${{ secrets.USER }}
+                  PASS: ${{ secrets.PASS }}
+                  REMOTE_DIR: ${{ secrets.REMOTE_DIR }}
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y lftp
+
+                  cat > lftp.cmd <<LFTP
+                  set sftp:auto-confirm yes
+                  set net:timeout 20
+                  set net:max-retries 2
+                  set net:reconnect-interval-base 3
+                  set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $PORT"
+                  open -u "$USER","$PASS" sftp://$HOST
+                  cd "$REMOTE_DIR"
+                  ls
+                  pwd
+                  mirror -R --delete --verbose deploy/ "$REMOTE_DIR"
+                  bye
+                  LFTP
+
+                  lftp -f lftp.cmd

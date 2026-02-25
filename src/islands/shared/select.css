@@ -1,0 +1,84 @@
+/* Reusable custom select styles */
+.select {
+    position: relative;
+    display: inline-block;
+    min-width: 8rem;
+}
+
+.select-button {
+    width: 100%;
+    text-align: left;
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+.select-button:hover,
+.select-button:focus-visible {
+    background: var(--primary-hover);
+    color: #fff;
+}
+
+.select-button::after {
+    content: '';
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-top: 0.35rem solid currentcolor;
+    border-right: 0.3rem solid transparent;
+    border-left: 0.3rem solid transparent;
+    float: right;
+    margin-top: 0.45rem;
+    opacity: 0.7;
+}
+
+.select-list {
+    position: absolute;
+    inset: auto 0;
+    top: calc(100% + 2px);
+    background: var(--bg);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    box-shadow: 0 4px 8px rgb(0 0 0 / 12%);
+    max-height: 14rem;
+    overflow: auto;
+    z-index: 10;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.select-list[hidden] {
+    display: none;
+}
+
+.select-option {
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+.select-option[aria-selected='true'] {
+    font-weight: 600;
+}
+
+.select-option:hover,
+.select-option[data-active] {
+    background: var(--primary-hover);
+    color: #fff;
+}
+
+html[data-theme='dark'] .select-button:hover,
+.select-option:hover {
+    color: var(--primary-contrast);
+}
+
+@media (width <=600px) {
+    .select {
+        min-width: unset;
+        width: 100%;
+    }
+}

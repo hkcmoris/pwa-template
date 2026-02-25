@@ -1,0 +1,2 @@
+ALTER TABLE configuration_selections
+DROP COLUMN position

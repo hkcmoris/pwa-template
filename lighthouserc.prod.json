@@ -1,0 +1,23 @@
+{
+    "ci": {
+        "extends": "lighthouserc.base.json",
+        "collect": {
+            "url": [
+                "https://hagemann.cz/konfigurator-php-ssr",
+                "https://hagemann.cz/konfigurator-php-ssr/editor/definitions",
+                "https://hagemann.cz/konfigurator-php-ssr/editor/components",
+                "https://hagemann.cz/konfigurator-php-ssr/editor/images"
+            ],
+            "numberOfRuns": 5,
+            "settings": {
+                "emulatedFormFactor": "desktop",
+                "throttlingMethod": "simulate"
+            }
+        },
+        "assert": {
+            "assertions": {
+                "is-on-https": "error"
+            }
+        }
+    }
+}

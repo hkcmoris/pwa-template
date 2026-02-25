@@ -1,0 +1,100 @@
+#breadcrumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+#breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+    display: none;
+    font-weight: 700;
+}
+
+#breadcrumbs .breadcrumb-item {
+    --max-width: 200px;
+    --padding-x: 20px;
+
+    max-width: var(--max-width);
+    border-radius: 7px;
+    background-color: var(--fg);
+    color: var(--bg);
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    position: relative;
+    text-transform: uppercase;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    transform: skew(-21deg);
+    box-shadow: 0 2px 8px rgb(from var(--fg) r g b / 25%);
+
+    /* margin: 5px; */
+    padding: 8px var(--padding-x) !important;
+    cursor: pointer;
+}
+
+#breadcrumbs .breadcrumb-item form {
+    margin: 0;
+}
+
+#breadcrumbs .breadcrumb-item-button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+
+#breadcrumbs .breadcrumb-item.active {
+    background-color: var(--primary) !important;
+    color: var(--bg) !important;
+}
+
+#breadcrumbs .breadcrumb-item:hover {
+    background-color: var(--primary) !important;
+    color: var(--bg) !important;
+}
+
+#breadcrumbs .breadcrumb-item a {
+    transition: all 0.1s ease;
+    text-decoration: none;
+    color: inherit !important;
+}
+
+@media (width <= 768px) {
+    #breadcrumbs .breadcrumb-item {
+        --max-width: 150px;
+        --padding-x: 15px;
+    }
+}
+
+@media (width <= 576px) {
+    #breadcrumbs .breadcrumb-item {
+        --max-width: 120px;
+        --padding-x: 10px;
+    }
+
+    #breadcrumbs .breadcrumb-item-title {
+        font-size: 12px;
+    }
+}
+
+#breadcrumbs .breadcrumb-item-inner {
+    max-width: var(--max-width);
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    z-index: 2;
+    transform: skew(21deg);
+}
+
+#breadcrumbs .breadcrumb-item-title {
+    max-width: calc(var(--max-width) - var(--padding-x) * 2);
+    font-size: 14px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    font-family: Montserrat, sans-serif;
+    font-weight: 500;
+}

@@ -1,0 +1,93 @@
+/* Minimal critical styles for layout; island loads detailed CSS lazily */
+#images-root .upload {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.5rem 0;
+    flex-wrap: wrap;
+}
+
+#images-root .upload input[type='file'] {
+    border: 1px solid var(--border);
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    background: transparent;
+    color: inherit;
+}
+
+#image-grid {
+    min-height: 120px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.5rem;
+}
+
+.tile {
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    cursor: default;
+    background: transparent;
+}
+
+.tile:hover {
+    outline: 2px solid var(--primary);
+    outline-offset: 0;
+}
+
+.tile .thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1/1;
+    background: rgb(0 0 0 / 4%);
+    overflow: hidden;
+}
+
+.tile .thumb img {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
+}
+
+.tile .thumb svg {
+    display: block;
+    width: 48px;
+    height: 48px;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.tile .label {
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tile.folder .thumb svg {
+    color: var(--primary);
+}
+
+.droptarget {
+    outline: 2px dashed var(--primary) !important;
+}
+
+.hidden {
+    display: none;
+}
+
+.upload-errors {
+    margin: 0.25rem 0;
+    padding: 0.5rem;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 0.25rem;
+    background: rgb(220 38 38 / 8%);
+}

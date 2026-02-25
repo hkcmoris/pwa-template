@@ -1,0 +1,332 @@
+<?php
+/**
+ * @var array<int, array<string, mixed>> $componentsPage
+ */
+$items = $componentsPage;
+
+$baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
+$BASE = rtrim($BASE, '/');
+
+foreach ($items as $node) {
+    $id = isset($node['id']) ? (int) $node['id'] : 0;
+    if ($id <= 0) {
+        continue;
+    }
+
+    $definitionId = isset($node['definition_id']) ? (int) $node['definition_id'] : 0;
+    $parentId = $node['parent_id'] === null ? '' : (string) (int) $node['parent_id'];
+    $position = isset($node['position']) ? (int) $node['position'] : 0;
+    $posPath = isset($node['pos_path']) ? (string) $node['pos_path'] : '';
+    $rawEffectiveTitle = isset($node['effective_title']) ? (string) $node['effective_title'] : '';
+    $effectiveTitle = htmlspecialchars($rawEffectiveTitle, ENT_QUOTES, 'UTF-8');
+    $definitionTitleRaw = isset($node['definition_title']) ? (string) $node['definition_title'] : '';
+    $definitionTitle = htmlspecialchars($definitionTitleRaw, ENT_QUOTES, 'UTF-8');
+    $alternateTitleValue = $node['alternate_title'] ?? null;
+    $rawAlternateTitle = is_string($alternateTitleValue) ? $alternateTitleValue : '';
+    $alternateTitle = $rawAlternateTitle !== ''
+        ? htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8')
+        : '';
+    $rawDescription = isset($node['description']) ? (string) $node['description'] : '';
+    $description = $rawDescription !== ''
+        ? htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8')
+        : '';
+    $rawImage = isset($node['image']) ? (string) $node['image'] : '';
+    $rawImagesValue = isset($node['images']) && is_array($node['images'])
+        ? $node['images']
+        : [];
+    $rawImages = [];
+    $effectiveCmp = trim(html_entity_decode($rawEffectiveTitle, ENT_QUOTES, 'UTF-8'));
+    $definitionCmp = trim(html_entity_decode($definitionTitleRaw, ENT_QUOTES, 'UTF-8'));
+
+    foreach ($rawImagesValue as $entry) {
+        if (!is_string($entry)) {
+            continue;
+        }
+        $trimmed = trim($entry);
+        if ($trimmed === '') {
+            continue;
+        }
+        if (!in_array($trimmed, $rawImages, true)) {
+            $rawImages[] = $trimmed;
+        }
+    }
+
+    $legacyImage = trim($rawImage);
+    if ($legacyImage !== '' && !in_array($legacyImage, $rawImages, true)) {
+        array_unshift($rawImages, $legacyImage);
+    }
+
+    $imagesJsonRaw = json_encode($rawImages, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($imagesJsonRaw === false) {
+        $imagesJsonRaw = '[]';
+    }
+    $imagesJson = htmlspecialchars($imagesJsonRaw, ENT_QUOTES, 'UTF-8');
+    $primaryImage = $rawImages[0] ?? '';
+    $image = $primaryImage !== ''
+        ? htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8')
+        : '';
+    $rawColor = isset($node['color']) ? (string) $node['color'] : '';
+    $color = $rawColor !== ''
+        ? htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8')
+        : '';
+    $dependencyTreeRaw = isset($node['dependency_tree']) && is_array($node['dependency_tree'])
+        ? $node['dependency_tree']
+        : [];
+    $propertiesRaw = isset($node['properties']) && is_array($node['properties'])
+        ? $node['properties']
+        : [];
+    $dependencyRules = isset($dependencyTreeRaw['rules']) && is_array($dependencyTreeRaw['rules'])
+        ? $dependencyTreeRaw['rules']
+        : $dependencyTreeRaw;
+    $dependencyCount = count($dependencyRules);
+    $childCount = isset($node['children_count']) ? (int) $node['children_count'] : 0;
+    $depth = isset($node['depth']) ? (int) $node['depth'] : 0;
+    $mediaType = $rawColor !== '' ? 'color' : 'image';
+    $latestPrice = isset($node['latest_price']) && is_array($node['latest_price'])
+        ? $node['latest_price']
+        : null;
+    $latestAmountRaw = $latestPrice !== null && isset($latestPrice['amount'])
+        ? (string) $latestPrice['amount']
+        : '';
+    $latestCurrencyRaw = $latestPrice !== null && isset($latestPrice['currency'])
+        ? (string) $latestPrice['currency']
+        : 'CZK';
+    $latestCurrency = strtoupper($latestCurrencyRaw);
+    $priceHistory = isset($node['price_history']) && is_array($node['price_history'])
+        ? array_slice($node['price_history'], 0, 10)
+        : [];
+    $priceHistoryJsonRaw = json_encode($priceHistory, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($priceHistoryJsonRaw === false) {
+        $priceHistoryJsonRaw = '[]';
+    }
+    $priceHistoryJson = htmlspecialchars($priceHistoryJsonRaw, ENT_QUOTES, 'UTF-8');
+    $propertiesJsonRaw = json_encode($propertiesRaw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($propertiesJsonRaw === false) {
+        $propertiesJsonRaw = '[]';
+    }
+    $propertiesJson = htmlspecialchars($propertiesJsonRaw, ENT_QUOTES, 'UTF-8');
+    $dependencyTreeJsonRaw = json_encode($dependencyTreeRaw, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($dependencyTreeJsonRaw === false) {
+        $dependencyTreeJsonRaw = '[]';
+    }
+    $dependencyTreeJson = htmlspecialchars($dependencyTreeJsonRaw, ENT_QUOTES, 'UTF-8');
+    $metaParts = [
+        'ID ' . $id,
+        'definice ' . $definitionTitle . ' (#' . $definitionId . ')',
+    ];
+    $depthAttr = ' data-depth="' . $depth . '" style="--component-depth:' . $depth . ';"';
+    ?>
+    <li
+      class="component-item"
+      data-id="<?= $id ?>"
+      data-definition-id="<?= $definitionId ?>"
+      data-parent="<?= htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') ?>"
+      data-position="<?= $position ?>"
+      data-title="<?= $effectiveTitle ?>"
+      data-alternate-title="<?= htmlspecialchars($rawAlternateTitle, ENT_QUOTES, 'UTF-8') ?>"
+      data-description="<?= htmlspecialchars($rawDescription, ENT_QUOTES, 'UTF-8') ?>"
+      data-children-count="<?= $childCount ?>"
+      data-image="<?= htmlspecialchars($primaryImage, ENT_QUOTES, 'UTF-8') ?>"
+      data-images='<?= $imagesJson ?>'
+      data-color="<?= htmlspecialchars($rawColor, ENT_QUOTES, 'UTF-8') ?>"
+      data-media-type="<?= $mediaType ?>"
+      data-price-amount="<?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>"
+      data-price-currency="<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?>"
+      data-price-history="<?= $priceHistoryJson ?>"
+      data-properties="<?= $propertiesJson ?>"
+      data-dependency-tree="<?= $dependencyTreeJson ?>"
+      <?= $depthAttr ?>
+    >
+      <div class="component-node" draggable="true">
+        <div class="component-position"><?= $posPath ?></div>
+        <div class="component-node-header">
+          <div class="component-node-info">
+            <strong>
+            <?php if ($effectiveCmp !== $definitionCmp) : ?>
+                <?= htmlspecialchars($definitionTitle, ENT_QUOTES, 'UTF-8') ?> – 
+            <?php endif; ?>
+            <?= $effectiveTitle ?>
+            </strong>
+            <?php $hasDetails =
+              $description !== '' ||
+              !empty($rawImages) ||
+              $color !== '' ||
+              $dependencyCount > 0 ||
+              !empty($propertiesRaw) ||
+              $latestPrice !== null;
+            ?>
+            <?php if ($hasDetails) : ?>
+              <dl class="component-node-details">
+                <?php if ($description !== '') : ?>
+                  <div><dt>Popis</dt><dd><?= $description ?></dd></div>
+                <?php endif; ?>
+                <?php if (!empty($rawImages)) : ?>
+                  <div>
+                    <dt>Obrázky</dt>
+                    <dd>
+                      <ul class="component-image-list">
+                        <?php
+                        foreach ($rawImages as $imgPath) {
+                            $trimmedPath = trim($imgPath);
+                            if ($trimmedPath === '') {
+                                continue;
+                            }
+                            $imageSrc = htmlspecialchars($trimmedPath, ENT_QUOTES, 'UTF-8');
+                            $fileNameRaw = basename($trimmedPath);
+                            $extension = pathinfo($trimmedPath, PATHINFO_EXTENSION);
+                            $thumbSrc = pathinfo($trimmedPath, PATHINFO_DIRNAME) . '/'
+                                . pathinfo($trimmedPath, PATHINFO_FILENAME)
+                                . (".thumb")
+                                . ($extension !== '' ? ('.' . $extension) : '');
+                            $fileName = $fileNameRaw !== '' ? $fileNameRaw : $trimmedPath;
+                            $caption = htmlspecialchars($fileName, ENT_QUOTES, 'UTF-8');
+                            $altSourcesRaw = array_filter([
+                                $rawEffectiveTitle !== '' ? trim($rawEffectiveTitle) : null,
+                                $fileNameRaw !== '' ? trim($fileNameRaw) : null,
+                            ], static fn ($value) => $value !== null && $value !== '');
+                            $altSources = array_values(array_unique($altSourcesRaw));
+                            $altText = !empty($altSources)
+                                ? implode(' – ', $altSources)
+                                : 'Náhled obrázku';
+                            $alt = htmlspecialchars($altText, ENT_QUOTES, 'UTF-8');
+                            ?>
+                            <li class="component-image-list-item">
+                              <figure class="component-image-thumb">
+                                <div class="component-image-thumb-media">
+                                  <img
+                                    src="<?= $thumbSrc ?>"
+                                    alt="<?= $alt ?>"
+                                    width="48px"
+                                    height="48px"
+                                    loading="lazy"
+                                    decoding="async"
+                                    data-fallback-src=
+                                      "<?= htmlspecialchars($BASE) ?>/public/assets/images/missing-image.svg"
+                                  >
+                                </div>
+                              </figure>
+                            </li>
+                            <?php
+                        }
+                        ?>
+                      </ul>
+                    </dd>
+                  </div>
+                <?php endif; ?>
+                <?php if ($color !== '') : ?>
+                  <div>
+                    <dt>Barva</dt>
+                    <dd>
+                      <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
+                      <?= $color ?>
+                    </dd>
+                  </div>
+                <?php endif; ?>
+                <?php if (!empty($propertiesRaw)) : ?>
+                  <div>
+                    <dt>Vlastnosti</dt>
+                    <dd>
+                      <ul class="component-properties-preview">
+                        <?php foreach ($propertiesRaw as $property) : ?>
+                            <?php
+                            if (!is_array($property)) {
+                                continue;
+                            }
+                            $propertyName = isset($property['name']) ? trim((string) $property['name']) : '';
+                            $propertyValue = isset($property['value']) ? trim((string) $property['value']) : '';
+                            $propertyUnit = isset($property['unit']) ? trim((string) $property['unit']) : '';
+                            if ($propertyName === '' && $propertyValue === '' && $propertyUnit === '') {
+                                continue;
+                            }
+                            $propertyLabel = trim($propertyName . ' ' . $propertyValue . ' ' . $propertyUnit);
+                            ?>
+                          <li><?= htmlspecialchars($propertyLabel, ENT_QUOTES, 'UTF-8') ?></li>
+                        <?php endforeach; ?>
+                      </ul>
+                    </dd>
+                  </div>
+                <?php endif; ?>
+                <?php if ($latestPrice !== null) : ?>
+                  <div>
+                    <dt>Poslední cena</dt>
+                    <dd><?= htmlspecialchars($latestAmountRaw, ENT_QUOTES, 'UTF-8') ?>
+                      &nbsp;<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?></dd>
+                  </div>
+                <?php endif; ?>
+                <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
+              </dl>
+            <?php endif; ?>
+          </div>
+        </div>
+        <div class="component-actions">
+          <button
+            type="button"
+            class="component-action"
+            data-action="create-child"
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-add"></use>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="component-action"
+            data-action="edit"
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-edit"></use>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="component-action"
+            data-action="clone"
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-clone"></use>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="component-action component-action--danger"
+            data-action="delete"
+          >
+            <svg
+              fill="currentColor"
+              width="16px"
+              height="16px"
+              display="block"
+              style="display: block;"
+              aria-hidden="true"
+            >
+              <use href="#icon-trash"></use>
+            </svg>
+          </button>
+          <span class="component-drag-indicator" aria-hidden="true">⋮⋮</span>
+        </div>
+      </div>
+    </li>
+    <?php
+}

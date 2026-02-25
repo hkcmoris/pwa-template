@@ -1,24 +1,83 @@
+/* eslint-disable no-undef */
 const CACHE_NAME = 'runtime';
 
 // Derive base path from SW registration scope ('' or '/subdir')
 const SCOPE_PATH = new URL(self.registration.scope).pathname.replace(/\/$/, '');
+// All hashed build artifacts (JS/CSS/image chunks) live under /public/assets/.
+// Cache them with a cache-first strategy so islands remain available offline.
+const ASSET_PREFIX = `${SCOPE_PATH}/public/assets/`;
+// User uploads live under /public/assets/images/upload and remain mutable.
+const UPLOAD_PREFIX = `${ASSET_PREFIX}images/upload/`;
+
+const NO_CACHE_PREFIXES = [
+    `${SCOPE_PATH}/editor/`,
+    `${SCOPE_PATH}/api/`,
+    `${SCOPE_PATH}/login`,
+    `${SCOPE_PATH}/login.php`,
+    `${SCOPE_PATH}/logout`,
+    `${SCOPE_PATH}/logout.php`,
+];
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => {
-    event.waitUntil(self.clients.claim());
+    event.waitUntil(
+        (async () => {
+            const names = await caches.keys();
+            await Promise.all(
+                names
+                    .filter((n) => n !== CACHE_NAME)
+                    .map((n) => caches.delete(n))
+            );
+            await self.clients.claim();
+        })()
+    );
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.method !== 'GET') return;
+    if (event.request.method !== 'GET') {
+        return;
+    }
     const url = new URL(event.request.url);
+
+    const accept = event.request.headers.get('accept') || '';
+    const isDocument =
+        event.request.mode === 'navigate' || accept.includes('text/html');
+    const isNoCache = NO_CACHE_PREFIXES.some((p) => url.pathname.startsWith(p));
+    const hasCookie = event.request.headers.has('cookie');
+
+    if (isDocument || hasCookie || isNoCache) {
+        event.respondWith(fetch(event.request));
+        return;
+    }
+
+    const isImmutableAsset =
+        url.pathname.startsWith(ASSET_PREFIX) &&
+        !url.pathname.startsWith(UPLOAD_PREFIX);
+
     event.respondWith(
         caches.open(CACHE_NAME).then(async (cache) => {
+            if (isImmutableAsset) {
+                const cached = await cache.match(event.request);
+                if (cached) {
+                    return cached;
+                }
+                try {
+                    const response = await fetch(event.request);
+                    if (response.ok) {
+                        cache.put(event.request, response.clone());
+                    }
+                    return response;
+                } catch {
+                    const fallback = await cache.match(event.request);
+                    if (fallback) {
+                        return fallback;
+                    }
+                    throw new Error('Network error');
+                }
+            }
+
             try {
                 const response = await fetch(event.request);
-                // Cache built assets (respect subfolder deployments)
-                if (url.pathname.startsWith(`${SCOPE_PATH}/public/assets/`)) {
-                    cache.put(event.request, response.clone());
-                }
                 return response;
             } catch {
                 const cached = await cache.match(event.request);

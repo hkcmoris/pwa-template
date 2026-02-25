@@ -1,3 +1,6 @@
 dist/
-public/assets/
+server/public/
 node_modules/
+.lighthouseci/
+.vscode/
+*.md

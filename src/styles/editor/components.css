@@ -1,0 +1,926 @@
+@import url('./shared.css');
+
+.component-primary {
+    text-decoration: none;
+}
+
+.component-toolbar {
+    margin: 1rem 0;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.components-list-wrapper {
+    position: relative;
+}
+
+.components-list-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+
+    /* tvoje parametry */
+    --gap: 1.25rem;
+    --line: 1px;
+    --dash: 4px;
+    --space: 2px;
+
+    /* barva overlaye (pak ji “vyřežeme” maskou do čárek) */
+    background: var(--border);
+
+    /*
+        1) maska: svislé pruhy (1px čára každých 1.25rem)
+        2) maska: dash pattern po ose Y a obě masky se musí PROTNOUT (intersect)
+    */ /* Safari/Chromium: průnik 2. masky do 1. */
+
+    mask-image:
+        repeating-linear-gradient(
+            to right,
+            #000 0 var(--line),
+            transparent 0 var(--gap)
+        ),
+        repeating-linear-gradient(
+            to bottom,
+            #000 0 var(--dash),
+            transparent 0 calc(var(--dash) + var(--space))
+        );
+    mask-composite: intersect; /* Firefox/modern spec */
+}
+
+.component-summary {
+    font-size: 0.9rem;
+    color: var(--fg-muted, #4b5563);
+}
+
+.components-empty {
+    font-style: italic;
+    color: #6b7280;
+}
+
+.component-tree {
+    list-style: none;
+    padding-left: 0;
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.component-item {
+    position: relative;
+    margin-left: calc(var(--component-depth, 0) * 1.25rem);
+}
+
+.component-item::before {
+    content: '';
+    position: absolute;
+    inset: -4px -2px -2px;
+    background: var(--bg);
+    z-index: 0;
+}
+
+.component-node {
+    display: flex;
+    position: relative;
+    justify-content: space-between;
+    gap: 1.6rem;
+    border: 1px solid var(--border);
+    border-radius: 0.4rem;
+    padding: 0.6rem 0.75rem;
+    overflow: hidden;
+    background: rgb(0 0 0 / 2%);
+    box-shadow: 0 2px 4px var(--shadow);
+    cursor: grab;
+    z-index: 1;
+}
+
+.component-node:active {
+    cursor: grabbing;
+}
+
+[data-theme='dark'] .component-node {
+    border-color: rgb(255 255 255 / 20%);
+    background: rgb(255 255 255 / 5%);
+}
+
+.component-position {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #555;
+    margin: -0.6rem 0 -0.6rem -0.75rem;
+    padding: 0.4rem 0.25rem;
+    border-right: 1px solid var(--border);
+    border-color: inherit;
+    background: rgb(from var(--border) r g b / 10%);
+}
+
+[data-theme='dark'] .component-position {
+    color: var(--fg-muted);
+}
+
+.component-node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    flex: auto;
+}
+
+.component-node-info {
+    display: flex;
+    gap: 0.25rem;
+    flex: auto;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.component-node-info strong {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.component-alias {
+    font-size: 0.75rem;
+    color: #4b5563;
+}
+
+[data-theme='dark'] .component-alias {
+    color: var(--fg-muted);
+}
+
+.component-meta {
+    font-size: 0.75rem;
+    color: var(--fg-muted);
+}
+
+.component-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.component-drag-indicator {
+    font-size: 1.1rem;
+    line-height: 1;
+    opacity: 0.6;
+    cursor: grab;
+}
+
+.component-item--dragging > .component-node {
+    opacity: 0.6;
+}
+
+.component-item--drop-before > .component-node {
+    box-shadow: 0 -2px 0 0 var(--primary);
+}
+
+.component-item--drop-after > .component-node {
+    box-shadow: 0 2px 0 0 var(--primary);
+}
+
+.component-item--drop-inside > .component-node {
+    outline: 2px dashed var(--primary);
+}
+
+.component-node-details {
+    display: grid;
+    grid-auto-flow: column;
+    gap: 1.5rem;
+    margin: 0;
+}
+
+.component-node-details dt {
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: var(--fg-muted);
+    margin-bottom: 0.2rem;
+}
+
+.component-node-details dd {
+    margin: 0;
+    font-size: 0.85rem;
+}
+
+.components-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0 0 0 / 40%);
+    padding: 1rem;
+    z-index: 2000;
+}
+
+.components-modal.hidden {
+    display: none;
+}
+
+.components-modal-overlay {
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.components-modal-panel {
+    position: relative;
+    background: var(--bg);
+    color: var(--fg);
+    border-radius: 0.5rem;
+    box-shadow: 0 12px 32px rgb(0 0 0 / 22%);
+    max-width: 480px;
+    width: 100%;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 1;
+}
+
+.components-modal-panel.components-modal-panel--wide {
+    max-width: 880px;
+    width: min(95vw, 880px);
+}
+
+.components-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.component-form--modal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.component-form--modal fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (width >= 720px) {
+    .component-form--modal fieldset {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+.component-form--modal legend {
+    font-weight: 600;
+    font-size: 0.95rem;
+    grid-column: 1 / -1;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+.component-modal-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    grid-column: 1 / -1;
+}
+
+.component-modal-tablist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+}
+
+.component-modal-tab {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+}
+
+.component-modal-tab:hover,
+.component-modal-tab:focus-visible {
+    border-color: var(--primary);
+    color: var(--primary-contrast);
+}
+
+.component-modal-tab.is-active {
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 15%, transparent);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.component-modal-tabpanel {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr);
+}
+
+@media (width >= 720px) {
+    .component-modal-tabpanel {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+    }
+}
+
+.component-modal-tabpanel.hidden {
+    display: none;
+}
+
+.component-field--full {
+    grid-column: 1 / -1;
+}
+
+.component-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.component-field label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+}
+
+.info-wrapper img {
+    color: var(--fg);
+}
+
+.info-wrapper svg path {
+    fill: var(--fg);
+}
+
+.component-help {
+    --tooltip-shift: 0px;
+
+    display: block;
+    white-space: normal;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    width: max-content;
+    max-width: min(24rem, calc(100vw - 16px));
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    padding: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+    z-index: 10;
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(4px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease,
+        visibility 0s linear 120ms;
+}
+
+.component-help::after {
+    content: '';
+    position: absolute;
+    top: 100%; /* bottom of tooltip */
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--bg);
+}
+
+.component-help::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid var(--border);
+}
+
+[data-theme='dark'] .component-help {
+    color: #cbd5e1;
+}
+
+.info-wrapper:hover .component-help,
+.info-wrapper:focus-within .component-help {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(0);
+    transition-delay: 0s;
+}
+
+.component-field--price {
+    gap: 0.5rem;
+}
+
+.component-price-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.component-price-input input {
+    flex: auto;
+    text-align: right;
+    width: 100%;
+}
+
+.component-price-suffix {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.component-price-history {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.component-price-history-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fg-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+[data-theme='dark'] .component-price-history-label {
+    color: var(--fg-muted, #94a3b8);
+}
+
+.component-price-history-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.component-price-history-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.component-price-history-amount {
+    font-weight: 600;
+}
+
+.component-price-history-item time {
+    font-size: 0.8rem;
+    color: var(--fg-muted, #6b7280);
+}
+
+[data-theme='dark'] .component-price-history-item time {
+    color: var(--fg-muted);
+}
+
+.component-price-history-empty {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--fg-muted);
+}
+
+[data-theme='dark'] .component-price-history-empty {
+    color: var(--fg-muted);
+}
+
+.component-field--media {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.component-media-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.component-media-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.component-media-toggle input {
+    margin: 0 0.25rem 0 0;
+}
+
+.component-media-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.component-media-panel.hidden {
+    display: none;
+}
+
+.component-image-picker {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.component-image-selected {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-height: 1.5rem;
+}
+
+.component-image-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.component-image-list-item {
+    font-size: 0.85rem;
+    word-break: break-all;
+    font-family: var(
+        --mono-font,
+        ui-monospace,
+        SFMono-Regular,
+        SFMono,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+    );
+}
+
+.component-image-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.component-image-remove {
+    font-size: 0.8rem;
+    line-height: 1;
+    padding: 0.35rem 0.5rem;
+}
+
+.component-image-placeholder {
+    font-size: 0.85rem;
+    color: var(--fg-muted, #6b7280);
+}
+
+[data-theme='dark'] .component-image-placeholder {
+    color: var(--fg-muted, #94a3b8);
+}
+
+.component-image-path {
+    font-size: 0.75rem;
+    word-break: break-all;
+    font-family: var(
+        --mono-font,
+        ui-monospace,
+        SFMono-Regular,
+        SFMono,
+        Menlo,
+        Monaco,
+        Consolas,
+        'Liberation Mono',
+        'Courier New',
+        monospace
+    );
+    letter-spacing: -0.01rem;
+}
+
+.component-image-entry .component-image-path {
+    flex: 1 1 auto;
+}
+
+.component-node-details .component-image-list {
+    display: flex;
+    flex-flow: row nowrap;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.component-node-details .component-image-list-item {
+    font-family: inherit;
+    font-size: inherit;
+    word-break: normal;
+}
+
+.component-image-thumb {
+    display: inline-block;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.2rem;
+    background: rgb(0 0 0 / 3%);
+    overflow: hidden;
+    margin: 0;
+}
+
+[data-theme='dark'] .component-image-thumb {
+    border-color: rgb(255 255 255 / 18%);
+    background: rgb(255 255 255 / 6%);
+}
+
+.component-image-thumb-media {
+    position: relative;
+    border-radius: 0.3rem;
+    overflow: hidden;
+    background: rgb(0 0 0 / 5%);
+
+    /* aspect-ratio: 4 / 3; */
+    width: 48px;
+    height: 48px;
+}
+
+.component-image-thumb-media--tiny {
+    width: 20px;
+    height: 20px;
+}
+
+.component-image-thumb-media img {
+    display: block;
+    object-fit: cover;
+}
+
+.component-image-thumb-caption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.75rem;
+}
+
+.component-image-filename {
+    font-weight: 600;
+    font-size: 0.8rem;
+    word-break: break-all;
+}
+
+.component-image-thumb-caption .component-image-path {
+    font-size: 0.7rem;
+    color: var(--fg-muted, #6b7280);
+}
+
+[data-theme='dark'] .component-image-thumb-caption .component-image-path {
+    color: var(--fg-muted, #94a3b8);
+}
+
+.component-image-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.component-image-picker-selection {
+    font-size: 0.9rem;
+    color: var(--fg-muted, #6b7280);
+    margin-top: 0.25rem;
+}
+
+[data-theme='dark'] .component-image-picker-selection {
+    color: var(--fg-muted, #94a3b8);
+}
+
+#image-grid .tile.image[data-selected] {
+    box-shadow: 0 0 0 3px var(--primary);
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+}
+
+.component-form--modal
+    input:not([type='hidden'], [type='radio'], [type='checkbox']),
+.component-form--modal textarea {
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    font: inherit;
+    background: transparent;
+    color: inherit;
+}
+
+.component-select .select {
+    width: 100%;
+}
+
+.component-select[data-select-invalid] .select-button {
+    border-color: var(--danger);
+}
+
+.component-form--modal
+    input:not([type='hidden'], [type='radio'], [type='checkbox']):focus,
+.component-form--modal textarea:focus,
+.component-form--modal .select-button:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+.component-form--modal
+    .component-select[data-select-invalid]
+    .select-button:focus {
+    outline: 2px solid var(--danger);
+    outline-offset: 1px;
+}
+
+.component-form--modal
+    .component-select[data-select-invalid]
+    .select-button:hover {
+    background: var(--danger);
+}
+
+.component-color-picker {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.component-color-chip {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    margin-right: 0.35rem;
+    vertical-align: middle;
+    background: var(--chip-color, #000);
+}
+
+[data-theme='dark'] .component-color-chip {
+    border-color: rgb(255 255 255 / 35%);
+}
+
+.component-color-picker input[type='color'] {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    background: transparent;
+}
+
+.component-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.components-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.component-dependency-editor {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.component-dependency-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-dependency-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.component-dependency-item .component-select {
+    flex: 1;
+}
+
+.component-dependency-group-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.75rem;
+}
+
+.component-dependency-group {
+    border: 1px solid var(--line, #d1d5db);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-dependency-group-header {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.component-dependency-group-header .component-select {
+    flex: 1;
+}
+
+.component-dependency-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.component-dependency-subheading {
+    margin: 0;
+    font-weight: 600;
+}
+
+.component-forbidden-editor {
+    display: grid;
+    gap: 0.5rem;
+}
+
+[data-theme='dark'] .component-dependency-group {
+    border-color: var(--line, #334155);
+}
+
+.component-dependency-hint {
+    margin: 0;
+    color: var(--fg-muted, #6b7280);
+    font-size: 0.85rem;
+}
+
+[data-theme='dark'] .component-dependency-hint {
+    color: var(--fg-muted, #94a3b8);
+}
+
+.component-properties-editor {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-properties-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.5rem;
+}
+
+.component-properties-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr minmax(90px, 0.5fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+@media (width < 720px) {
+    .component-properties-item {
+        grid-template-columns: 1fr;
+    }
+}
+
+.component-properties-preview {
+    margin: 0;
+    padding-left: 1rem;
+}

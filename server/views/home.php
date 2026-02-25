@@ -1,2 +1,1 @@
-<h1>PWA Template</h1>
-<p>PHP SSR + Vite dev assets. ✨</p>
+<h1>HAGEMANN konfigurátor</h1>

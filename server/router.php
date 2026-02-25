@@ -1,7 +1,27 @@
 <?php
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$file = __DIR__ . $path;
-if ($path !== '/' && file_exists($file) && !is_dir($file)) {
-  return false; // serve static files
+// Decode percent-encoded path so files with spaces/diacritics resolve correctly
+$decoded = rawurldecode($path ?? '/');
+$file = __DIR__ . $decoded;
+if (preg_match('#/(?:sw\.js|sw-[A-Za-z0-9_-]+\.js|sw/sw-[A-Za-z0-9_-]+\.js)$#', $decoded)) {
+    require __DIR__ . '/sw.php';
+    exit;
 }
+
+// Normalize and ensure the requested file stays under the server docroot
+$rootReal = realpath(__DIR__);
+$root = $rootReal === false ? '' : str_replace('\\', '/', $rootReal);
+$candReal = realpath($file);
+$candidatePath = $candReal === false ? $file : $candReal;
+$cand = str_replace('\\', '/', $candidatePath);
+$inDocroot = false;
+if ($root !== '') {
+    $inDocroot = strncmp($cand, $root, strlen($root)) === 0;
+}
+if ($decoded !== '/' && $inDocroot && is_file($cand)) {
+    // Let PHP's built-in server serve the static file
+    return false;
+}
+
 require __DIR__ . '/index.php';

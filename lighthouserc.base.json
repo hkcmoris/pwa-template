@@ -1,0 +1,33 @@
+{
+    "ci": {
+        "assert": {
+            "preset": "lighthouse:recommended",
+            "assertions": {
+                "first-contentful-paint": [
+                    "error",
+                    { "maxNumericValue": 2000 }
+                ],
+                "largest-contentful-paint": [
+                    "error",
+                    { "maxNumericValue": 2000 }
+                ],
+                "cumulative-layout-shift": [
+                    "error",
+                    { "maxNumericValue": 0.05 }
+                ],
+                "interactive": ["error", { "maxNumericValue": 3000 }],
+                "total-byte-weight": ["error", { "maxNumericValue": 14336 }],
+                "script-treemap-data": "on",
+                "uses-responsive-images": "error",
+                "image-size-responsive": "error",
+                "color-contrast": "error",
+                "html-has-lang": "error",
+                "document-title": "error",
+                "meta-description": "error"
+            }
+        },
+        "upload": {
+            "target": "temporary-public-storage"
+        }
+    }
+}

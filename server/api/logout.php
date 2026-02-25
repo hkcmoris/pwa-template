@@ -1,24 +1,32 @@
 <?php
-require_once __DIR__.'/cors.php';
-require_once __DIR__.'/../lib/logger.php';
-require_once __DIR__.'/../lib/auth.php';
+
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/cors.php';
 
 header('Content-Type: application/json');
 
-setcookie('token', '', [
+csrf_require_valid(null, 'json');
+
+$base = defined('BASE_PATH') ? (string) BASE_PATH : '';
+$cookiePath = '/' . trim($base, '/');
+$cookieOptions = [
     'expires' => time() - 3600,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
-]);
+    'path' => $cookiePath,
+    'httponly' => true,
+    'samesite' => 'Lax',
+    'secure' => !app_is_dev(),
+];
+
+setcookie('token', '', $cookieOptions);
+unset($_COOKIE['token']);
 
 // Revoke and clear refresh token
 $refresh = $_COOKIE['refresh_token'] ?? '';
 if ($refresh) {
     revoke_refresh_token($refresh);
 }
-setcookie('refresh_token', '', [
-    'expires' => time() - 3600,
-    'path' => (defined('BASE_PATH') && BASE_PATH !== '' ? BASE_PATH : '/'),
-]);
+setcookie('refresh_token', '', $cookieOptions);
+unset($_COOKIE['refresh_token']);
 
 log_message('User logged out');
 

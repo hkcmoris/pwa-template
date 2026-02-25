@@ -1,0 +1,100 @@
+/* Shared editor primitives used by both components and definitions views */
+
+.component-primary,
+.definition-primary {
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--primary-contrast);
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.component-primary:hover,
+.component-primary:focus-visible,
+.definition-primary:hover,
+.definition-primary:focus-visible {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.component-action,
+.definition-action {
+    border: 1px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.component-action:hover,
+.component-action:focus-visible,
+.definition-action:hover,
+.definition-action:focus-visible {
+    background: var(--primary);
+    color: var(--primary-contrast);
+}
+
+.component-action--danger,
+.definition-action--danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.component-action--danger:hover,
+.component-action--danger:focus-visible,
+.definition-action--danger:hover,
+.definition-action--danger:focus-visible {
+    background: var(--danger);
+    color: #fff;
+}
+
+.components-modal-panel header,
+.definitions-modal-panel header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.components-modal-panel header h3,
+.definitions-modal-panel header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.components-modal-panel header button,
+.definitions-modal-panel header button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.form-feedback {
+    font-size: 0.85rem;
+    border-radius: 0.35rem;
+    padding: 0.5rem 0.6rem;
+    margin: 0.5rem 0 0;
+}
+
+.form-feedback.hidden {
+    display: none;
+}
+
+.form-feedback.form-feedback--error {
+    background: rgb(220 38 38 / 12%);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
+
+.form-feedback.form-feedback--success {
+    background: rgb(22 163 74 / 12%);
+    border: 1px solid #16a34a;
+    color: #166534;
+}
