@@ -311,7 +311,7 @@ export const initAdminLogo = (root: HTMLElement) => {
         updated_at: string;
     }) {
         const base = document.documentElement?.dataset?.base ?? '';
-        const url = `${base}${payload.path}?v=${encodeURIComponent(payload.updated_at)}`;
+        const url = `${base}/${payload.path}?v=${encodeURIComponent(payload.updated_at)}`;
 
         // pick whatever you use
         const img = document.querySelector<HTMLImageElement>('[data-app-logo]');

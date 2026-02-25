@@ -25,6 +25,9 @@ $logoSettings = $logoRepository->readLogoSettings();
 $logoW = $logoSettings['width'];
 $logoH = $logoSettings['height'];
 $logoUrl = $logoSettings['path'];
+if (!empty($logoSettings['updated_at'])) {
+    $logoUrl .= '?v=' . rawurlencode((string)$logoSettings['updated_at']);
+}
 
 $csrfToken = csrf_token_if_active();
 
@@ -240,7 +243,7 @@ $cspNonceAttr = $cspNonce !== ''
     <header id="main-header">
       <div class="logo">
         <img
-          src="<?= htmlspecialchars($BASE) ?><?= $logoUrl ?>"
+          src="<?= htmlspecialchars($BASE) ?>/<?= $logoUrl ?>"
           alt="Logo"
           width="<?= (int)$logoW ?>"
           height="<?= (int)$logoH ?>"
