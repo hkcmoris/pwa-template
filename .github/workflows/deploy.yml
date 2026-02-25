@@ -85,7 +85,7 @@ jobs:
                     --verbose \
                     --only-newer \
                     --no-perms \
-                    --no-unmask \
+                    --no-umask \
                     --parallel=6 \
                     --exclude-glob .env \
                     --exclude-glob .env.* \
