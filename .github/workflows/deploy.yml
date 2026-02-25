@@ -2,7 +2,7 @@ name: Deploy
 
 on:
     push:
-        branches: [main]
+        branches: [fix/deploy]
 
 permissions:
     contents: read
@@ -53,10 +53,9 @@ jobs:
                   ls -la deploy/public
                   ls -la deploy/public/assets
 
-            - name: Deploy via SFTP (lftp mirror)
+            - name: Deploy via FTPS (lftp mirror)
               env:
                   HOST: ${{ secrets.HOST }}
-                  PORT: ${{ secrets.PORT }}
                   USER: ${{ secrets.USER }}
                   PASS: ${{ secrets.PASS }}
                   REMOTE_DIR: ${{ secrets.REMOTE_DIR }}
@@ -65,12 +64,13 @@ jobs:
                   sudo apt-get install -y lftp
 
                   cat > lftp.cmd <<LFTP
-                  set sftp:auto-confirm yes
+                  set ftp:ssl-force true
+                  set ftp:ssl-protect-data true
+                  set ssl:verify-certificate no
                   set net:timeout 20
                   set net:max-retries 2
                   set net:reconnect-interval-base 3
-                  set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $PORT"
-                  open -u "$USER","$PASS" sftp://$HOST
+                  open -u "$USER","$PASS" ftp://$HOST
                   cd "$REMOTE_DIR"
                   ls
                   pwd
