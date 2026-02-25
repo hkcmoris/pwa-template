@@ -11,7 +11,7 @@ use function get_db_connection;
 
 final class Repository
 {
-    private const DEFAULT_LOGO_PATH = 'default-logo.svg';
+    private const DEFAULT_LOGO_PATH = 'public/assets/logo/default-logo.svg';
 
     private const MAX_LOGO_WIDTH = 130;
 

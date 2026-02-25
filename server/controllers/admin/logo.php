@@ -69,6 +69,7 @@ if (stripos($rawSvg, '<svg') === false) {
 }
 
 $repository = new Repository();
+log_message("Repository initialized for logo upload", 'DEBUG');
 
 try {
     $cleanSvg = $repository->sanitizeSvg($rawSvg);
@@ -86,7 +87,7 @@ try {
         throw new RuntimeException('Cannot create upload dir');
     }
 
-    $logoPathRel = '/public/assets/logo/logo.svg';
+    $logoPathRel = 'public/assets/logo/logo.svg';
     $logoPathAbs = $baseDir . '/logo/logo.svg';
 
     // atomic write
