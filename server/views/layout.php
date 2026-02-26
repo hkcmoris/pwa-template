@@ -91,7 +91,7 @@ $cspNonceAttr = $cspNonce !== ''
     echo '<meta name="htmx-config" content="' .
       htmlspecialchars(json_encode($htmxConfig, JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8') .
     '">';
-  ?>
+    ?>
   <?php if ($isDevEnv && $cspNonce !== '') : ?>
   <meta property="csp-nonce" content="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
   <?php endif; ?>
