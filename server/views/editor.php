@@ -48,8 +48,9 @@ if ($isHtmxEditorContentRequest) {
 ?>
 
 <h1>Editor</h1>
-<div id="editor-root">
+<div id="editor-root" data-island="editor">
   <nav
+    id="editor-nav-menu"
     class="subnav"
     aria-label="Editor navigace"
     style="display:flex;gap:.5rem;margin:.5rem 0 .75rem;flex-wrap:wrap"
@@ -59,21 +60,21 @@ if ($isHtmxEditorContentRequest) {
        hx-push-url="true"
        hx-target="#editor-content"
        hx-swap="innerHTML"
-       class="<?= $active === 'definitions' ? 'active' : '' ?>">Definice</a>
+    >Definice</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-push-url="true"
        hx-target="#editor-content"
        hx-swap="innerHTML"
-       class="<?= $active === 'components' ? 'active' : '' ?>">Komponenty</a>
+    >Komponenty</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-push-url="true"
        hx-target="#editor-content"
        hx-swap="innerHTML"
-       class="<?= $active === 'images' ? 'active' : '' ?>">Správce galerie</a>
+    >Správce galerie</a>
   </nav>
 
   <section id="editor-content-wrapper">

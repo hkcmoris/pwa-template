@@ -91,7 +91,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
         <legend>Přidat novou definici</legend>
         <div class="definition-field">
           <label for="definition-modal-title">Název</label>
-                  <input
+          <input
             type="text"
             id="definition-modal-title"
             name="title"
