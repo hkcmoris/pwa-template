@@ -49,6 +49,9 @@ $main = isset($main) && is_array($main) ? $main : null;
 $fontsCss = isset($fontsCss) && is_array($fontsCss) ? $fontsCss : null;
 /** @var array<string, string> $viewStyles */
 $viewStyles = isset($viewStyles) && is_array($viewStyles) ? $viewStyles : [];
+$viewPath = isset($viewPath) && is_string($viewPath) && $viewPath !== ''
+    ? $viewPath
+    : __DIR__ . '/404.php';
 $resolvedViewStyles = [];
 foreach ($viewStyles as $styleId => $entry) {
     $href = vite_asset_href($entry, $isDevEnv, $BASE);
@@ -86,7 +89,7 @@ $cspNonceAttr = $cspNonce !== ''
   <?php
     $htmxConfig = [
       'includeIndicatorStyles' => false,
-      'inlineStyleNonce' => $cspNonce ?? '',
+      'inlineStyleNonce' => $cspNonce,
     ];
     echo '<meta name="htmx-config" content="' .
       htmlspecialchars(json_encode($htmxConfig, JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8') .

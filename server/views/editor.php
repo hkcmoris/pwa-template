@@ -31,6 +31,20 @@ $active = isset($editorActive) && is_string($editorActive)
 if (!in_array($active, ['definitions','components','images'], true)) {
     $active = 'definitions';
 }
+
+$isHtmxEditorContentRequest = isset($_SERVER['HTTP_HX_REQUEST'], $_SERVER['HTTP_HX_TARGET'])
+    && $_SERVER['HTTP_HX_REQUEST'] === 'true'
+    && $_SERVER['HTTP_HX_TARGET'] === 'editor-content';
+
+if ($isHtmxEditorContentRequest) {
+    $partial = __DIR__ . '/editor/partials/' . $active . '.php';
+    if (is_file($partial)) {
+        require $partial;
+    } else {
+        echo '<p>Obsah nelze načíst.</p>';
+    }
+    return;
+}
 ?>
 
 <h1>Editor</h1>
