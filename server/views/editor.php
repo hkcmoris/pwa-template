@@ -51,9 +51,7 @@ if ($isHtmxEditorContentRequest) {
 <div id="editor-root" data-island="editor">
   <nav
     id="editor-nav-menu"
-    class="subnav"
     aria-label="Editor navigace"
-    style="display:flex;gap:.5rem;margin:.5rem 0 .75rem;flex-wrap:wrap"
   >
     <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
@@ -82,7 +80,7 @@ if ($isHtmxEditorContentRequest) {
       width="0px"
       height="0px"
       display="none"
-      style="display: none;"
+      class="hidden"
       aria-hidden="true"
     >
       <symbol id="icon-trash" viewBox="0 0 512 512">

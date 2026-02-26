@@ -59,7 +59,7 @@ $latestDraftLabel = $latestDraftId !== null
     width="0px"
     height="0px"
     display="none"
-    style="display: none;"
+    class="hidden"
     aria-hidden="true"
   >
     <symbol id="icon-trash" viewBox="0 0 512 512">

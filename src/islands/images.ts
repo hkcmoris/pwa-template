@@ -204,7 +204,7 @@ function mount(el: HTMLElement) {
         <label>Název složky<br>
           <input type="text" name="name" value="" required>
         </label>
-        <div style="display:flex;gap:.5rem;margin-top:.5rem;justify-content:flex-end">
+        <div class="modal-button-group">
           <button type="button" data-cancel>Storno</button>
           <button type="submit" data-ok>Vytvořit</button>
         </div>
@@ -272,7 +272,7 @@ function mount(el: HTMLElement) {
       <div class="dialog dialog--small" role="dialog" aria-modal="true">
         <button class="close" aria-label="Zavřít">×</button>
         <div class="dialog-body">
-          <h3 style="margin:.25rem 0 .5rem 0">${title}</h3>
+          <h3>${title}</h3>
           ${bodyHTML}
         </div>
       </div>`;
@@ -343,7 +343,7 @@ function mount(el: HTMLElement) {
               <label>Nový název složky<br>
                 <input type="text" name="newName" value="${name}" required>
               </label>
-              <div style="display:flex;gap:.5rem;margin-top:.5rem;justify-content:flex-end">
+              <div class="modal-button-group">
                 <button type="button" data-cancel>Storno</button>
                 <button type="submit" data-ok>OK</button>
               </div>
@@ -395,7 +395,7 @@ function mount(el: HTMLElement) {
               <label>Nový název souboru (bez .webp)<br>
                 <input type="text" name="newName" value="${name.replace(/\.webp$/i, '')}" required>
               </label>
-              <div style="display:flex;gap:.5rem;margin-top:.5rem;justify-content:flex-end">
+              <div class="modal-button-group">
                 <button type="button" data-cancel>Storno</button>
                 <button type="submit" data-ok>OK</button>
               </div>
@@ -447,11 +447,11 @@ function mount(el: HTMLElement) {
                         `
             <form id="delete-form">
               <p>Opravdu smazat složku "${name}"?</p>
-              <label style="display:flex;gap:.5rem;align-items:center;margin:.5rem 0">
+              <label class="modal-confirm">
                 <input type="checkbox" name="confirm" required>
                 <span>Rozumím, že budou smazány všechny soubory uvnitř této složky.</span>
               </label>
-              <div style="display:flex;gap:.5rem;justify-content:flex-end">
+              <div class="modal-button-group">
                 <button type="button" data-cancel>Storno</button>
                 <button type="submit" data-ok class="danger">Smazat</button>
               </div>
@@ -492,7 +492,7 @@ function mount(el: HTMLElement) {
                         `
             <form id="delete-form">
               <p>Opravdu smazat soubor "${name}"?</p>
-              <div style="display:flex;gap:.5rem;justify-content:flex-end">
+              <div class="modal-button-group">
                 <button type="button" data-cancel>Storno</button>
                 <button type="submit" data-ok class="danger">Smazat</button>
               </div>

@@ -1,4 +1,63 @@
 /* Shared editor primitives used by both components and definitions views */
+.depth-0 {
+    --depth: 0;
+}
+
+.depth-1 {
+    --depth: 1;
+}
+
+.depth-2 {
+    --depth: 2;
+}
+
+.depth-3 {
+    --depth: 3;
+}
+
+.depth-4 {
+    --depth: 4;
+}
+
+.depth-5 {
+    --depth: 5;
+}
+
+.depth-6 {
+    --depth: 6;
+}
+
+.depth-7 {
+    --depth: 7;
+}
+
+.depth-8 {
+    --depth: 8;
+}
+
+.depth-9 {
+    --depth: 9;
+}
+
+.depth-10 {
+    --depth: 10;
+}
+
+.depth-11 {
+    --depth: 11;
+}
+
+.depth-12 {
+    --depth: 12;
+}
+
+.definition-item,
+.component-item {
+    --depth-step: 1.25rem;
+
+    position: relative;
+    margin-left: calc(var(--depth, 0) * var(--depth-step));
+}
 
 .component-primary,
 .definition-primary {

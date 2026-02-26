@@ -46,7 +46,6 @@ $BASE = isset($BASE) ? (string) $BASE : '';
               width="16px"
               height="16px"
               display="block"
-              style="display: block;"
               aria-hidden="true"
             >
               <use href="#icon-rename"></use>
@@ -66,7 +65,6 @@ $BASE = isset($BASE) ? (string) $BASE : '';
               width="16px"
               height="16px"
               display="block"
-              style="display: block;"
               aria-hidden="true"
             >
               <use href="#icon-trash"></use>
