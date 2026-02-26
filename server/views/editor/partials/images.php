@@ -65,8 +65,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
         hx-post="<?= htmlspecialchars($BASE) ?>/editor/images/upload"
         hx-vals="<?= htmlspecialchars($uploadHxVals, ENT_QUOTES, 'UTF-8') ?>"
         hx-target="#image-grid"
-        hx-select="#image-grid"
-        hx-swap="outerHTML">
+        hx-swap="innerHTML">
         <?= csrf_field() ?>
         <label>
             <span>Nahrát obrázky</span>
@@ -82,9 +81,9 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
         id="image-grid"
         class="grid"
         hx-get="<?= $initialGridUrl ?>"
-        hx-select="#image-grid"
+        hx-target="#image-grid"
         hx-trigger="load"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
         hx-on="<?= htmlspecialchars($beforeSwapHandler, ENT_QUOTES) ?>">
         Načítám
     </div>

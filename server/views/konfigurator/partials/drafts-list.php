@@ -30,8 +30,7 @@ $BASE = isset($BASE) ? (string) $BASE : '';
             hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $draftId) ?>"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
           >Pokračovat</button>
           <button
             type="button"

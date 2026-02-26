@@ -85,8 +85,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
       action="<?= htmlspecialchars($BASE) ?>/editor/definitions/create"
       method="post"
       hx-target="#definitions-list"
-      hx-select="#definitions-list"
-      hx-swap="outerHTML"
+      hx-swap="innerHTML"
     >
       <fieldset>
         <legend>Přidat novou definici</legend>

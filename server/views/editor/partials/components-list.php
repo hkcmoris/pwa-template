@@ -15,7 +15,7 @@ $hxTarget = isset($_SERVER['HTTP_HX_TARGET']) ? (string) $_SERVER['HTTP_HX_TARGE
 $normalizedHxTarget = strtolower(ltrim($hxTarget, '#'));
 $shouldUseOob = $isHx
     && $normalizedHxTarget !== ''
-    && $normalizedHxTarget !== 'editor-root'
+    && $normalizedHxTarget !== 'editor-content'
     && $normalizedHxTarget !== 'components-list-wrapper';
 $sentinelAttrs = $shouldUseOob && $hasMore ? ' hx-swap-oob="true"' : '';
 ?>

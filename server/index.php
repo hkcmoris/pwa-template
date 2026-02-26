@@ -157,19 +157,24 @@ if ($forcedView !== null) {
     http_response_code(403);
     $view = $forcedView;
     $viewPath = __DIR__ . "/views/{$view}.php";
-} elseif (is_file($viewPath)) {
-    // Apply view-level gates (GET requests)
-    if (
-        ($route === 'konfigurator' && $role === 'guest')
-    ) {
-        http_response_code(403);
-    } else {
-        http_response_code(200);
-    }
-    $view = $route;
 } else {
-    http_response_code(404);
-    $view = '404';
+    $candidate = __DIR__ . "/views/{$route}.php";
+    if (is_file($candidate)) {
+        // Apply view-level gates (GET requests)
+        if (
+            ($route === 'konfigurator' && $role === 'guest')
+        ) {
+            http_response_code(403);
+        } else {
+            http_response_code(200);
+        }
+        $view = $route;
+        $viewPath = $candidate;
+    } else {
+        http_response_code(404);
+        $view = '404';
+        $viewPath = __DIR__ . "/views/404.php";
+    }
 }
 
 $titleMap = [
@@ -224,5 +229,11 @@ $viewStylesMap = [
 ];
 
 $viewStyles = $viewStylesMap[$view] ?? [];
+
+// For HTMX requests, return *only* the fragment view (no layout/head/style/nonces)
+if ($isHx) {
+    require $viewPath;
+    exit;
+}
 
 require __DIR__ . '/views/layout.php';

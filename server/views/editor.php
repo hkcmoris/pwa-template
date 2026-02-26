@@ -43,29 +43,26 @@ if (!in_array($active, ['definitions','components','images'], true)) {
     <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-push-url="true"
-       hx-target="#editor-root"
-       hx-select="#editor-root"
-       hx-swap="outerHTML"
+       hx-target="#editor-content"
+       hx-swap="innerHTML"
        class="<?= $active === 'definitions' ? 'active' : '' ?>">Definice</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-push-url="true"
-       hx-target="#editor-root"
-       hx-select="#editor-root"
-       hx-swap="outerHTML"
+       hx-target="#editor-content"
+       hx-swap="innerHTML"
        class="<?= $active === 'components' ? 'active' : '' ?>">Komponenty</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-push-url="true"
-       hx-target="#editor-root"
-       hx-select="#editor-root"
-       hx-swap="outerHTML"
+       hx-target="#editor-content"
+       hx-swap="innerHTML"
        class="<?= $active === 'images' ? 'active' : '' ?>">Správce galerie</a>
   </nav>
 
-  <section id="editor-content">
+  <section id="editor-content-wrapper">
     <svg
       width="0px"
       height="0px"
@@ -261,6 +258,7 @@ if (!in_array($active, ['definitions','components','images'], true)) {
         </g>
       </symbol>
     </svg>
+    <div id="editor-content">
   <?php
     $partial = __DIR__ . '/editor/partials/' . $active . '.php';
     if (is_file($partial)) {
@@ -269,5 +267,6 @@ if (!in_array($active, ['definitions','components','images'], true)) {
         echo '<p>Obsah nelze načíst.</p>';
     }
     ?>
+    </div>
   </section>
 </div>

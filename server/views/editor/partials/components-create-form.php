@@ -15,8 +15,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
   action="<?= htmlspecialchars($BASE) ?>/editor/components/create"
   method="post"
   hx-target="#components-list-wrapper"
-  hx-select="#components-list-wrapper"
-  hx-swap="outerHTML"
+  hx-swap="innerHTML"
 >
   <input type="hidden" id="component-modal-id" name="component_id" value="">
   <fieldset>

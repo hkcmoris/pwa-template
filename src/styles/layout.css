@@ -318,7 +318,7 @@ body[data-route='home'] {
 }
 
 .hidden {
-    display: none!important;
+    display: none !important;
 }
 
 .auth-form {

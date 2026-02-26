@@ -52,8 +52,7 @@ if ($path !== '') {
       data-folder-rel="<?= htmlspecialchars($parentRel) ?>"
       hx-get="<?= htmlspecialchars(($buildGridUrl)($BASE, $parentRel, $parentVersion)) ?>"
       hx-target="#image-grid"
-      hx-select="#image-grid"
-      hx-swap="outerHTML"
+      hx-swap="innerHTML"
       hx-trigger="dblclick"
   >
     <div class="thumb" aria-hidden="true">
@@ -72,8 +71,7 @@ if ($path !== '') {
       data-folder-rel="<?= htmlspecialchars($d['rel']) ?>"
       hx-get="<?= htmlspecialchars(($buildGridUrl)($BASE, $d['rel'], max(1, (int) $d['version']))) ?>"
       hx-target="#image-grid"
-      hx-select="#image-grid"
-      hx-swap="outerHTML"
+      hx-swap="innerHTML"
       hx-trigger="dblclick"
   >
     <div class="thumb" aria-hidden="true">
