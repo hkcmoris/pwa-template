@@ -150,6 +150,8 @@ if (!function_exists('render_definition_items')) {
             $rangeLabel = definitions_format_value_range($range);
             $rangeAttributes = '';
             $depth = isset($node['depth']) ? (int) $node['depth'] : 0;
+            $depth = max(0, min($depth, 12)); // Clamp for sanity and potential CSS class limits.
+            $depthClass = 'depth-' . $depth;
             $childrenCount = isset($node['children_count']) ? (int) $node['children_count'] : 0;
             if ($range !== null) {
                 if ($range['min'] !== null) {
@@ -159,7 +161,7 @@ if (!function_exists('render_definition_items')) {
                     $rangeAttributes .= ' data-value-max="' . (int) $range['max'] . '"';
                 }
             }
-            echo '<li class="definition-item"'
+            echo '<li class="definition-item ' . $depthClass . '"'
                 . ' data-id="' . $id . '"'
                 . ' data-parent="' . $parentId . '"'
                 . ' data-position="' . $position . '"'
@@ -169,7 +171,6 @@ if (!function_exists('render_definition_items')) {
                 . ' data-children-count="' . $childrenCount . '"'
                 . ($range !== null ? ' data-has-range="true"' : '')
                 . $rangeAttributes
-                . ' style="--definition-depth:' . $depth . ';"'
                 . '>';
             echo '<div class="definition-node" draggable="true">';
             echo '<div class="definition-position">' . htmlspecialchars($posPath, ENT_QUOTES, 'UTF-8') . '</div>';
@@ -191,13 +192,11 @@ if (!function_exists('render_definition_items')) {
                     . ' width="16px"'
                     . ' height="16px"'
                     . ' display="block"'
-                    . ' style="display: block;"'
                     . '>'
                     . '<use href="#icon-add"></use>'
                     . '</svg>'
                     . '</button>';
             }
-            $rangeButtonLabel = $range === null ? 'Nastavit rozsah' : 'Upravit rozsah';
             echo '<button type="button" class="definition-action"'
                 . ' data-action="configure-range"'
                 . '>'
@@ -206,11 +205,10 @@ if (!function_exists('render_definition_items')) {
                 . ' width="32px"'
                 . ' height="32px"'
                 . ' display="block"'
-                . ' style="display: block; margin: -8px;"'
+                . ' class="margin-8"'
                 . '>'
                 . '<use href="#icon-range"></use>'
                 . '</svg>'
-                // . $rangeButtonLabel
                 . '</button>';
             echo '<button type="button" class="definition-action"'
                 . ' data-action="rename"'
@@ -220,7 +218,6 @@ if (!function_exists('render_definition_items')) {
                 . ' width="16px"'
                 . ' height="16px"'
                 . ' display="block"'
-                . ' style="display: block;"'
                 . '>'
                 . '<use href="#icon-rename"></use>'
                 . '</svg>'
@@ -233,7 +230,6 @@ if (!function_exists('render_definition_items')) {
                 . ' width="16px"'
                 . ' height="16px"'
                 . ' display="block"'
-                . ' style="display: block;"'
                 . '>'
                 . '<use href="#icon-trash"></use>'
                 . '</svg>'

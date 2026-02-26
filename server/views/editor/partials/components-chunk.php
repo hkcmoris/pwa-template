@@ -8,6 +8,45 @@ $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
 
+function normalize_hex(string $c): ?string
+{
+    $c = strtoupper(trim($c));
+    return preg_match('/^#[0-9A-F]{6}([0-9A-F]{2})?$/', $c) ? $c : null;
+}
+
+/**
+ * @return array{0: int, 1: int, 2: int, 3: int} [r, g, b, a]
+ */
+function hex_to_rgba(string $hex): array
+{
+    $hex = ltrim($hex, '#');
+    $r = hexdec(substr($hex, 0, 2));
+    $g = hexdec(substr($hex, 2, 2));
+    $b = hexdec(substr($hex, 4, 2));
+    $a = strlen($hex) === 8 ? hexdec(substr($hex, 6, 2)) : 255;
+    return [$r, $g, $b, $a];
+}
+
+function rgba_to_hex(int $r, int $g, int $b, int $a = 255): string
+{
+    $r = max(0, min(255, $r));
+    $g = max(0, min(255, $g));
+    $b = max(0, min(255, $b));
+    $a = max(0, min(255, $a));
+    if ($a === 255) {
+        return sprintf('#%02X%02X%02X', $r, $g, $b);
+    }
+    return sprintf('#%02X%02X%02X%02X', $r, $g, $b, $a);
+}
+
+/** darken by 20% => multiply rgb by 0.8 */
+function darken_hex(string $hex, float $amount = 0.2): string
+{
+    [$r, $g, $b, $a] = hex_to_rgba($hex);
+    $k = 1.0 - $amount;
+    return rgba_to_hex((int)round($r * $k), (int)round($g * $k), (int)round($b * $k), $a);
+}
+
 foreach ($items as $node) {
     $id = isset($node['id']) ? (int) $node['id'] : 0;
     if ($id <= 0) {
@@ -82,6 +121,7 @@ foreach ($items as $node) {
     $dependencyCount = count($dependencyRules);
     $childCount = isset($node['children_count']) ? (int) $node['children_count'] : 0;
     $depth = isset($node['depth']) ? (int) $node['depth'] : 0;
+    $depth = max(0, min($depth, 12)); // Clamp for sanity and CSS class limits.
     $mediaType = $rawColor !== '' ? 'color' : 'image';
     $latestPrice = isset($node['latest_price']) && is_array($node['latest_price'])
         ? $node['latest_price']
@@ -115,10 +155,11 @@ foreach ($items as $node) {
         'ID ' . $id,
         'definice ' . $definitionTitle . ' (#' . $definitionId . ')',
     ];
-    $depthAttr = ' data-depth="' . $depth . '" style="--component-depth:' . $depth . ';"';
+    $depthAttr = ' data-depth="' . (int) $depth . '"';
+    $depthClass = 'depth-' . $depth;
     ?>
     <li
-      class="component-item"
+      class="component-item <?= $depthClass ?>"
       data-id="<?= $id ?>"
       data-definition-id="<?= $definitionId ?>"
       data-parent="<?= htmlspecialchars($parentId, ENT_QUOTES, 'UTF-8') ?>"
@@ -215,10 +256,25 @@ foreach ($items as $node) {
                   </div>
                 <?php endif; ?>
                 <?php if ($color !== '') : ?>
+                    <?php
+                    $fill = normalize_hex((string)$color) ?? '#000000';
+                    $stroke = darken_hex($fill, 0.2);
+                    ?>
                   <div>
                     <dt>Barva</dt>
                     <dd>
-                      <span class="component-color-chip" style="--chip-color:<?= $color ?>;"></span>
+                      <svg class="component-color-chip" 
+                        width="16" height="16"
+                        viewBox="0 0 16 16"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect x="0.625" y="0.625" width="14.5" height="14.5" rx="999" ry="999"
+                          fill="<?= htmlspecialchars($fill, ENT_QUOTES) ?>"
+                          stroke="<?= htmlspecialchars($stroke, ENT_QUOTES) ?>"
+                          stroke-width="1.25"
+                        />
+                      </svg>
                       <?= $color ?>
                     </dd>
                   </div>
@@ -270,7 +326,6 @@ foreach ($items as $node) {
               width="16px"
               height="16px"
               display="block"
-              style="display: block;"
               aria-hidden="true"
             >
               <use href="#icon-add"></use>
@@ -286,7 +341,6 @@ foreach ($items as $node) {
               width="16px"
               height="16px"
               display="block"
-              style="display: block;"
               aria-hidden="true"
             >
               <use href="#icon-edit"></use>
@@ -302,7 +356,6 @@ foreach ($items as $node) {
               width="16px"
               height="16px"
               display="block"
-              style="display: block;"
               aria-hidden="true"
             >
               <use href="#icon-clone"></use>
@@ -318,7 +371,6 @@ foreach ($items as $node) {
               width="16px"
               height="16px"
               display="block"
-              style="display: block;"
               aria-hidden="true"
             >
               <use href="#icon-trash"></use>

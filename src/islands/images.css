@@ -167,3 +167,16 @@ body.images-dragging #images-root,
 body.images-dragging #images-root * {
     user-select: none;
 }
+
+.modal-confirm {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.5rem 0;
+}
+
+.modal-button-group {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}

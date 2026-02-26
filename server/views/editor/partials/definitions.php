@@ -47,7 +47,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
   data-base="<?= htmlspecialchars($BASE) ?>"
 >
   <h2>Definice</h2>
-  <p style="max-width: 640px;">
+  <p>
     Spravujte hierarchii definic konfigurátorů. Položky můžete vnořovat podle struktury nabídky
     a později na ně navázat komponenty.
   </p>
@@ -61,7 +61,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
   <div class="definition-parent-cache" aria-hidden="true">
     <div
       id="definition-parent-select"
-      class="definition-parent-select"
+      class="definition-parent-select hidden"
       data-island="select"
       hx-on:select:change="
         const hidden=this.querySelector('#definition-parent-value');
@@ -70,7 +70,6 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
           hidden.value = raw;
         }
       "
-      style="display: none"
     >
       <?php $definitionsParentSwap = false;
         $selectedParent = null;
@@ -85,14 +84,13 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
       action="<?= htmlspecialchars($BASE) ?>/editor/definitions/create"
       method="post"
       hx-target="#definitions-list"
-      hx-select="#definitions-list"
-      hx-swap="outerHTML"
+      hx-swap="innerHTML"
     >
       <fieldset>
         <legend>Přidat novou definici</legend>
         <div class="definition-field">
           <label for="definition-modal-title">Název</label>
-                  <input
+          <input
             type="text"
             id="definition-modal-title"
             name="title"

@@ -67,11 +67,6 @@
     gap: 0.35rem;
 }
 
-.component-item {
-    position: relative;
-    margin-left: calc(var(--component-depth, 0) * 1.25rem);
-}
-
 .component-item::before {
     content: '';
     position: absolute;
@@ -784,14 +779,8 @@
     width: 1rem;
     height: 1rem;
     border-radius: 999px;
-    border: 1px solid var(--border);
     margin-right: 0.35rem;
     vertical-align: middle;
-    background: var(--chip-color, #000);
-}
-
-[data-theme='dark'] .component-color-chip {
-    border-color: rgb(255 255 255 / 35%);
 }
 
 .component-color-picker input[type='color'] {

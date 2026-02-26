@@ -102,7 +102,17 @@ $hasMultipleImages = count($optionImages) > 1;
                 ></button>
             </div>
         <?php elseif (isset($optionColor)) : ?>
-            <div class="options-card-color" style="--color:<?= htmlspecialchars((string) $optionColor) ?>"></div>
+            <svg class="options-card-color"
+                width="100%" height="100"
+                viewBox="0 0 16 16"
+                aria-hidden="true"
+                focusable="false"
+                preserveAspectRatio="none"
+            >
+                <rect x="0" y="0" width="16" height="16"
+                    fill="<?= htmlspecialchars($optionColor, ENT_QUOTES) ?>"
+                />
+            </svg>
         <?php endif; ?>
         <h2 class="options-card-title">
             <?= htmlspecialchars($optionTitle) ?>
