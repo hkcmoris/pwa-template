@@ -36,6 +36,7 @@ export default function init(el: HTMLElement) {
             headers['X-CSRF-Token'] = headerToken;
         }
         try {
+            const debug = `${API_BASE}/login.php` + '\n' + JSON.stringify(payload);
             const response = await fetch(`${API_BASE}/login.php`, {
                 method: 'POST',
                 headers,
@@ -48,7 +49,8 @@ export default function init(el: HTMLElement) {
             if (message) {
                 if (response.ok && data.token) {
                     message.textContent = 'Přihlášení úspěšné';
-                    message.style.setProperty('--tint', '#16a34a');
+                    message.classList.add('success');
+                    message.classList.remove('danger');
                     const emailValue =
                         (typeof data.user?.email === 'string' &&
                             data.user.email) ||
@@ -67,14 +69,16 @@ export default function init(el: HTMLElement) {
                     window.location.href = `${BASE}/`;
                 } else {
                     message.textContent =
-                        data.error || 'Přihlášení se nezdařilo';
-                    message.style.removeProperty('--tint');
+                        (data.error || 'Přihlášení se nezdařilo') + '\n' + debug;
+                    message.classList.add('danger');
+                    message.classList.remove('success');
                 }
             }
         } catch {
             if (message) {
                 message.textContent = 'Přihlášení se nezdařilo';
-                message.style.removeProperty('--tint');
+                message.classList.add('danger');
+                message.classList.remove('success');
             }
         }
     });

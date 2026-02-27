@@ -50,7 +50,10 @@ jobs:
                     --exclude "tests" \
                     --exclude "var/log" \
                     --exclude ".env*" \
+                    --exclude "server/sw.js" \
                     --exclude "server/src" \
+                    --exclude "server/database" \
+                    --exclude "server/logs" \
                     server/ deploy/
 
                   ls -la deploy

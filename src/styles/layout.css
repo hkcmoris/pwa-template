@@ -5,6 +5,8 @@
     --primary: #2563eb;
     --primary-contrast: #fff;
     --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
+    --danger: #dc2626;
+    --success: #339230;
     --border: rgb(from var(--fg) r g b / 20%);
     --shadow: rgb(from var(--fg) r g b / 10%);
     --fg-muted: #4b5563;
@@ -40,6 +42,8 @@
     --border: rgb(from var(--fg) r g b / 40%);
     --shadow: rgb(from var(--fg) r g b / 10%);
     --primary: #60a5fa;
+    --danger: #e96a6a;
+    --success: #7cc97a;
     --primary-contrast: #0f172a;
     --primary-hover: color-mix(in srgb, var(--primary) 70%, white);
     --fg-muted: #cbd5e1;
@@ -348,15 +352,22 @@ body[data-route='home'] {
 }
 
 #login-message {
-    --tint: var(--danger);
-
-    color: var(--tint);
     max-width: 300px;
     margin: 1rem auto 0;
     padding: 0.25rem 0.75rem;
-    border: 1px solid var(--tint);
     border-radius: 4px;
-    background: rgb(from var(--tint) r g b / 10%);
+}
+
+.success {
+    color: var(--success);
+    border: 1px solid var(--success);
+    background: rgb(from var(--success) r g b / 10%);
+}
+
+.danger {
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    background: rgb(from var(--danger) r g b / 10%);
 }
 
 #login-message:empty {

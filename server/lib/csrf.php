@@ -56,6 +56,7 @@ function csrf_ensure_session(): void
      *     samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
      * } $params
      */
+    log_message("Starting session for CSRF protection");
     $params = session_get_cookie_params();
     $base = defined('BASE_PATH') ? trim((string) BASE_PATH, '/') : '';
     $path = $params['path'];
@@ -63,7 +64,7 @@ function csrf_ensure_session(): void
         $path = '/' . $base;
     }
     if (headers_sent($file, $line)) {
-        error_log("Headers already sent in $file on line $line");
+        log_message("Headers already sent in $file on line $line", 'WARN');
     }
     session_set_cookie_params([
         'lifetime' => $params['lifetime'],
@@ -78,6 +79,7 @@ function csrf_ensure_session(): void
 
 function csrf_generate_token(): string
 {
+    log_message("Generating new CSRF token [csrf_generate_token()]");
     return bin2hex(random_bytes(32));
 }
 

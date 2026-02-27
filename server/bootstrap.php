@@ -58,6 +58,10 @@ if (!headers_sent()) {
     header('Content-Security-Policy: ' . implode('; ', $cspDirectives));
     header('Cross-Origin-Opener-Policy: same-origin');
     header('X-Frame-Options: DENY');
+    header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    header('Vary: Cookie');
 
     $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
         || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)

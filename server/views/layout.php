@@ -82,6 +82,7 @@ $cspNonceAttr = $cspNonce !== ''
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?= htmlspecialchars($title) ?></title>
+  <link rel="icon" href="<?= htmlspecialchars($BASE) ?>/favicon.ico">
   <meta
     name="description"
     content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor') ?>"
@@ -110,6 +111,7 @@ $cspNonceAttr = $cspNonce !== ''
       --primary-contrast: #fff;
       --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
       --danger: #dc2626;
+      --success: #339230;
       --fg-muted: #4b5563;
       --home-bg: none;
     }
