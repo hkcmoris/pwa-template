@@ -28,16 +28,35 @@ function csrf_session_key(): string
 
 function csrf_secure_cookies(): bool
 {
-    if (!app_is_dev()) {
-        return true;
+    $secureOverride = getenv('SESSION_COOKIE_SECURE');
+    if (is_string($secureOverride) && $secureOverride !== '') {
+        $normalized = strtolower(trim($secureOverride));
+        if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+            return true;
+        }
+        if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+            return false;
+        }
     }
+
     if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
         return true;
     }
+
+    $requestScheme = $_SERVER['REQUEST_SCHEME'] ?? '';
+    if (is_string($requestScheme) && strtolower($requestScheme) === 'https') {
+        return true;
+    }
+
     $forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
     if (is_string($forwardedProto) && strtolower($forwardedProto) === 'https') {
         return true;
     }
+
+    if (!app_is_dev()) {
+        log_message("[csrf_secure_cookies()] Non-dev environment without HTTPS indicators; using insecure session cookie. Set SESSION_COOKIE_SECURE=1 to force secure cookies.", 'WARN');
+    }
+
     return false;
 }
 
@@ -47,6 +66,7 @@ function csrf_ensure_session(): void
         log_message("[csrf_ensure_session()] Session already active for CSRF protection");
         return;
     }
+    log_message("[csrf_ensure_session()] Starting session for CSRF protection");
     /**
      * @var array{
      *     lifetime: int<0, max>,
@@ -57,7 +77,6 @@ function csrf_ensure_session(): void
      *     samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
      * } $params
      */
-    log_message("[csrf_ensure_session()] Starting session for CSRF protection");
     $params = session_get_cookie_params();
     $base = defined('BASE_PATH') ? trim((string) BASE_PATH, '/') : '';
     $path = $params['path'];
