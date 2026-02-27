@@ -88,6 +88,14 @@ export function getCsrfToken(): string {
     return csrfToken;
 }
 
+export async function ensureCsrfToken(): Promise<string> {
+    const token = getCsrfToken();
+    if (token) {
+        return token;
+    }
+    return (await ensureFreshCsrfToken()) ?? '';
+}
+
 export async function apiFetch(
     path: string,
     init?: FetchInit,

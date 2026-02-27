@@ -1,4 +1,4 @@
-import { API_BASE, getCsrfToken } from '../utils/api';
+import { API_BASE, ensureCsrfToken, getCsrfToken } from '../utils/api';
 
 const BASE =
     (typeof document !== 'undefined' &&
@@ -31,12 +31,12 @@ export default function init(el: HTMLElement) {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
-        const headerToken = getCsrfToken();
+        const initialToken = getCsrfToken();
+        const headerToken = initialToken || (await ensureCsrfToken());
         if (headerToken) {
             headers['X-CSRF-Token'] = headerToken;
         }
         try {
-            const debug = `${API_BASE}/login.php` + '\n' + JSON.stringify(payload);
             const response = await fetch(`${API_BASE}/login.php`, {
                 method: 'POST',
                 headers,
@@ -69,7 +69,7 @@ export default function init(el: HTMLElement) {
                     window.location.href = `${BASE}/`;
                 } else {
                     message.textContent =
-                        (data.error || 'Přihlášení se nezdařilo') + '\n' + debug;
+                        data.error || 'Přihlášení se nezdařilo';
                     message.classList.add('danger');
                     message.classList.remove('success');
                 }
