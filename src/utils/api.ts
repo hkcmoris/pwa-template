@@ -96,6 +96,10 @@ export async function ensureCsrfToken(): Promise<string> {
     return (await ensureFreshCsrfToken()) ?? '';
 }
 
+export async function refreshCsrfToken(): Promise<string> {
+    return (await ensureFreshCsrfToken()) ?? '';
+}
+
 export async function apiFetch(
     path: string,
     init?: FetchInit,
