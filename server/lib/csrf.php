@@ -60,6 +60,31 @@ function csrf_secure_cookies(): bool
     return false;
 }
 
+
+function csrf_cookie_samesite(): string
+{
+    $sameSiteOverride = getenv('SESSION_COOKIE_SAMESITE');
+    if (is_string($sameSiteOverride) && $sameSiteOverride !== '') {
+        $normalized = strtolower(trim($sameSiteOverride));
+        if ($normalized === 'none') {
+            return 'None';
+        }
+        if ($normalized === 'strict') {
+            return 'Strict';
+        }
+        if ($normalized === 'lax') {
+            return 'Lax';
+        }
+    }
+
+    $fetchSite = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+    if (is_string($fetchSite) && in_array(strtolower($fetchSite), ['cross-site', 'none'], true)) {
+        return 'None';
+    }
+
+    return 'Lax';
+}
+
 function csrf_ensure_session(): void
 {
     if (session_status() === PHP_SESSION_ACTIVE) {
@@ -84,16 +109,20 @@ function csrf_ensure_session(): void
         $path = '/' . $base;
     }
     log_message("[csrf_ensure_session()] Session cookie parameters: lifetime={$params['lifetime']}, path={$path}, domain={$params['domain']}, secure=" . ($params['secure'] ? 'true' : 'false') . ", httponly=" . ($params['httponly'] ? 'true' : 'false') . ", samesite={$params['samesite']}");
+    log_message("[csrf_ensure_session()] Request context: HTTPS=" . (isset($_SERVER['HTTPS']) ? (string) $_SERVER['HTTPS'] : '') . ", REQUEST_SCHEME=" . (isset($_SERVER['REQUEST_SCHEME']) ? (string) $_SERVER['REQUEST_SCHEME'] : '') . ", X_FORWARDED_PROTO=" . (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? (string) $_SERVER['HTTP_X_FORWARDED_PROTO'] : '') . ", SEC_FETCH_SITE=" . (isset($_SERVER['HTTP_SEC_FETCH_SITE']) ? (string) $_SERVER['HTTP_SEC_FETCH_SITE'] : ''));
     if (headers_sent($file, $line)) {
         log_message("[csrf_ensure_session()] Headers already sent in $file on line $line", 'WARN');
     }
+    $sameSite = csrf_cookie_samesite();
+    $secureCookies = csrf_secure_cookies() || $sameSite === 'None';
+
     session_set_cookie_params([
         'lifetime' => $params['lifetime'],
         'path' => $path,
         'domain' => $params['domain'],
-        'secure' => csrf_secure_cookies(),
+        'secure' => $secureCookies,
         'httponly' => true,
-        'samesite' => 'Lax',
+        'samesite' => $sameSite,
     ]);
     session_start();
 }
