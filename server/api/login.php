@@ -9,7 +9,7 @@ log_message("Received login request");
 $jwtSecret = config_jwt_secret();
 $input = json_decode(file_get_contents('php://input'), true);
 $body = is_array($input) ? $input : null;
-log_message("Parsed request body: " . json_encode($body));
+log_message("Parsed login request payload: " . json_encode(csrf_redact_body($body)));
 csrf_require_valid($body, 'json');
 log_message("CSRF token validated successfully");
 $email = $input['email'] ?? '';

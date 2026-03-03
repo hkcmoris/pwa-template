@@ -151,6 +151,64 @@ function csrf_field(): string
     return '<input type="hidden" name="_csrf" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
 }
 
+
+/**
+ * @param array<string, mixed>|null $body
+ * @return list<string>
+ */
+function csrf_extract_candidates(?array $body = null): array
+{
+    log_message("[csrf_extract_candidates()] Extracting CSRF token candidates from body, POST parameters, and header");
+
+    $tokens = [];
+    if ($body !== null && isset($body['_csrf']) && is_string($body['_csrf'])) {
+        $bodyToken = trim($body['_csrf']);
+        if ($bodyToken !== '') {
+            $tokens[] = $bodyToken;
+            log_message("[csrf_extract_candidates()] CSRF token candidate found in body");
+        }
+    }
+
+    if (isset($_POST['_csrf']) && is_string($_POST['_csrf'])) {
+        $postToken = trim($_POST['_csrf']);
+        if ($postToken !== '' && !in_array($postToken, $tokens, true)) {
+            $tokens[] = $postToken;
+            log_message("[csrf_extract_candidates()] CSRF token candidate found in POST parameters");
+        }
+    }
+
+    $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (is_string($header)) {
+        $headerToken = trim($header);
+        if ($headerToken !== '' && !in_array($headerToken, $tokens, true)) {
+            $tokens[] = $headerToken;
+            log_message("[csrf_extract_candidates()] CSRF token candidate found in header");
+        }
+    }
+
+    return $tokens;
+}
+
+/**
+ * @param array<string, mixed>|null $body
+ * @return array<string, mixed>|null
+ */
+function csrf_redact_body(?array $body): ?array
+{
+    if ($body === null) {
+        return null;
+    }
+
+    $redacted = $body;
+    foreach (['password', 'pass', 'token', 'refresh_token', '_csrf', 'csrf'] as $sensitiveKey) {
+        if (isset($redacted[$sensitiveKey])) {
+            $redacted[$sensitiveKey] = '[REDACTED]';
+        }
+    }
+
+    return $redacted;
+}
+
 /**
  * @param array<string, mixed>|null $body
  */
@@ -199,13 +257,20 @@ function csrf_verify(?string $token, bool $regenerate = false): bool
  */
 function csrf_validate_request(?array $body = null, bool $regenerate = false): bool
 {
-    $token = csrf_extract_from_request($body);
-    if ($token === '') {
+    $candidates = csrf_extract_candidates($body);
+    if ($candidates === []) {
         log_message("[csrf_validate_request()] CSRF token extraction failed, no token to validate", 'WARN');
         return false;
     }
-    log_message("[csrf_validate_request()] CSRF token extracted from request: {$token}");
-    return csrf_verify($token, $regenerate);
+
+    foreach ($candidates as $index => $token) {
+        log_message("[csrf_validate_request()] Validating CSRF token candidate #" . ($index + 1));
+        if (csrf_verify($token, $regenerate)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -217,7 +282,7 @@ function csrf_require_valid(?array $body = null, string $responseType = 'json'):
         log_message("[csrf_require_valid()] CSRF token valid, proceeding with request");
         return;
     }
-    log_message("[csrf_require_valid()] CSRF token invalid or missing, rejecting request. " . json_encode($body), 'ERROR');
+    log_message("[csrf_require_valid()] CSRF token invalid or missing, rejecting request. " . json_encode(csrf_redact_body($body)), 'ERROR');
     log_message("[csrf_require_valid()] Responding with 419 status code for invalid CSRF token", 'ERROR');
     http_response_code(419);
     if (!headers_sent()) {
