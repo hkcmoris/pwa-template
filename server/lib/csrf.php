@@ -170,9 +170,16 @@ function csrf_token(): string
     $existing = $_SESSION[$key] ?? '';
     log_message("[csrf_token()] Existing CSRF token in session: " . (is_string($existing) && $existing !== '' ? $existing : 'none'));
     if (!is_string($existing) || $existing === '') {
-        log_message("[csrf_token()] No existing CSRF token found in session, generating new token");
-        $existing = csrf_generate_token();
-        log_message("[csrf_token()] Storing new CSRF token in session: {$existing}");
+        $cookieToken = $_COOKIE[csrf_cookie_key()] ?? '';
+        if (is_string($cookieToken) && $cookieToken !== '') {
+            log_message("[csrf_token()] Rehydrating CSRF token from CSRF cookie into session", 'WARN');
+            $existing = $cookieToken;
+        } else {
+            log_message("[csrf_token()] No existing CSRF token found in session, generating new token");
+            $existing = csrf_generate_token();
+            log_message("[csrf_token()] Storing new CSRF token in session: {$existing}");
+        }
+
         $_SESSION[$key] = $existing;
     }
 
