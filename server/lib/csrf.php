@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 const CSRF_SESSION_KEY = '_csrf_token';
+const CSRF_COOKIE_KEY = '_csrf_token';
 
 function app_env_value(): string
 {
@@ -26,19 +27,68 @@ function csrf_session_key(): string
     return CSRF_SESSION_KEY;
 }
 
+function csrf_cookie_key(): string
+{
+    return CSRF_COOKIE_KEY;
+}
+
 function csrf_secure_cookies(): bool
 {
-    if (!app_is_dev()) {
-        return true;
+    $secureOverride = getenv('SESSION_COOKIE_SECURE');
+    if (is_string($secureOverride) && $secureOverride !== '') {
+        $normalized = strtolower(trim($secureOverride));
+        if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+            return true;
+        }
+        if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+            return false;
+        }
     }
+
     if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
         return true;
     }
+
+    $requestScheme = $_SERVER['REQUEST_SCHEME'] ?? '';
+    if (is_string($requestScheme) && strtolower($requestScheme) === 'https') {
+        return true;
+    }
+
     $forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
     if (is_string($forwardedProto) && strtolower($forwardedProto) === 'https') {
         return true;
     }
+
+    if (!app_is_dev()) {
+        log_message("[csrf_secure_cookies()] Non-dev environment without HTTPS indicators; using insecure session cookie. Set SESSION_COOKIE_SECURE=1 to force secure cookies.", 'WARN');
+    }
+
     return false;
+}
+
+
+function csrf_cookie_samesite(): string
+{
+    $sameSiteOverride = getenv('SESSION_COOKIE_SAMESITE');
+    if (is_string($sameSiteOverride) && $sameSiteOverride !== '') {
+        $normalized = strtolower(trim($sameSiteOverride));
+        if ($normalized === 'none') {
+            return 'None';
+        }
+        if ($normalized === 'strict') {
+            return 'Strict';
+        }
+        if ($normalized === 'lax') {
+            return 'Lax';
+        }
+    }
+
+    $fetchSite = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+    if (is_string($fetchSite) && in_array(strtolower($fetchSite), ['cross-site', 'none'], true)) {
+        return 'None';
+    }
+
+    return 'Lax';
 }
 
 function csrf_ensure_session(): void
@@ -46,6 +96,7 @@ function csrf_ensure_session(): void
     if (session_status() === PHP_SESSION_ACTIVE) {
         return;
     }
+    log_message("[csrf_ensure_session()] Starting session for CSRF protection");
     /**
      * @var array{
      *     lifetime: int<0, max>,
@@ -65,15 +116,40 @@ function csrf_ensure_session(): void
     if (headers_sent($file, $line)) {
         error_log("Headers already sent in $file on line $line");
     }
+    $sameSite = csrf_cookie_samesite();
+    $secureCookies = csrf_secure_cookies() || $sameSite === 'None';
+
     session_set_cookie_params([
         'lifetime' => $params['lifetime'],
         'path' => $path,
         'domain' => $params['domain'],
-        'secure' => csrf_secure_cookies(),
+        'secure' => $secureCookies,
         'httponly' => true,
-        'samesite' => 'Lax',
+        'samesite' => $sameSite,
     ]);
     session_start();
+}
+
+
+function csrf_store_cookie_token(string $token): void
+{
+    if ($token === '' || headers_sent()) {
+        return;
+    }
+
+    $base = defined('BASE_PATH') ? trim((string) BASE_PATH, '/') : '';
+    $path = $base !== '' ? '/' . $base : '/';
+    $sameSite = csrf_cookie_samesite();
+    $secureCookies = csrf_secure_cookies() || $sameSite === 'None';
+
+    setcookie(csrf_cookie_key(), $token, [
+        'expires' => 0,
+        'path' => $path,
+        'domain' => '',
+        'secure' => $secureCookies,
+        'httponly' => false,
+        'samesite' => $sameSite,
+    ]);
 }
 
 function csrf_generate_token(): string
@@ -90,6 +166,8 @@ function csrf_token(): string
         $existing = csrf_generate_token();
         $_SESSION[$key] = $existing;
     }
+
+    csrf_store_cookie_token($existing);
     return $existing;
 }
 
@@ -165,6 +243,25 @@ function csrf_verify(?string $token, bool $regenerate = false): bool
         return false;
     }
     $stored = $_SESSION[csrf_session_key()] ?? '';
+    $cookieToken = $_COOKIE[csrf_cookie_key()] ?? '';
+
+    $sessionValid = is_string($stored) && $stored !== '' && hash_equals($stored, $token);
+    if ($sessionValid) {
+        if ($regenerate) {
+            log_message("[csrf_verify()] CSRF token valid via session token, regenerating token for next request");
+            $_SESSION[csrf_session_key()] = csrf_generate_token();
+        }
+        return true;
+    }
+
+    $cookieValid = is_string($cookieToken) && $cookieToken !== '' && hash_equals($cookieToken, $token);
+    if ($cookieValid) {
+        log_message("[csrf_verify()] CSRF token valid via CSRF cookie fallback; rehydrating session token", 'WARN');
+        $_SESSION[csrf_session_key()] = $token;
+        csrf_store_cookie_token($token);
+        return true;
+    }
+
     if (!is_string($stored) || $stored === '') {
         return false;
     }
