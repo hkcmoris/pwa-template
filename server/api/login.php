@@ -5,13 +5,11 @@ declare(strict_types=1);
 require_once __DIR__ . '/../bootstrap.php';
 require_once __DIR__ . '/cors.php';
 header('Content-Type: application/json');
-log_message("Received login request");
 $jwtSecret = config_jwt_secret();
 $input = json_decode(file_get_contents('php://input'), true);
 $body = is_array($input) ? $input : null;
 log_message("Parsed login request payload: " . json_encode(csrf_redact_body($body)));
 csrf_require_valid($body, 'json');
-log_message("CSRF token validated successfully");
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
 $base = defined('BASE_PATH') ? (string) BASE_PATH : '';
@@ -34,7 +32,6 @@ if (!$user || !password_verify($password, $user['password'])) {
     echo json_encode(['error' => 'Neplatné přihlašovací údaje']);
     exit;
 }
-log_message("Login successful for {$user['username']}");
 
 $accessTtl = 600;
 $token = generate_jwt(
@@ -54,8 +51,6 @@ setcookie('token', $token, [
     'path' => $cookiePath,
     'secure' => !app_is_dev(),
 ]);
-
-log_message("Setting cookie 'token' for user {$email} with path '{$cookiePath}' and secure=" . (!app_is_dev() ? 'true' : 'false') . " and httponly=true and samesite=Lax and expires in {$accessTtl} seconds");
 
 // Issue refresh token (14 days) and set cookie
 $refreshTtl = 14 * 24 * 3600;
