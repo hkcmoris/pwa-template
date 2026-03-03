@@ -28,17 +28,61 @@ function csrf_session_key(): string
 
 function csrf_secure_cookies(): bool
 {
-    if (!app_is_dev()) {
-        return true;
+    $secureOverride = getenv('SESSION_COOKIE_SECURE');
+    if (is_string($secureOverride) && $secureOverride !== '') {
+        $normalized = strtolower(trim($secureOverride));
+        if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+            return true;
+        }
+        if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+            return false;
+        }
     }
+
     if (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off') {
         return true;
     }
+
+    $requestScheme = $_SERVER['REQUEST_SCHEME'] ?? '';
+    if (is_string($requestScheme) && strtolower($requestScheme) === 'https') {
+        return true;
+    }
+
     $forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
     if (is_string($forwardedProto) && strtolower($forwardedProto) === 'https') {
         return true;
     }
+
+    if (!app_is_dev()) {
+        log_message("[csrf_secure_cookies()] Non-dev environment without HTTPS indicators; using insecure session cookie. Set SESSION_COOKIE_SECURE=1 to force secure cookies.", 'WARN');
+    }
+
     return false;
+}
+
+
+function csrf_cookie_samesite(): string
+{
+    $sameSiteOverride = getenv('SESSION_COOKIE_SAMESITE');
+    if (is_string($sameSiteOverride) && $sameSiteOverride !== '') {
+        $normalized = strtolower(trim($sameSiteOverride));
+        if ($normalized === 'none') {
+            return 'None';
+        }
+        if ($normalized === 'strict') {
+            return 'Strict';
+        }
+        if ($normalized === 'lax') {
+            return 'Lax';
+        }
+    }
+
+    $fetchSite = $_SERVER['HTTP_SEC_FETCH_SITE'] ?? '';
+    if (is_string($fetchSite) && in_array(strtolower($fetchSite), ['cross-site', 'none'], true)) {
+        return 'None';
+    }
+
+    return 'Lax';
 }
 
 function csrf_ensure_session(): void
@@ -47,6 +91,7 @@ function csrf_ensure_session(): void
         log_message("[csrf_ensure_session()] Session already active for CSRF protection");
         return;
     }
+    log_message("[csrf_ensure_session()] Starting session for CSRF protection");
     /**
      * @var array{
      *     lifetime: int<0, max>,
@@ -57,7 +102,6 @@ function csrf_ensure_session(): void
      *     samesite: 'Lax'|'lax'|'None'|'none'|'Strict'|'strict'
      * } $params
      */
-    log_message("[csrf_ensure_session()] Starting session for CSRF protection");
     $params = session_get_cookie_params();
     $base = defined('BASE_PATH') ? trim((string) BASE_PATH, '/') : '';
     $path = $params['path'];
@@ -65,16 +109,20 @@ function csrf_ensure_session(): void
         $path = '/' . $base;
     }
     log_message("[csrf_ensure_session()] Session cookie parameters: lifetime={$params['lifetime']}, path={$path}, domain={$params['domain']}, secure=" . ($params['secure'] ? 'true' : 'false') . ", httponly=" . ($params['httponly'] ? 'true' : 'false') . ", samesite={$params['samesite']}");
+    log_message("[csrf_ensure_session()] Request context: HTTPS=" . (isset($_SERVER['HTTPS']) ? (string) $_SERVER['HTTPS'] : '') . ", REQUEST_SCHEME=" . (isset($_SERVER['REQUEST_SCHEME']) ? (string) $_SERVER['REQUEST_SCHEME'] : '') . ", X_FORWARDED_PROTO=" . (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? (string) $_SERVER['HTTP_X_FORWARDED_PROTO'] : '') . ", SEC_FETCH_SITE=" . (isset($_SERVER['HTTP_SEC_FETCH_SITE']) ? (string) $_SERVER['HTTP_SEC_FETCH_SITE'] : ''));
     if (headers_sent($file, $line)) {
         log_message("[csrf_ensure_session()] Headers already sent in $file on line $line", 'WARN');
     }
+    $sameSite = csrf_cookie_samesite();
+    $secureCookies = csrf_secure_cookies() || $sameSite === 'None';
+
     session_set_cookie_params([
         'lifetime' => $params['lifetime'],
         'path' => $path,
         'domain' => $params['domain'],
-        'secure' => csrf_secure_cookies(),
+        'secure' => $secureCookies,
         'httponly' => true,
-        'samesite' => 'Lax',
+        'samesite' => $sameSite,
     ]);
     session_start();
 }
@@ -132,6 +180,64 @@ function csrf_field(): string
     return '<input type="hidden" name="_csrf" value="' . htmlspecialchars($token, ENT_QUOTES, 'UTF-8') . '">';
 }
 
+
+/**
+ * @param array<string, mixed>|null $body
+ * @return list<string>
+ */
+function csrf_extract_candidates(?array $body = null): array
+{
+    log_message("[csrf_extract_candidates()] Extracting CSRF token candidates from body, POST parameters, and header");
+
+    $tokens = [];
+    if ($body !== null && isset($body['_csrf']) && is_string($body['_csrf'])) {
+        $bodyToken = trim($body['_csrf']);
+        if ($bodyToken !== '') {
+            $tokens[] = $bodyToken;
+            log_message("[csrf_extract_candidates()] CSRF token candidate found in body");
+        }
+    }
+
+    if (isset($_POST['_csrf']) && is_string($_POST['_csrf'])) {
+        $postToken = trim($_POST['_csrf']);
+        if ($postToken !== '' && !in_array($postToken, $tokens, true)) {
+            $tokens[] = $postToken;
+            log_message("[csrf_extract_candidates()] CSRF token candidate found in POST parameters");
+        }
+    }
+
+    $header = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    if (is_string($header)) {
+        $headerToken = trim($header);
+        if ($headerToken !== '' && !in_array($headerToken, $tokens, true)) {
+            $tokens[] = $headerToken;
+            log_message("[csrf_extract_candidates()] CSRF token candidate found in header");
+        }
+    }
+
+    return $tokens;
+}
+
+/**
+ * @param array<string, mixed>|null $body
+ * @return array<string, mixed>|null
+ */
+function csrf_redact_body(?array $body): ?array
+{
+    if ($body === null) {
+        return null;
+    }
+
+    $redacted = $body;
+    foreach (['password', 'pass', 'token', 'refresh_token', '_csrf', 'csrf'] as $sensitiveKey) {
+        if (isset($redacted[$sensitiveKey])) {
+            $redacted[$sensitiveKey] = '[REDACTED]';
+        }
+    }
+
+    return $redacted;
+}
+
 /**
  * @param array<string, mixed>|null $body
  */
@@ -180,13 +286,20 @@ function csrf_verify(?string $token, bool $regenerate = false): bool
  */
 function csrf_validate_request(?array $body = null, bool $regenerate = false): bool
 {
-    $token = csrf_extract_from_request($body);
-    if ($token === '') {
+    $candidates = csrf_extract_candidates($body);
+    if ($candidates === []) {
         log_message("[csrf_validate_request()] CSRF token extraction failed, no token to validate", 'WARN');
         return false;
     }
-    log_message("[csrf_validate_request()] CSRF token extracted from request: {$token}");
-    return csrf_verify($token, $regenerate);
+
+    foreach ($candidates as $index => $token) {
+        log_message("[csrf_validate_request()] Validating CSRF token candidate #" . ($index + 1));
+        if (csrf_verify($token, $regenerate)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
@@ -198,7 +311,7 @@ function csrf_require_valid(?array $body = null, string $responseType = 'json'):
         log_message("[csrf_require_valid()] CSRF token valid, proceeding with request");
         return;
     }
-    log_message("[csrf_require_valid()] CSRF token invalid or missing, rejecting request. " . json_encode($body), 'ERROR');
+    log_message("[csrf_require_valid()] CSRF token invalid or missing, rejecting request. " . json_encode(csrf_redact_body($body)), 'ERROR');
     log_message("[csrf_require_valid()] Responding with 419 status code for invalid CSRF token", 'ERROR');
     http_response_code(419);
     if (!headers_sent()) {
