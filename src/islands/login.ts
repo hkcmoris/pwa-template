@@ -1,4 +1,4 @@
-import { API_BASE, ensureCsrfToken, getCsrfToken } from '../utils/api';
+import { API_BASE, ensureCsrfToken, refreshCsrfToken } from '../utils/api';
 
 const BASE =
     (typeof document !== 'undefined' &&
@@ -31,10 +31,11 @@ export default function init(el: HTMLElement) {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
-        const initialToken = getCsrfToken();
-        const headerToken = initialToken || (await ensureCsrfToken());
+        const freshToken = await refreshCsrfToken();
+        const headerToken = freshToken || (await ensureCsrfToken());
         if (headerToken) {
             headers['X-CSRF-Token'] = headerToken;
+            payload._csrf = headerToken;
         }
         try {
             const response = await fetch(`${API_BASE}/login.php`, {
