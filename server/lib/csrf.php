@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 const CSRF_SESSION_KEY = '_csrf_token';
+const CSRF_COOKIE_KEY = '_csrf_token';
 
 function app_env_value(): string
 {
@@ -24,6 +25,11 @@ function app_is_dev(): bool
 function csrf_session_key(): string
 {
     return CSRF_SESSION_KEY;
+}
+
+function csrf_cookie_key(): string
+{
+    return CSRF_COOKIE_KEY;
 }
 
 function csrf_secure_cookies(): bool
@@ -127,6 +133,28 @@ function csrf_ensure_session(): void
     session_start();
 }
 
+
+function csrf_store_cookie_token(string $token): void
+{
+    if ($token === '' || headers_sent()) {
+        return;
+    }
+
+    $base = defined('BASE_PATH') ? trim((string) BASE_PATH, '/') : '';
+    $path = $base !== '' ? '/' . $base : '/';
+    $sameSite = csrf_cookie_samesite();
+    $secureCookies = csrf_secure_cookies() || $sameSite === 'None';
+
+    setcookie(csrf_cookie_key(), $token, [
+        'expires' => 0,
+        'path' => $path,
+        'domain' => '',
+        'secure' => $secureCookies,
+        'httponly' => false,
+        'samesite' => $sameSite,
+    ]);
+}
+
 function csrf_generate_token(): string
 {
     log_message("[csrf_generate_token()] Generating new CSRF token");
@@ -147,6 +175,8 @@ function csrf_token(): string
         log_message("[csrf_token()] Storing new CSRF token in session: {$existing}");
         $_SESSION[$key] = $existing;
     }
+
+    csrf_store_cookie_token($existing);
     return $existing;
 }
 
@@ -269,16 +299,30 @@ function csrf_verify(?string $token, bool $regenerate = false): bool
         return false;
     }
     $stored = $_SESSION[csrf_session_key()] ?? '';
+    $cookieToken = $_COOKIE[csrf_cookie_key()] ?? '';
+
+    $sessionValid = is_string($stored) && $stored !== '' && hash_equals($stored, $token);
+    if ($sessionValid) {
+        if ($regenerate) {
+            log_message("[csrf_verify()] CSRF token valid via session token, regenerating token for next request");
+            $_SESSION[csrf_session_key()] = csrf_generate_token();
+        }
+        return true;
+    }
+
+    $cookieValid = is_string($cookieToken) && $cookieToken !== '' && hash_equals($cookieToken, $token);
+    if ($cookieValid) {
+        log_message("[csrf_verify()] CSRF token valid via CSRF cookie fallback; rehydrating session token", 'WARN');
+        $_SESSION[csrf_session_key()] = $token;
+        csrf_store_cookie_token($token);
+        return true;
+    }
+
     if (!is_string($stored) || $stored === '') {
         log_message("[csrf_verify()] No CSRF token stored in session for verification", 'WARN');
-        return false;
     }
-    $valid = hash_equals($stored, $token);
-    if ($valid && $regenerate) {
-        log_message("[csrf_verify()] CSRF token valid, regenerating token for next request");
-        $_SESSION[csrf_session_key()] = csrf_generate_token();
-    }
-    return $valid;
+
+    return false;
 }
 
 /**
