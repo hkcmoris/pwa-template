@@ -1,4 +1,4 @@
-import { API_BASE, apiFetch, getCsrfToken } from './utils/api';
+import { apiFetch } from './utils/api';
 
 const BG_LIGHT_TINY = new URL('./assets/bg-light.avif', import.meta.url).href;
 const BG_DARK_TINY = new URL('./assets/bg-dark.avif', import.meta.url).href;
@@ -495,18 +495,24 @@ document.addEventListener('auth-changed', (event) => {
     onIdle(() =>
         fetchMeAndUpdate(currentEpoch, {
             preventDowngrade: Boolean(detail?.email),
+            skipRefresh: !detail?.email,
         })
     );
 });
 
 logoutBtn?.addEventListener('click', async () => {
     stopTokenRefresh();
-    const csrfToken = getCsrfToken();
-    await fetch(`${API_BASE}/logout.php`, {
-        method: 'POST',
-        credentials: 'include',
-        ...(csrfToken ? { headers: { 'X-CSRF-Token': csrfToken } } : {}),
-    });
+    const response = await apiFetch(
+        '/logout.php',
+        {
+            method: 'POST',
+        },
+        { skipRefresh: true }
+    );
+    if (!response.ok) {
+        scheduleTokenRefresh(REFRESH_RETRY_MS);
+        return;
+    }
     document.dispatchEvent(new CustomEvent('auth-changed', { detail: null }));
     const pretty = (document.documentElement.dataset.pretty ?? '1') !== '0';
     window.location.href = pretty ? `${BASE}/login` : `${BASE}/?r=login`;
