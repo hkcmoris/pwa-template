@@ -1,4 +1,4 @@
-import { API_BASE, getCsrfToken } from '../utils/api';
+import { API_BASE, ensureCsrfToken, refreshCsrfToken } from '../utils/api';
 
 type RegisterResponse = {
     token?: string;
@@ -27,9 +27,11 @@ export default function init(el: HTMLElement) {
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
         };
-        const headerToken = getCsrfToken();
+        const freshToken = await refreshCsrfToken();
+        const headerToken = freshToken || (await ensureCsrfToken());
         if (headerToken) {
             headers['X-CSRF-Token'] = headerToken;
+            payload._csrf = headerToken;
         }
         try {
             const response = await fetch(`${API_BASE}/register.php`, {
