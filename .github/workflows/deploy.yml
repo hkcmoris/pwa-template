@@ -50,8 +50,12 @@ jobs:
                     --exclude "tests" \
                     --exclude "var/log" \
                     --exclude ".env*" \
-                    --exclude "server/src" \
+                    --exclude "src" \
+                    --exclude "database" \
                     server/ deploy/
+                    
+                  find deploy -type d -exec chmod 755 {} \;
+                  find deploy -type f -exec chmod 644 {} \;
 
                   ls -la deploy
                   ls -la deploy/public
@@ -84,7 +88,6 @@ jobs:
                     --delete \
                     --verbose \
                     --only-newer \
-                    --no-perms \
                     --no-umask \
                     --parallel=6 \
                     --exclude-glob .env \
