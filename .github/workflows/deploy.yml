@@ -47,11 +47,11 @@ jobs:
 
                   rsync -av --delete \
                     --exclude ".git" \
-                    --exclude "tests" \
-                    --exclude "var/log" \
+                    --exclude "/tests/" \
+                    --exclude "/var/log/" \
                     --exclude ".env*" \
-                    --exclude "src" \
-                    --exclude "database" \
+                    --exclude "/src/" \
+                    --exclude "/database/" \
                     server/ deploy/
                     
                   find deploy -type d -exec chmod 755 {} \;
