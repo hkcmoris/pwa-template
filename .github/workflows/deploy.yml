@@ -52,6 +52,7 @@ jobs:
                     --exclude ".env*" \
                     --exclude "/src/" \
                     --exclude "/database/" \
+                    --exclude "/sw.js" \
                     server/ deploy/
                     
                   find deploy -type d -exec chmod 755 {} \;
