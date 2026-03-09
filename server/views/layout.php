@@ -146,6 +146,10 @@ $cspNonceAttr = $cspNonce !== ''
       text-decoration: underline;
     }
 
+    .hidden {
+      display: none !important;
+    }
+
     header#main-header {
       display: flex;
       align-items: center;
@@ -194,6 +198,21 @@ $cspNonceAttr = $cspNonce !== ''
     body[data-route="konfigurator"] main {
       max-width: initial;
     }
+
+    body[data-route="home"] h1 {
+      font-size: clamp(1.9rem, 10vw - 1rem, 5.5rem);
+      margin-top: 25vh;
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: 0.45rem;
+      text-shadow: 0.25rem 0.25rem 0.5rem rgba(0 0 0 / 75%);
+    }
+
+    .hero-title-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
   </style>
   <?php
       $css_link_async = static function (string $href, ?string $id = null): void {
@@ -201,7 +220,7 @@ $cspNonceAttr = $cspNonce !== ''
           $safeHref = htmlspecialchars($href, ENT_QUOTES);
           echo '<link rel="preload" as="style" href="' . $safeHref . '">' . "\n";
           echo '<link rel="stylesheet"' . $idAttr .
-            ' href="' . $safeHref . '" media="print" data-async-style="1">' . "\n";
+            ' href="' . $safeHref . '" data-async-style="1">' . "\n";
           echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
       };
 
