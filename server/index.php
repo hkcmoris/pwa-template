@@ -236,4 +236,13 @@ if ($isHx) {
     exit;
 }
 
+ob_start();
 require __DIR__ . '/views/layout.php';
+$html = ob_get_clean();
+
+if ($html === false) {
+    http_response_code(500);
+    exit('Failed to render page.');
+}
+
+echo $html;

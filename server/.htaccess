@@ -18,7 +18,7 @@ AddType application/manifest+json .webmanifest
 # Optional if the host has Brotli:
 <IfModule mod_brotli.c>
     BrotliCompressionQuality 5
-    AddOutputFilterByType BROTLI_COMPRESS text/plain text/html text/css text/xml
+    AddOutputFilterByType BROTLI_COMPRESS text/plain text/html text/css text/xml text/javascript
     AddOutputFilterByType BROTLI_COMPRESS application/xml application/xhtml+xml application/rss+xml
     AddOutputFilterByType BROTLI_COMPRESS application/javascript application/json
 </IfModule>
@@ -72,6 +72,6 @@ AddType application/manifest+json .webmanifest
     <FilesMatch "\.(html|php)$">
         Header set Cache-Control "no-store, no-cache, must-revalidate" env=MICROCACHE_BYPASS
         Header set Pragma "no-cache" env=MICROCACHE_BYPASS
-        Header setifempty Cache-Control "s-maxage=5, stale-while-revalidate=60" env=!MICROCACHE_BYPASS
+        # Header setifempty Cache-Control "s-maxage=5, stale-while-revalidate=60" env=!MICROCACHE_BYPASS
     </FilesMatch>
 </IfModule>
