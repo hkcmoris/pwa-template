@@ -2,7 +2,7 @@ name: Deploy
 
 on:
     push:
-        branches: [fix/deploy]
+        branches: [main]
 
 permissions:
     contents: read
