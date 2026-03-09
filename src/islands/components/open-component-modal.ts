@@ -335,7 +335,7 @@ export const createOpenComponentModal = ({
                     removeButton.dataset.index = String(index);
                     // removeButton.textContent = 'Odebrat';
                     removeButton.innerHTML = `
-                    <svg fill="currentColor" width="16px" height="16px" display="block" style="display: block;" aria-hidden="true">
+                    <svg fill="currentColor" width="16px" height="16px" display="block" aria-hidden="true">
                         <use href="#icon-trash"></use>
                     </svg>
                     `;

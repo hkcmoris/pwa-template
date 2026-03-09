@@ -49,6 +49,9 @@ $main = isset($main) && is_array($main) ? $main : null;
 $fontsCss = isset($fontsCss) && is_array($fontsCss) ? $fontsCss : null;
 /** @var array<string, string> $viewStyles */
 $viewStyles = isset($viewStyles) && is_array($viewStyles) ? $viewStyles : [];
+$viewPath = isset($viewPath) && is_string($viewPath) && $viewPath !== ''
+    ? $viewPath
+    : __DIR__ . '/404.php';
 $resolvedViewStyles = [];
 foreach ($viewStyles as $styleId => $entry) {
     $href = vite_asset_href($entry, $isDevEnv, $BASE);
@@ -64,135 +67,162 @@ $cspNonceAttr = $cspNonce !== ''
     : '';
 ?>
 <!doctype html>
-  <html
-    lang="cs"
-    data-theme="<?= htmlspecialchars($theme) ?>"
-    data-base="<?= htmlspecialchars($BASE) ?>"
-    data-pretty="<?= $prettyUrlsEnabled ? '1' : '0' ?>"
-    data-csrf="<?= htmlspecialchars($csrfToken) ?>"
-    data-authenticated="<?= $isAuthenticated ? '1' : '0' ?>"
-    data-auth-email="<?= htmlspecialchars((string) ($email ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-    data-auth-role="<?= htmlspecialchars((string) $role, ENT_QUOTES, 'UTF-8') ?>"
-    data-csp-nonce="<?= htmlspecialchars((string)($GLOBALS['csp_nonce'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-  >
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title><?= htmlspecialchars($title) ?></title>
-    <meta
-      name="description"
-      content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor') ?>"
-    />
-    <meta name="htmx-config" content='{"includeIndicatorStyles": false}'>
-    <?php if ($isDevEnv && $cspNonce !== '') : ?>
-    <meta property="csp-nonce" content="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
-    <?php endif; ?>
-    <?php if ($csrfToken !== '') : ?>
-    <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
-    <?php endif; ?>
-    <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
-    <style<?= $cspNonceAttr ?>>
-      :root {
-        --bg: #fff;
-        --fg: #111;
-        --primary: #2563eb;
-        --primary-contrast: #fff;
-        --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
-        --danger: #dc2626;
-        --fg-muted: #4b5563;
-        --home-bg: none;
-      }
+<html
+  lang="cs"
+  data-theme="<?= htmlspecialchars($theme) ?>"
+  data-base="<?= htmlspecialchars($BASE) ?>"
+  data-pretty="<?= $prettyUrlsEnabled ? '1' : '0' ?>"
+  data-csrf="<?= htmlspecialchars($csrfToken) ?>"
+  data-authenticated="<?= $isAuthenticated ? '1' : '0' ?>"
+  data-auth-email="<?= htmlspecialchars((string) ($email ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+  data-auth-role="<?= htmlspecialchars((string) $role, ENT_QUOTES, 'UTF-8') ?>"
+  data-csp-nonce="<?= htmlspecialchars((string)($GLOBALS['csp_nonce'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title><?= htmlspecialchars($title) ?></title>
+  <meta
+    name="description"
+    content="<?= htmlspecialchars($description ?? 'HAGEMANN konfigurátor') ?>"
+  />
+  <?php
+    $htmxConfig = [
+      'includeIndicatorStyles' => false,
+      'inlineStyleNonce' => $cspNonce,
+    ];
+    echo '<meta name="htmx-config" content="' .
+      htmlspecialchars(json_encode($htmxConfig, JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8') .
+    '">';
+    ?>
+  <?php if ($isDevEnv && $cspNonce !== '') : ?>
+  <meta property="csp-nonce" content="<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>">
+  <?php endif; ?>
+  <?php if ($csrfToken !== '') : ?>
+  <meta name="csrf-token" content="<?= htmlspecialchars($csrfToken) ?>">
+  <?php endif; ?>
+  <link rel="manifest" href="<?= htmlspecialchars($BASE) ?>/public/manifest.webmanifest">
+  <style<?= $cspNonceAttr ?>>
+    :root {
+      --bg: #fff;
+      --fg: #111;
+      --primary: #2563eb;
+      --primary-contrast: #fff;
+      --primary-hover: color-mix(in srgb, var(--primary) 85%, black);
+      --danger: #dc2626;
+      --fg-muted: #4b5563;
+      --home-bg: none;
+    }
 
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-      [data-theme='dark'] {
-        --bg: #212529;
-        --fg: #f5f5f5;
-        --primary: #60a5fa;
-        --primary-contrast: #0f172a;
-        --primary-hover: color-mix(in srgb, var(--primary) 70%, white);
-        --fg-muted: #cbd5e1;
-      }
+    [data-theme='dark'] {
+      --bg: #212529;
+      --fg: #f5f5f5;
+      --primary: #60a5fa;
+      --primary-contrast: #0f172a;
+      --primary-hover: color-mix(in srgb, var(--primary) 70%, white);
+      --fg-muted: #cbd5e1;
+    }
 
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--fg);
-        font-family: system-ui, sans-serif;
-        line-height: 1.5;
-      }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: system-ui, sans-serif;
+      line-height: 1.5;
+    }
 
-      a {
-        color: var(--primary);
-        text-decoration: none;
-      }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+    }
 
-      a:hover {
-        text-decoration: underline;
-      }
+    a:hover {
+      text-decoration: underline;
+    }
 
-      header#main-header {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        justify-content: flex-start;
-        padding: 0.5rem 1rem;
-        background: var(--bg);
-        border-bottom: 1px solid var(--fg);
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 999;
-      }
+    .hidden {
+      display: none !important;
+    }
 
-      nav {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        flex: 1;
-        min-width: 0;
-      }
+    header#main-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: flex-start;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--fg);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 999;
+    }
 
-      .nav-links {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        flex-wrap: nowrap;
-      }
+    nav {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
 
-      .nav-actions {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-        margin-left: auto;
-      }
+    .nav-links {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: nowrap;
+    }
 
-      main {
-        padding: 1rem;
-        padding-top: 3.5rem;
-        min-height: 100dvb;
-        max-width: 1000px;
-        margin: 0 auto;
-      }
+    .nav-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-left: auto;
+    }
 
-      body[data-route="konfigurator"] main {
-        max-width: initial;
-      }
-    </style>
-    <?php
-        $css_link_async = static function (string $href, ?string $id = null): void {
-            $idAttr = $id ? ' id="' . htmlspecialchars($id, ENT_QUOTES) . '"' : '';
-            $safeHref = htmlspecialchars($href, ENT_QUOTES);
-            echo '<link rel="preload" as="style" href="' . $safeHref . '">' . "\n";
-            echo '<link rel="stylesheet"' . $idAttr .
-              ' href="' . $safeHref . '" media="print" data-async-style="1">' . "\n";
-            echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
-        };
+    main {
+      padding: 1rem;
+      padding-top: 3.5rem;
+      min-height: 100dvb;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    body[data-route="konfigurator"] main {
+      max-width: initial;
+    }
+
+    body[data-route="home"] h1 {
+      font-size: clamp(1.9rem, 10vw - 1rem, 5.5rem);
+      margin-top: 25vh;
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: 0.45rem;
+      text-shadow: 0.25rem 0.25rem 0.5rem rgba(0 0 0 / 75%);
+    }
+
+    .hero-title-wrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+    }
+  </style>
+  <?php
+      $css_link_async = static function (string $href, ?string $id = null): void {
+          $idAttr = $id ? ' id="' . htmlspecialchars($id, ENT_QUOTES) . '"' : '';
+          $safeHref = htmlspecialchars($href, ENT_QUOTES);
+          echo '<link rel="preload" as="style" href="' . $safeHref . '">' . "\n";
+          echo '<link rel="stylesheet"' . $idAttr .
+            ' href="' . $safeHref . '" data-async-style="1">' . "\n";
+          echo '<noscript><link rel="stylesheet"' . $idAttr . ' href="' . $safeHref . '"></noscript>' . "\n";
+      };
 
         if (!$isDevEnv) :
             $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
@@ -215,31 +245,31 @@ $cspNonceAttr = $cspNonce !== ''
                 endforeach;
             endif;
             if ($fontsCss && !empty($fontsCss['file'])) : ?>
-            <link
-              rel="stylesheet"
-              href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-            >
+          <link
+            rel="stylesheet"
+            href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
+          >
                 <?php
             endif;
             foreach ($resolvedViewStyles as $styleId => $href) : ?>
-      <link
-        rel="stylesheet"
-        id="<?= htmlspecialchars($styleId) ?>"
-        href="<?= htmlspecialchars($href) ?>"
-      >
+    <link
+      rel="stylesheet"
+      id="<?= htmlspecialchars($styleId) ?>"
+      href="<?= htmlspecialchars($href) ?>"
+    >
             <?php endforeach;
         endif; ?>
 
-    <script<?= $cspNonceAttr ?>>
-      document.querySelectorAll('link[data-async-style="1"]').forEach((link) => {
-        link.addEventListener('load', () => {
-          link.media = 'all';
-        }, { once: true });
-      });
-    </script>
+  <script<?= $cspNonceAttr ?>>
+    document.querySelectorAll('link[data-async-style="1"]').forEach((link) => {
+      link.addEventListener('load', () => {
+        link.media = 'all';
+      }, { once: true });
+    });
+  </script>
 
-  </head>
-    <body data-route="<?= htmlspecialchars($view ?? '', ENT_QUOTES, 'UTF-8') ?>">
+</head>
+  <body data-route="<?= htmlspecialchars($view ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <header id="main-header">
       <div class="logo">
         <img
@@ -260,8 +290,7 @@ $cspNonceAttr = $cspNonce !== ''
             hx-get="<?= htmlspecialchars($BASE) ?>/"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
           >
             Domů
           </a>
@@ -274,8 +303,7 @@ $cspNonceAttr = $cspNonce !== ''
             hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator-manager"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             class="hidden"
           >
             Konfigurátor
@@ -286,8 +314,7 @@ $cspNonceAttr = $cspNonce !== ''
             hx-get="<?= htmlspecialchars($BASE) ?>/admin"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             <?= $__editor_allowed ? '' : ' class="hidden"' ?>
           >
             Administrace
@@ -298,8 +325,7 @@ $cspNonceAttr = $cspNonce !== ''
             hx-get="<?= htmlspecialchars($BASE) ?>/users"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             <?= $__editor_allowed ? '' : ' class="hidden"' ?>
           >
             Uživatelé
@@ -311,8 +337,7 @@ $cspNonceAttr = $cspNonce !== ''
             hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
             <?= $__editor_allowed ? '' : ' class="hidden"' ?>
           >
             Editor
@@ -323,8 +348,7 @@ $cspNonceAttr = $cspNonce !== ''
             hx-get="<?= htmlspecialchars($BASE) ?>/about"
             hx-push-url="true"
             hx-target="#content"
-            hx-select="#content"
-            hx-swap="outerHTML"
+            hx-swap="innerHTML"
           >
             O aplikaci
           </a>
@@ -386,8 +410,7 @@ $cspNonceAttr = $cspNonce !== ''
               hx-get="<?= htmlspecialchars($BASE) ?>/login"
               hx-push-url="true"
               hx-target="#content"
-              hx-select="#content"
-              hx-swap="outerHTML"
+              hx-swap="innerHTML"
             >
               Přihlásit se
             </a>
@@ -398,8 +421,7 @@ $cspNonceAttr = $cspNonce !== ''
               hx-get="<?= htmlspecialchars($BASE) ?>/register"
               hx-push-url="true"
               hx-target="#content"
-              hx-select="#content"
-              hx-swap="outerHTML"
+              hx-swap="innerHTML"
             >
               Registrovat se
             </a>
@@ -410,24 +432,19 @@ $cspNonceAttr = $cspNonce !== ''
       </nav>
       </header>
       <main id="content">
-      <?php
-        if ($view !== null && is_file(__DIR__ . "/{$view}.php")) {
-            require __DIR__ . "/{$view}.php";
-        } else {
-            ?><h1>PWA Template</h1><?php
-        }
-        ?>
-    </main>
-    <div class="app-version-badge" role="note">
-      <span class="app-version-dot" aria-hidden="true"></span>
-      <span class="app-version-text">
-        Verze <strong>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, 'UTF-8') ?></strong>
-      </span>
-    </div>
+        <?php require $viewPath; ?>
+      </main>
+      <div class="app-version-badge" role="note">
+        <span class="app-version-dot" aria-hidden="true"></span>
+        <span class="app-version-text">
+          Verze <strong>v<?= htmlspecialchars(APP_VERSION, ENT_QUOTES, 'UTF-8') ?></strong>
+        </span>
+      </div>
       <script<?= $cspNonceAttr ?>>
         window.htmx = window.htmx || {};
         window.htmx.config = window.htmx.config || {};
         window.htmx.config.includeIndicatorStyles = false;
+        window.htmx.config.inlineStyleNonce = "<?= htmlspecialchars($cspNonce, ENT_QUOTES, 'UTF-8') ?>";
       </script>
       <script src="<?= htmlspecialchars($BASE) ?>/public/vendor/htmx-2.0.7.min.js" defer></script>
       <?php if ($isDevEnv) : ?>

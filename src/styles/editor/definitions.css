@@ -58,11 +58,6 @@
     gap: 0.35rem;
 }
 
-.definition-item {
-    position: relative;
-    margin-left: calc(var(--definition-depth, 0) * 1.25rem);
-}
-
 .definition-item::before {
     content: '';
     position: absolute;
@@ -254,4 +249,8 @@
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
+}
+
+.margin-8 {
+    margin: -8px;
 }

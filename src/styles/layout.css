@@ -73,8 +73,7 @@ a {
 }
 
 /* Navbar link styling, Editor subnav links (match header nav style) */
-header nav a,
-.subnav a {
+nav a {
     font-family:
         Montserrat,
         system-ui,
@@ -101,19 +100,16 @@ a:hover {
     text-decoration: underline;
 }
 
-header nav a:hover,
-.subnav a:hover {
+nav a:hover {
     text-decoration: none;
     color: #111;
 }
 
-[data-theme='dark'] header nav a:not(.active),
-[data-theme='dark'] .subnav a:not(.active) {
+[data-theme='dark'] nav a:not(.active) {
     color: var(--fg-muted);
 }
 
-[data-theme='dark'] header nav a:not(.active):hover,
-[data-theme='dark'] .subnav a:not(.active):hover {
+[data-theme='dark'] nav a:not(.active):hover {
     color: #fff;
 }
 
@@ -318,7 +314,7 @@ body[data-route='home'] {
 }
 
 .hidden {
-    display: none!important;
+    display: none !important;
 }
 
 .auth-form {

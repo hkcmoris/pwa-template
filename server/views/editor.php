@@ -31,46 +31,56 @@ $active = isset($editorActive) && is_string($editorActive)
 if (!in_array($active, ['definitions','components','images'], true)) {
     $active = 'definitions';
 }
+
+$isHtmxEditorContentRequest = isset($_SERVER['HTTP_HX_REQUEST'], $_SERVER['HTTP_HX_TARGET'])
+    && $_SERVER['HTTP_HX_REQUEST'] === 'true'
+    && $_SERVER['HTTP_HX_TARGET'] === 'editor-content';
+
+if ($isHtmxEditorContentRequest) {
+    $partial = __DIR__ . '/editor/partials/' . $active . '.php';
+    if (is_file($partial)) {
+        require $partial;
+    } else {
+        echo '<p>Obsah nelze načíst.</p>';
+    }
+    return;
+}
 ?>
 
 <h1>Editor</h1>
-<div id="editor-root">
+<div id="editor-root" data-island="editor">
   <nav
-    class="subnav"
+    id="editor-nav-menu"
     aria-label="Editor navigace"
-    style="display:flex;gap:.5rem;margin:.5rem 0 .75rem;flex-wrap:wrap"
   >
     <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-push-url="true"
-       hx-target="#editor-root"
-       hx-select="#editor-root"
-       hx-swap="outerHTML"
-       class="<?= $active === 'definitions' ? 'active' : '' ?>">Definice</a>
+       hx-target="#editor-content"
+       hx-swap="innerHTML"
+    >Definice</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-push-url="true"
-       hx-target="#editor-root"
-       hx-select="#editor-root"
-       hx-swap="outerHTML"
-       class="<?= $active === 'components' ? 'active' : '' ?>">Komponenty</a>
+       hx-target="#editor-content"
+       hx-swap="innerHTML"
+    >Komponenty</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-push-url="true"
-       hx-target="#editor-root"
-       hx-select="#editor-root"
-       hx-swap="outerHTML"
-       class="<?= $active === 'images' ? 'active' : '' ?>">Správce galerie</a>
+       hx-target="#editor-content"
+       hx-swap="innerHTML"
+    >Správce galerie</a>
   </nav>
 
-  <section id="editor-content">
+  <section id="editor-content-wrapper">
     <svg
       width="0px"
       height="0px"
       display="none"
-      style="display: none;"
+      class="hidden"
       aria-hidden="true"
     >
       <symbol id="icon-trash" viewBox="0 0 512 512">
@@ -261,6 +271,7 @@ if (!in_array($active, ['definitions','components','images'], true)) {
         </g>
       </symbol>
     </svg>
+    <div id="editor-content">
   <?php
     $partial = __DIR__ . '/editor/partials/' . $active . '.php';
     if (is_file($partial)) {
@@ -269,5 +280,6 @@ if (!in_array($active, ['definitions','components','images'], true)) {
         echo '<p>Obsah nelze načíst.</p>';
     }
     ?>
+    </div>
   </section>
 </div>

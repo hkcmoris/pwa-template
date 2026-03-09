@@ -28,8 +28,10 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     }
 }
 
-$userId = isset($currentUser['id']) ? (int) $currentUser['id'] : 0;
+$konfiguratorUser = isset($currentUser) && is_array($currentUser) ? $currentUser : app_get_current_user();
+$userId = isset($konfiguratorUser['id']) ? (int) $konfiguratorUser['id'] : 0;
 if ($userId <= 0) {
+    echo $userId;
     echo '<h1>Přístup odepřen</h1>'
       . '<p>Nelze získat informace o vašem účtu.</p>';
     return;
@@ -57,7 +59,7 @@ $latestDraftLabel = $latestDraftId !== null
     width="0px"
     height="0px"
     display="none"
-    style="display: none;"
+    class="hidden"
     aria-hidden="true"
   >
     <symbol id="icon-trash" viewBox="0 0 512 512">
@@ -92,8 +94,7 @@ $latestDraftLabel = $latestDraftId !== null
       hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?new=1"
       hx-push-url="true"
       hx-target="#content"
-      hx-select="#content"
-      hx-swap="outerHTML"
+      hx-swap="innerHTML"
     >Vytvořit novou konfiguraci</button>
 
     <?php if ($latestDraftId !== null) : ?>
@@ -101,8 +102,7 @@ $latestDraftLabel = $latestDraftId !== null
         hx-get="<?= htmlspecialchars($BASE) ?>/konfigurator?draft=<?= htmlspecialchars((string) $latestDraftId) ?>"
         hx-push-url="true"
         hx-target="#content"
-        hx-select="#content"
-        hx-swap="outerHTML"
+        hx-swap="innerHTML"
       >Pokračovat v posledním návrhu (<?= htmlspecialchars($latestDraftLabel) ?>)</button>
     <?php endif; ?>
   </div>

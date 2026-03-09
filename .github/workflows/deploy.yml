@@ -31,6 +31,9 @@ jobs:
               run: npm ci
 
             - name: Build assets (staging)
+              env:
+                  APP_BASE: ${{ secrets.APP_BASE }}
+                  VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
               run: npm run build-staging
 
             - name: Install PHP deps (prod)
@@ -44,19 +47,23 @@ jobs:
 
                   rsync -av --delete \
                     --exclude ".git" \
-                    --exclude "tests" \
-                    --exclude "var/log" \
+                    --exclude "/tests/" \
+                    --exclude "/var/log/" \
                     --exclude ".env*" \
+                    --exclude "/src/" \
+                    --exclude "/database/" \
                     server/ deploy/
+                    
+                  find deploy -type d -exec chmod 755 {} \;
+                  find deploy -type f -exec chmod 644 {} \;
 
                   ls -la deploy
                   ls -la deploy/public
                   ls -la deploy/public/assets
 
-            - name: Deploy via SFTP (lftp mirror)
+            - name: Deploy via FTPS (lftp mirror)
               env:
                   HOST: ${{ secrets.HOST }}
-                  PORT: ${{ secrets.PORT }}
                   USER: ${{ secrets.USER }}
                   PASS: ${{ secrets.PASS }}
                   REMOTE_DIR: ${{ secrets.REMOTE_DIR }}
@@ -65,16 +72,30 @@ jobs:
                   sudo apt-get install -y lftp
 
                   cat > lftp.cmd <<LFTP
-                  set sftp:auto-confirm yes
+                  set ftp:ssl-force true
+                  set ftp:ssl-protect-data true
+                  set ssl:verify-certificate no
+
                   set net:timeout 20
                   set net:max-retries 2
                   set net:reconnect-interval-base 3
-                  set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $PORT"
-                  open -u "$USER","$PASS" sftp://$HOST
+
+                  open -u "$USER","$PASS" ftp://$HOST
                   cd "$REMOTE_DIR"
                   ls
                   pwd
-                  mirror -R --delete --verbose deploy/ "$REMOTE_DIR"
+                  mirror -R \
+                    --delete \
+                    --verbose \
+                    --only-newer \
+                    --no-umask \
+                    --parallel=6 \
+                    --exclude-glob .env \
+                    --exclude-glob .env.* \
+                    --exclude-glob logs \
+                    --exclude-glob public/assets/logo/logo.svg \
+                    --exclude-glob public/assets/images/upload/* \
+                    deploy/ .
                   bye
                   LFTP
 

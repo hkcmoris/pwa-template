@@ -12,9 +12,8 @@ $BASE = rtrim($BASE, '/');
         href="<?= htmlspecialchars($BASE) ?>/" 
         hx-get="<?= htmlspecialchars($BASE) ?>/" 
         hx-push-url="true" 
-        hx-target="#content" 
-        hx-select="#content" 
-        hx-swap="outerHTML"
+        hx-target="#content"
+        hx-swap="innerHTML"
     >
         Zpět na domovskou stránku
     </a>

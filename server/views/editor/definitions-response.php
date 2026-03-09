@@ -36,12 +36,11 @@ function definitions_render_fragments(PDO $pdo, array $options = []): void
 
     echo '<div'
         . ' id="definition-parent-select"'
-        . ' class="definition-parent-select"'
+        . ' class="definition-parent-select hidden"'
         . ' data-island="select"'
         . ' hx-swap-oob="true"'
         . ' hx-on="' . htmlspecialchars($hxOnSelect, ENT_QUOTES, 'UTF-8') . '"'
         . ' aria-hidden="true"'
-        . ' style="display:none"'
         . '>'
         . $parentSelectInner
         . '</div>';

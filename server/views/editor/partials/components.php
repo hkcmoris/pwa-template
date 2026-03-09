@@ -45,7 +45,7 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     data-island="components"
     data-base="<?= htmlspecialchars($BASE) ?>">
     <h2>Komponenty</h2>
-    <p style="max-width:640px">
+    <p>
         Komponenty rozšiřují definice konfigurátoru o konkrétní stavební bloky.
         Každá komponenta vychází z vybrané definice, může mít vlastní hierarchii
         a ukládá popis, obrázek i závislosti na dalších volbách.

@@ -19,7 +19,7 @@ $finishedConfigurations = array_values(array_filter(
     width="0px"
     height="0px"
     display="none"
-    style="display: none;"
+    class="hidden"
     aria-hidden="true"
   >
     <symbol id="icon-pdf" viewBox="0 0 512 512">
@@ -79,7 +79,6 @@ $finishedConfigurations = array_values(array_filter(
                 width="32px"
                 height="32px"
                 display="block"
-                style="display: block;"
                 aria-hidden="true"
               >
                 <use href="#icon-pdf"></use>
