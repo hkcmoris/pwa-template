@@ -137,13 +137,75 @@ $cspNonceAttr = $cspNonce !== ''
       line-height: 1.5;
     }
 
+    @font-face {
+      font-family: Montserrat;
+      src: url('../assets/fonts/Montserrat-VF.woff2') format('woff2');
+      font-weight: 100 900; /* variable weight range */
+      font-style: normal;
+      font-display: swap;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    button {
+      font-family:
+        Montserrat,
+        'Segoe UI',
+        Roboto,
+        Ubuntu,
+        Cantarell,
+        'Noto Sans',
+        'Helvetica Neue',
+        Arial,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        system-ui,
+        -apple-system,
+        sans-serif;
+      font-weight: 500;
+    }
+
     a {
       color: var(--primary);
       text-decoration: none;
     }
 
+    h1,
+    button,
+    nav a {
+        text-transform: uppercase;
+    }
+
     a:hover {
       text-decoration: underline;
+    }
+
+    nav a {
+      font-family:
+          Montserrat,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          Ubuntu,
+          Cantarell,
+          'Noto Sans',
+          'Helvetica Neue',
+          Arial,
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
+          'Segoe UI Symbol',
+          sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      color: #6b7280;
+      text-decoration: none;
     }
 
     .hidden {
@@ -247,7 +309,7 @@ $cspNonceAttr = $cspNonce !== ''
             $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
             $main = vite_asset('src/main.ts');
             $layoutCss = vite_asset('src/styles/layout.css');
-            $fontsCss = vite_asset('src/styles/fonts.css');
+            // $fontsCss = vite_asset('src/styles/fonts.css');
             // <link rel="stylesheet" href="http://localhost:5173/src/styles/fonts.css">
             if ($layoutCss && !empty($layoutCss['file'])) : ?>
                 <?php
@@ -262,13 +324,6 @@ $cspNonceAttr = $cspNonce !== ''
                     ?>
                     <?php
                 endforeach;
-            endif;
-            if ($fontsCss && !empty($fontsCss['file'])) : ?>
-          <link
-            rel="stylesheet"
-            href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-          >
-                <?php
             endif;
             foreach ($resolvedViewStyles as $styleId => $href) : ?>
     <link
