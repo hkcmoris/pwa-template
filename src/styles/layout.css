@@ -284,6 +284,41 @@ button:hover {
     background: var(--primary-hover);
 }
 
+.hero-title-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.hero-title-wrapper h1, .hero-title-wrapper p {
+    color: #fff;
+    line-height: 1.15;
+}
+
+.hero-title-wrapper h1 {
+    font-size: clamp(1.9rem, 10vw - 1rem, 5.5rem);
+    text-shadow: 0.25rem 0.25rem 0.5rem rgba(0 0 0 / 75%);
+    letter-spacing: 0.45rem;
+    margin-top: 15vh;
+}
+
+.hero-title-wrapper p {
+    font-size: clamp(1rem, 5vw - 1rem, 2rem);
+    text-shadow: 0.15rem 0.15rem 0.25rem rgba(0 0 0 / 75%);
+    text-transform: uppercase;
+    text-align: right;
+    margin-right:0.35rem;
+}
+
+.hero-title-wrapper hr {
+    background-color: #fff;
+    box-shadow: 0.15rem 0.15rem 0.25rem rgba(0 0 0 / 75%);
+    border: none;
+    height: 6px;
+    margin-right:0.35rem;
+    border-radius: 999px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
