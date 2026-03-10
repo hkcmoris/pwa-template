@@ -188,7 +188,9 @@ function mount(el: HTMLElement) {
             return;
         }
 
-        const state = g.querySelector<HTMLElement>('.grid-state[data-current-path]');
+        const state = g.querySelector<HTMLElement>(
+            '.grid-state[data-current-path]'
+        );
         const currentPath = state?.dataset.currentPath || '';
         el.dataset.currentPath = currentPath;
     };
