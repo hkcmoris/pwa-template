@@ -93,4 +93,3 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     <div id="img-modal" class="hidden" aria-hidden="true"></div>
 </div>
 
-
