@@ -25,11 +25,7 @@ $buildGridUrl = static function (string $base, string $targetPath, int $version)
     }
     return $url;
 };
-$directoryVersion = max(1, (int) $list['version']);
 $parentVersion = max(1, (int) $list['parentVersion']);
-
-$beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status'
-    . ' && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
 
 // Compute parent path
 $parentRel = '';
@@ -38,12 +34,7 @@ if ($path !== '') {
 }
 ?>
 
-<div
-    id="image-grid"
-    class="grid"
-    data-current-path="<?= htmlspecialchars($path) ?>"
-    hx-on="<?= htmlspecialchars($beforeSwapHandler, ENT_QUOTES) ?>"
->
+<div class="grid-state" hidden aria-hidden="true" data-current-path="<?= htmlspecialchars($path) ?>"></div>
   <?php if ($path !== '') : ?>
   <div
       class="tile folder"
@@ -105,4 +96,3 @@ if ($path !== '') {
     </div>
   </div>
   <?php endforeach; ?>
-</div>

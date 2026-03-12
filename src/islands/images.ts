@@ -67,36 +67,34 @@ const qs = <T extends Element = Element>(root: QueryRoot, sel: string) =>
     root.querySelector<T>(sel);
 
 const swapGridFromHTML = (html: string) => {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    const incoming = tmp.querySelector('#image-grid');
     const current = document.getElementById('image-grid');
-    if (incoming && current && current.parentElement) {
-        current.parentElement.replaceChild(incoming, current);
-        // Re-process htmx attributes on the newly inserted grid so hx-trigger works
-        try {
-            // Let htmx re-scan the swapped grid if present
-            (
-                window as unknown as {
-                    htmx?: { process?: (el: Element) => void };
-                }
-            ).htmx?.process?.(incoming);
-        } catch {
-            // noop
-        }
-        // Disable native browser drag on thumbnails to keep custom DnD UX
-        try {
-            (incoming as HTMLElement).addEventListener(
-                'dragstart',
-                (ev) => ev.preventDefault(),
-                { capture: true }
-            );
-            incoming.querySelectorAll('img').forEach((img) => {
-                (img as HTMLImageElement).draggable = false;
-            });
-        } catch {
-            // noop
-        }
+    if (!current) {
+        return;
+    }
+
+    current.innerHTML = html;
+
+    // Re-process htmx attributes on the swapped content so folder navigation works
+    try {
+        (
+            window as unknown as {
+                htmx?: { process?: (el: Element) => void };
+            }
+        ).htmx?.process?.(current);
+    } catch {
+        // noop
+    }
+
+    // Disable native browser drag on thumbnails to keep custom DnD UX
+    try {
+        current.addEventListener('dragstart', (ev) => ev.preventDefault(), {
+            capture: true,
+        });
+        current.querySelectorAll('img').forEach((img) => {
+            (img as HTMLImageElement).draggable = false;
+        });
+    } catch {
+        // noop
     }
 };
 
@@ -186,7 +184,15 @@ function mount(el: HTMLElement) {
     );
     const syncCurrentFromGrid = () => {
         const g = grid();
-        if (g) el.dataset.currentPath = g.dataset.currentPath || '';
+        if (!g) {
+            return;
+        }
+
+        const state = g.querySelector<HTMLElement>(
+            '.grid-state[data-current-path]'
+        );
+        const currentPath = state?.dataset.currentPath || '';
+        el.dataset.currentPath = currentPath;
     };
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         const target = (evt as CustomEvent).detail?.target as

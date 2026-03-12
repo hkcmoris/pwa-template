@@ -137,13 +137,75 @@ $cspNonceAttr = $cspNonce !== ''
       line-height: 1.5;
     }
 
+    @font-face {
+      font-family: Montserrat;
+      src: url('../assets/fonts/Montserrat-VF.woff2') format('woff2');
+      font-weight: 100 900; /* variable weight range */
+      font-style: normal;
+      font-display: swap;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    button {
+      font-family:
+        Montserrat,
+        'Segoe UI',
+        Roboto,
+        Ubuntu,
+        Cantarell,
+        'Noto Sans',
+        'Helvetica Neue',
+        Arial,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        system-ui,
+        -apple-system,
+        sans-serif;
+      font-weight: 500;
+    }
+
     a {
       color: var(--primary);
       text-decoration: none;
     }
 
+    h1,
+    button,
+    nav a {
+        text-transform: uppercase;
+    }
+
     a:hover {
       text-decoration: underline;
+    }
+
+    nav a {
+      font-family:
+          Montserrat,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          Ubuntu,
+          Cantarell,
+          'Noto Sans',
+          'Helvetica Neue',
+          Arial,
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
+          'Segoe UI Symbol',
+          sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      font-weight: 700;
+      color: #6b7280;
+      text-decoration: none;
     }
 
     .hidden {
@@ -199,19 +261,38 @@ $cspNonceAttr = $cspNonce !== ''
       max-width: initial;
     }
 
-    body[data-route="home"] h1 {
-      font-size: clamp(1.9rem, 10vw - 1rem, 5.5rem);
-      margin-top: 25vh;
-      color: #fff;
-      line-height: 1.15;
-      letter-spacing: 0.45rem;
-      text-shadow: 0.25rem 0.25rem 0.5rem rgba(0 0 0 / 75%);
-    }
-
     .hero-title-wrapper {
       width: 100%;
       max-width: 100%;
       overflow: hidden;
+    }
+
+    .hero-title-wrapper h1, .hero-title-wrapper p {
+      color: #fff;
+      line-height: 1.15;
+    }
+
+    .hero-title-wrapper h1 {
+      font-size: clamp(1.9rem, 10vw - 1rem, 5.5rem);
+      text-shadow: 0.25rem 0.25rem 0.5rem rgba(0 0 0 / 75%);
+      letter-spacing: 0.45rem;
+      margin-top: 15vh;
+    }
+
+    .hero-title-wrapper p {
+      font-size: clamp(1rem, 5vw - 1rem, 2rem);
+      text-shadow: 0.15rem 0.15rem 0.25rem rgba(0 0 0 / 75%);
+      text-transform: uppercase;
+      text-align: right;
+      margin-right:0.35rem;
+    }
+
+    .hero-title-wrapper hr {
+      background-color: #fff;
+      box-shadow: 0.15rem 0.15rem 0.25rem rgba(0 0 0 / 75%);
+      border: none;
+      height: 4px;
+      margin-right:0.35rem;
     }
   </style>
   <?php
@@ -228,7 +309,7 @@ $cspNonceAttr = $cspNonce !== ''
             $assetBase = rtrim((string)$BASE, '/') . '/public/assets/';
             $main = vite_asset('src/main.ts');
             $layoutCss = vite_asset('src/styles/layout.css');
-            $fontsCss = vite_asset('src/styles/fonts.css');
+            // $fontsCss = vite_asset('src/styles/fonts.css');
             // <link rel="stylesheet" href="http://localhost:5173/src/styles/fonts.css">
             if ($layoutCss && !empty($layoutCss['file'])) : ?>
                 <?php
@@ -243,13 +324,6 @@ $cspNonceAttr = $cspNonce !== ''
                     ?>
                     <?php
                 endforeach;
-            endif;
-            if ($fontsCss && !empty($fontsCss['file'])) : ?>
-          <link
-            rel="stylesheet"
-            href="<?= htmlspecialchars($BASE) ?>/public/assets/<?= htmlspecialchars($fontsCss['file']) ?>"
-          >
-                <?php
             endif;
             foreach ($resolvedViewStyles as $styleId => $href) : ?>
     <link
@@ -355,49 +429,13 @@ $cspNonceAttr = $cspNonce !== ''
         </div>
         <div class="nav-actions">
           <div class="nav-actions-icon" id="nav-actions-icon">
-            <svg
-              width="24px"
-              height="24px"
-              viewBox="0 0 24 24"
+            <img
+              src="<?= htmlspecialchars($BASE) ?>/public/assets/images/gear.svg"
+              alt="Logo"
+              width="24"
+              height="24"
+              decoding="async"
             >
-              <g
-                id="out"
-                stroke="none"
-                stroke-width="1"
-                fill="none"
-                fill-rule="evenodd"
-              >
-                <path
-                  d="M18.1125649,13.0304195 C18.1454626,12.7672379 18.1701359,12.5040563 18.1701359,12.2244258
-                  C18.1701359,11.9447953 18.1454626,11.6816137 18.1125649,11.4184321 L19.8479188,10.0614018
-                  C20.0041828,9.93803541 20.045305,9.71597592 19.9466119,9.53503855 L18.3017267,6.68938723
-                  C18.2030336,6.50844986 17.9809741,6.44265446 17.8000367,6.50844986 L15.7521547,7.33089244
-                  C15.3244846,7.00191541 14.8639167,6.73050936 14.3622268,6.52489871 L14.0496986,4.34542588
-                  C14.0250253,4.14803966 13.8523124,4 13.6467017,4 L10.3569314,4 C10.1513208,4 9.97860782,4.14803966
-                  9.95393455,4.34542588 L9.64140637,6.52489871 C9.13971639,6.73050936 8.67914855,7.01013984
-                  8.25147841,7.33089244 L6.20359639,6.50844986 C6.0144346,6.43443003 5.80059953,6.50844986
-                  5.70190642,6.68938723 L4.05702126,9.53503855 C3.95010373,9.71597592 3.99945028,9.93803541
-                  4.15571437,10.0614018 L5.89106821,11.4184321 C5.85817051,11.6816137 5.83349723,11.9530197
-                  5.83349723,12.2244258 C5.83349723,12.4958318 5.85817051,12.7672379 5.89106821,13.0304195
-                  L4.15571437,14.3874498 C3.99945028,14.5108161 3.95832815,14.7328756 4.05702126,14.913813
-                  L5.70190642,17.7594643 C5.80059953,17.9404017 6.02265902,18.0061971 6.20359639,17.9404017
-                  L8.25147841,17.1179591 C8.67914855,17.4469361 9.13971639,17.7183422 9.64140637,17.9239528
-                  L9.95393455,20.1034257 C9.97860782,20.3008119 10.1513208,20.4488516 10.3569314,20.4488516
-                  L13.6467017,20.4488516 C13.8523124,20.4488516 14.0250253,20.3008119 14.0496986,20.1034257
-                  L14.3622268,17.9239528 C14.8639167,17.7183422 15.3244846,17.4387117 15.7521547,17.1179591
-                  L17.8000367,17.9404017 C17.9891985,18.0144215 18.2030336,17.9404017 18.3017267,17.7594643
-                  L19.9466119,14.913813 C20.045305,14.7328756 20.0041828,14.5108161 19.8479188,14.3874498
-                  L18.1125649,13.0304195 L18.1125649,13.0304195 L18.1125649,13.0304195 Z
-                  M12.0018166,15.1029748 C10.4145024,15.1029748 9.12326754,13.81174 9.12326754,12.2244258
-                  C9.12326754,10.6371116 10.4145024,9.34587676 12.0018166,9.34587676 C13.5891307,9.34587676
-                  14.8803656,10.6371116 14.8803656,12.2244258 C14.8803656,13.81174 13.5891307,15.1029748
-                  12.0018166,15.1029748 L12.0018166,15.1029748 L12.0018166,15.1029748 Z"
-                  id="path"
-                  fill="#000000"
-                >
-                </path>
-              </g>
-            </svg>
           </div>
           <div class="nav-actions-panel hidden" id="nav-actions-panel">
             <span id="username-right">

@@ -1,7 +1,11 @@
 <?php
 
+$start = microtime(true);
+
 // index.php
 require_once __DIR__ . '/bootstrap.php';
+log_message('bootstrap: ' . round((microtime(true) - $start) * 1000) . 'ms', 'INFO');
+
 // Resolve route from query-string fallback or pretty URL path
 $qsRoute = isset($_GET['r']) ? trim((string)$_GET['r'], '/') : '';
 
@@ -55,17 +59,30 @@ if ($route !== '' && !preg_match('~^[a-z0-9/_-]+$~i', $route)) {
 }
 
 // --- Auth (check FIRST, before executing any controller) ---
+$authStart = microtime(true);
 $current = app_get_current_user();
+log_message('auth: ' . round((microtime(true) - $authStart) * 1000) . 'ms', 'INFO');
 $role    = $current['role'] ?? 'guest';
 $requiresAdmin = (strpos($route, 'editor/') === 0);
 $requiresAdminView = $requiresAdmin || $route === 'users';
+$requiresAuthView = $route === 'konfigurator-manager';
 $hasAdminPrivileges = in_array($role, ['admin', 'superadmin'], true);
+$loginUrl = ($basePath !== '' ? $basePath : '') . '/login';
 $forcedView = null;
+
+if ($requiresAuthView && $role === 'guest') {
+    if ($isHx) {
+        http_response_code(401);
+        header('HX-Redirect: ' . $loginUrl);
+        exit;
+    }
+    header('Location: ' . $loginUrl, true, 302);
+    exit;
+}
 
 if ($requiresAdminView && !$hasAdminPrivileges) {
     // Guests should be redirected to login, including HTMX callers via HX-Redirect
     if ($role === 'guest') {
-        $loginUrl = ($basePath !== '' ? $basePath : '') . '/login';
         if ($isHx) {
             http_response_code(401);
             header('HX-Redirect: ' . $loginUrl);
@@ -140,6 +157,7 @@ $nonHtmxControllers = [
     'GET configurator/configuration/pdf',
 ];
 
+$routeStart = microtime(true);
 $key = $method . ' ' . $route;
 if (isset($controllerRoutes[$key])) {
     // Optional: enforce HTMX only
@@ -148,10 +166,12 @@ if (isset($controllerRoutes[$key])) {
         exit;
     }
     require $controllerRoutes[$key];
+    log_message('route resolve: ' . round((microtime(true) - $routeStart) * 1000) . 'ms', 'INFO');
     exit;
 }
 
 // --- View resolution ---
+$renderStart = microtime(true);
 $viewPath = __DIR__ . "/views/{$route}.php";
 if ($forcedView !== null) {
     http_response_code(403);
@@ -176,6 +196,7 @@ if ($forcedView !== null) {
         $viewPath = __DIR__ . "/views/404.php";
     }
 }
+log_message('render: ' . round((microtime(true) - $renderStart) * 1000) . 'ms', 'INFO');
 
 $titleMap = [
   'home' => 'HAGEMANN konfigurátor',
@@ -232,8 +253,31 @@ $viewStyles = $viewStylesMap[$view] ?? [];
 
 // For HTMX requests, return *only* the fragment view (no layout/head/style/nonces)
 if ($isHx) {
+    $fragmentRenderStart = microtime(true);
+
+    ob_start();
     require $viewPath;
+    $html = ob_get_clean();
+
+    if ($html === false) {
+        http_response_code(500);
+        exit('Failed to render fragment.');
+    }
+
+    log_message('fragment render: ' . round((microtime(true) - $fragmentRenderStart) * 1000) . 'ms', 'INFO');
+    echo $html;
+    log_message('total: ' . round((microtime(true) - $start) * 1000) . 'ms', 'INFO');
     exit;
 }
 
+ob_start();
 require __DIR__ . '/views/layout.php';
+$html = ob_get_clean();
+
+if ($html === false) {
+    http_response_code(500);
+    exit('Failed to render page.');
+}
+
+echo $html;
+log_message('total: ' . round((microtime(true) - $start) * 1000) . 'ms', 'INFO');

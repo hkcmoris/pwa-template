@@ -67,9 +67,48 @@ body {
     line-height: 1.5;
 }
 
+@font-face {
+    font-family: Montserrat;
+    src: url('../assets/fonts/Montserrat-VF.woff2') format('woff2');
+    font-weight: 100 900; /* variable weight range */
+    font-style: normal;
+    font-display: swap;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button {
+    font-family:
+        Montserrat,
+        'Segoe UI',
+        Roboto,
+        Ubuntu,
+        Cantarell,
+        'Noto Sans',
+        'Helvetica Neue',
+        Arial,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    font-weight: 500;
+}
+
 a {
     color: var(--primary);
     text-decoration: none;
+}
+
+h1,
+button,
+nav a {
+    text-transform: uppercase;
 }
 
 /* Navbar link styling, Editor subnav links (match header nav style) */
@@ -282,6 +321,57 @@ button {
 
 button:hover {
     background: var(--primary-hover);
+}
+
+.hero-title-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.hero-title-wrapper h1,
+.hero-title-wrapper p {
+    color: #fff;
+    line-height: 1.15;
+}
+
+.hero-title-wrapper h1 {
+    font-size: clamp(1.9rem, 10vw - 1rem, 5.5rem);
+    text-shadow: 0.25rem 0.25rem 0.5rem rgb(0 0 0 / 75%);
+    letter-spacing: 0.45rem;
+    margin-top: 15vh;
+}
+
+.hero-title-wrapper p {
+    font-family:
+        Montserrat,
+        'Segoe UI',
+        Roboto,
+        Ubuntu,
+        Cantarell,
+        'Noto Sans',
+        'Helvetica Neue',
+        Arial,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        system-ui,
+        -apple-system,
+        sans-serif;
+    font-size: clamp(1rem, 5vw - 1rem, 2rem);
+    text-shadow: 0.15rem 0.15rem 0.25rem rgb(0 0 0 / 75%);
+    text-transform: uppercase;
+    text-align: right;
+    margin-right: 0.7rem;
+}
+
+.hero-title-wrapper hr {
+    background-color: #fff;
+    box-shadow: 0.15rem 0.15rem 0.25rem rgb(0 0 0 / 50%);
+    border: none;
+    height: 8px;
+    margin-right: 0.35rem;
+    border-radius: 999px;
 }
 
 table {
