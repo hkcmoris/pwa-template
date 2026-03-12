@@ -1,4 +1,4 @@
-name: Deploy
+name: Deploy main
 
 on:
     push:
@@ -30,11 +30,11 @@ jobs:
             - name: Install JS deps
               run: npm ci
 
-            - name: Build assets (staging)
+            - name: Build assets (main)
               env:
                   APP_BASE: ${{ secrets.APP_BASE }}
                   VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
-              run: npm run build-staging
+              run: npm run build
 
             - name: Install PHP deps (prod)
               working-directory: server
