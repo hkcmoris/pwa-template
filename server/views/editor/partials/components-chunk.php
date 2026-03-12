@@ -310,7 +310,9 @@ foreach ($items as $node) {
                       &nbsp;<?= htmlspecialchars($latestCurrency, ENT_QUOTES, 'UTF-8') ?></dd>
                   </div>
                 <?php endif; ?>
-                <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
+                <?php if ($dependencyCount > 0) : ?>
+                  <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
+                <?php endif; ?>
               </dl>
             <?php endif; ?>
           </div>

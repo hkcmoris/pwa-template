@@ -65,13 +65,24 @@ log_message('auth: ' . round((microtime(true) - $authStart) * 1000) . 'ms', 'INF
 $role    = $current['role'] ?? 'guest';
 $requiresAdmin = (strpos($route, 'editor/') === 0);
 $requiresAdminView = $requiresAdmin || $route === 'users';
+$requiresAuthView = $route === 'konfigurator-manager';
 $hasAdminPrivileges = in_array($role, ['admin', 'superadmin'], true);
+$loginUrl = ($basePath !== '' ? $basePath : '') . '/login';
 $forcedView = null;
+
+if ($requiresAuthView && $role === 'guest') {
+    if ($isHx) {
+        http_response_code(401);
+        header('HX-Redirect: ' . $loginUrl);
+        exit;
+    }
+    header('Location: ' . $loginUrl, true, 302);
+    exit;
+}
 
 if ($requiresAdminView && !$hasAdminPrivileges) {
     // Guests should be redirected to login, including HTMX callers via HX-Redirect
     if ($role === 'guest') {
-        $loginUrl = ($basePath !== '' ? $basePath : '') . '/login';
         if ($isHx) {
             http_response_code(401);
             header('HX-Redirect: ' . $loginUrl);
