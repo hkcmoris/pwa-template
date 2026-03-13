@@ -54,6 +54,8 @@ jobs:
                     --exclude "/database/" \
                     --exclude "/sw.js" \
                     server/ deploy/
+
+                  cp package.json deploy/package.json
                     
                   find deploy -type d -exec chmod 755 {} \;
                   find deploy -type f -exec chmod 644 {} \;

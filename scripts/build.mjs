@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 import { execSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { readFileSync, mkdirSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
+import { resolve, join } from 'node:path';
 
 function loadServerEnvForProductionBuild(mode) {
     try {
@@ -45,8 +45,6 @@ execSync('tsc --noEmit', { stdio: 'inherit' });
 execSync(`vite build --mode ${mode}`, { stdio: 'inherit' });
 
 // After build, version the Service Worker by copying to sw-<BUILD_HASH>.js
-import { readdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
 
 try {
     const manifestPath = resolve(
