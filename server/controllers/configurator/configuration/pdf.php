@@ -162,25 +162,36 @@ foreach ($options as $option) {
     ];
 }
 
-$updatedAt = (string)($configuration['updated_at'] ?? '');
-$generatedAt = date('Y-m-d H:i:s');
+$updatedAtRaw = (string)($configuration['updated_at'] ?? '');
+$dt = new DateTimeImmutable($updatedAtRaw, new DateTimeZone('Europe/Prague'));
+$updatedAt = $dt->format('d.m.Y H:i:s');
+$generatedAt = date('d.m.Y H:i:s');
 
 $escape = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 // ---- HTML for PDF ----
+$watermarkTile = dirname(__DIR__, 3) . '/public/watermark-tile.svg';
+$watermarkTile = str_replace('\\', '/', $watermarkTile);
 $css = <<<CSS
+@page {
+    background-image: url('{$watermarkTile}');
+    background-repeat: repeat;
+    background-position: 0 0;
+    odd-footer-name: html_configFooter;
+    even-footer-name: html_configFooter;
+}
+body {font-family: sans-serif; font-size: 11pt; color: #111;}
 table.head { width: 100%; border-collapse: collapse; }
 .head-left { width: 70%; vertical-align: top; }
 .head-right { width: 30%; vertical-align: top; text-align: right; }
 .head h1 { margin: 0 0 1mm 0; }
-body { font-family: sans-serif; font-size: 11pt; color: #111; }
 h1 { font-size: 16pt; margin: 0 0 4mm 0; }
 .meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
-.hr { height: 1px; background: #ddd; margin: 4mm 0; }
+.hr { height: 1px; background: #bbb; margin: 4mm 0; }
 
 table { width: 100%; border-collapse: collapse; }
-thead th { text-align: left; font-size: 9pt; color: #444; border-bottom: 2px solid #ddd; padding: 3mm 2mm; }
-tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top; }
+thead th { text-align: left; font-size: 9pt; color: #444; border-bottom: 2px solid #bbb; padding: 3mm 2mm; }
+tbody td { border-bottom: 1px solid #ccc; padding: 3mm 2mm; vertical-align: top; }
 .col-no { width: 10mm; color:#666; }
 .col-img { width: 35mm; }
 .thumb {
@@ -188,7 +199,7 @@ tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top;
   max-height: 22mm;
   width: auto;
   height: auto;
-  border: 0.2mm solid #eee;
+  border: 0.2mm solid #ccc;
   border-radius: 2mm;
   background: #fafafa;
   display: block;
@@ -196,9 +207,32 @@ tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top;
 .price { white-space: nowrap; }
 
 .totals { margin-top: 6mm; }
-.totals-box { border: 0.2mm solid #ddd; border-radius: 3mm; padding: 3mm; width: 70mm; margin-left: auto; }
+.totals-box { 
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 0.2mm solid #bbb;
+    border-radius: 3mm;
+    padding: 3mm;
+    width: 70mm;
+    margin-left: auto;
+}
 .totals-title { font-weight: bold; margin-bottom: 2mm; }
-.totals-row { display: flex; justify-content: space-between; padding: 1mm 0; }
+.totals-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.totals-table td {
+  padding: 0;
+  border: 0;
+}
+.totals-amount {
+  padding-right: 1.5mm !important;
+  white-space: nowrap;
+  text-align: right;
+}
+.totals-currency {
+  color: #444;
+  white-space: nowrap;
+}
 CSS;
 
 $rowsHtml = '';
@@ -222,13 +256,19 @@ if ($items === []) {
 
 $totalsHtml = '';
 if ($finalPriceByCurrency === []) {
-    $totalsHtml = '<div class="totals-row"><span>—</span><strong>N/A</strong></div>';
+    $totalsHtml .= '<tr>'
+        . '<td class="totals-amount"><strong>' . $escape(number_format(0, 2, '.', ' ')) . '</strong></td>'
+        . '<td class="totals-currency">-</td>'
+        . '</tr>';
 } else {
+    $totalsHtml = '<table class="totals-table">';
     foreach ($finalPriceByCurrency as $cur => $amount) {
-        $totalsHtml .= '<div class="totals-row"><span>' . $escape((string)$cur) . '</span><strong>'
-            . $escape(number_format((float)$amount, 2, '.', ' '))
-            . '</strong></div>';
+        $totalsHtml .= '<tr>'
+            . '<td class="totals-amount"><strong>' . $escape(number_format((float)$amount, 2, '.', ' ')) . '</strong></td>'
+            . '<td class="totals-currency">' . $escape((string)$cur) . '</td>'
+            . '</tr>';
     }
+    $totalsHtml .= '</table>';
 }
 
 $html = <<<HTML
@@ -236,9 +276,10 @@ $html = <<<HTML
   <tr>
     <td class="head-left">
       <h1>Konfigurace #{$configurationId}</h1>
-      <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
+      <div class="meta">{$user['email']}</div>
     </td>
     <td class="head-right">
+      <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
       <div class="meta">Vygenerováno: {$escape($generatedAt)}</div>
     </td>
   </tr>
@@ -267,6 +308,8 @@ $html = <<<HTML
 </div>
 HTML;
 
+$footerHtml = '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>';
+
 // ---- Render PDF ----
 try {
     $tempDir = dirname(__DIR__, 3) . '/tmp/mpdf';
@@ -290,11 +333,7 @@ try {
     $mpdf->SetAuthor('HAGEMANN konfigurátor');
     $mpdf->SetDisplayMode('fullpage');
     $mpdf->AliasNbPages();
-
-    // Footer/page numbers
-    $mpdf->SetHTMLFooter(
-        '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>'
-    );
+    $mpdf->DefHTMLFooterByName('configFooter', $footerHtml);
 
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
