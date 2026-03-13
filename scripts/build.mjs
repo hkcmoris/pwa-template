@@ -68,9 +68,14 @@ try {
 
     const serverDir = resolve(process.cwd(), 'server');
     const swSource = resolve(serverDir, 'sw.js');
-    const serverDest = resolve(serverDir, 'public', 'sw');
+    const publicRoot = resolve(serverDir, 'public');
+    const serverDest = resolve(publicRoot, 'sw');
     const destName = `sw-${buildHash}.js`;
     const swDest = resolve(serverDest, destName);
+
+    // Ensure destination exists in clean CI environments
+    mkdirSync(publicRoot, { recursive: true });
+    mkdirSync(serverDest, { recursive: true });
 
     // Remove old versioned SW files to keep the directory clean
     for (const name of readdirSync(serverDest)) {
@@ -96,7 +101,6 @@ try {
     writeFileSync(swDest, swCode, 'utf8');
 
     // Write a tiny loader at the PUBLIC ROOT: /sw.js
-    const publicRoot = resolve(serverDir, 'public');
     const swLoaderPath = resolve(publicRoot, 'sw.js');
     // Use location-aware URL so subfolder deploys (APP_BASE) still work
     const loader = `
