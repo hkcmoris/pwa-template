@@ -93,6 +93,17 @@ if (!defined('APP_VERSION')) {
                     $version = (string) $packageData['version'];
                 }
             }
+        } else {
+            $packagePath = __DIR__ . '/../package.json';
+            if (is_file($packagePath)) {
+                $packageJson = file_get_contents($packagePath);
+                if ($packageJson !== false) {
+                    $packageData = json_decode($packageJson, true);
+                    if (is_array($packageData) && isset($packageData['version'])) {
+                        $version = (string) $packageData['version'];
+                    }
+                }
+            }
         }
     }
     if (!is_string($version) || $version === '') {
