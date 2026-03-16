@@ -111,7 +111,7 @@ $resolveLocalImagePath = static function (string $image): string {
     }
 
     // server/ absolute path
-    $serverRoot = dirname(__DIR__, 3); // controllers/... -> server/
+    $serverRoot = dirname(__DIR__, 4); // controllers/... -> server/
     $candidate = $serverRoot . $path;
 
     // Normalize slashes for Windows
@@ -122,6 +122,98 @@ $resolveLocalImagePath = static function (string $image): string {
     }
 
     return (is_file($candidate) && is_readable($candidate)) ? $candidate : '';
+};
+
+/**
+ * Return a PDF-safe local image path for mPDF.
+ * - Non-WebP images are returned unchanged
+ * - WebP images are converted to cached PNG (to preserve transparency)
+ * - Cached PNG is reused until source file changes
+ */
+$ensurePdfSafeImagePath = static function (string $sourcePath): string {
+    $sourcePath = trim($sourcePath);
+    if ($sourcePath === '' || !is_file($sourcePath) || !is_readable($sourcePath)) {
+        return '';
+    }
+
+    $extension = strtolower((string) pathinfo($sourcePath, PATHINFO_EXTENSION));
+
+    // Fast path: if it is not WebP, just use original
+    if ($extension !== 'webp') {
+        return $sourcePath;
+    }
+
+    $serverRoot = dirname(__DIR__, 3);
+    $cacheDir = $serverRoot . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'pdf-image-cache';
+
+    if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+        log_message("Failed to create PDF image cache dir: $cacheDir", 'ERROR');
+        return $sourcePath; // fallback
+    }
+
+    $mtime = @filemtime($sourcePath);
+    $mtimeKey = $mtime !== false ? (string) $mtime : '0';
+
+    // Deterministic cache key: source path + filemtime
+    $cacheKey = sha1($sourcePath . '|' . $mtimeKey);
+    $targetPath = $cacheDir . DIRECTORY_SEPARATOR . $cacheKey . '.png';
+
+    if (is_file($targetPath) && is_readable($targetPath)) {
+        return $targetPath;
+    }
+
+    // Try Imagick first if available
+    if (class_exists(Imagick::class)) {
+        try {
+            $imagick = new Imagick();
+            $imagick->readImage($sourcePath);
+
+            // Flattening would kill transparency, so don't do that.
+            $imagick->setImageFormat('png');
+            $imagick->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+            $imagick->thumbnailImage(378, 260, true, true);
+            $imagick->stripImage();
+
+            $imagick->writeImage($targetPath);
+            $imagick->clear();
+            $imagick->destroy();
+
+            if (is_file($targetPath) && is_readable($targetPath)) {
+                return $targetPath;
+            }
+        } catch (\Throwable $e) {
+            log_message('Imagick WebP->PNG conversion failed: ' . $e->getMessage(), 'ERROR');
+        }
+    }
+
+    // Fallback to GD
+    if (function_exists('imagecreatefromwebp') && function_exists('imagepng')) {
+        try {
+            $image = @imagecreatefromwebp($sourcePath);
+            if ($image !== false) {
+                // Preserve alpha
+                imagealphablending($image, false);
+                imagesavealpha($image, true);
+
+                // Write PNG with default compression
+                if (@imagepng($image, $targetPath) === true) {
+                    imagedestroy($image);
+
+                    if (is_file($targetPath) && is_readable($targetPath)) {
+                        return $targetPath;
+                    }
+                }
+
+                imagedestroy($image);
+            }
+        } catch (\Throwable $e) {
+            log_message('GD WebP->PNG conversion failed: ' . $e->getMessage(), 'ERROR');
+        }
+    }
+
+    // Last resort: return original and accept that mPDF may render artifacts
+    log_message("Could not convert WebP for PDF, using original: $sourcePath", 'ERROR');
+    return $sourcePath;
 };
 
 // ---- Build view model ----
@@ -154,10 +246,12 @@ foreach ($options as $option) {
 
     $imageRaw = trim((string)($option['option_image'] ?? ''));
     $imageLocal = $resolveLocalImagePath($imageRaw);
+    $imagePdfSafe = $ensurePdfSafeImagePath($imageLocal);
 
     $items[] = [
       'title' => $title,
       'image_local' => $imageLocal,   // <- use this
+      'image_pdf_safe' => $imagePdfSafe, // <- use this for PDF compatibility
       'price_label' => $priceLabel,
     ];
 }
@@ -221,7 +315,6 @@ tbody td { border-bottom: 1px solid #ccc; padding: 3mm 2mm; vertical-align: top;
   border-collapse: collapse;
 }
 .totals-table td {
-  padding: 0;
   border: 0;
 }
 .totals-amount {
@@ -241,8 +334,8 @@ if ($items === []) {
 } else {
     foreach ($items as $i => $item) {
         $imgHtml = '—';
-        if ($item['image_local'] !== '') {
-            $imgHtml = '<img class="thumb" src="' . $escape($item['image_local']) . '" alt="">';
+        if ($item['image_pdf_safe'] !== '') {
+            $imgHtml = '<img class="thumb" src="' . $escape($item['image_pdf_safe']) . '" alt="">';
         }
 
         $rowsHtml .= '<tr>'
@@ -264,7 +357,9 @@ if ($finalPriceByCurrency === []) {
     $totalsHtml = '<table class="totals-table">';
     foreach ($finalPriceByCurrency as $cur => $amount) {
         $totalsHtml .= '<tr>'
-            . '<td class="totals-amount"><strong>' . $escape(number_format((float)$amount, 2, '.', ' ')) . '</strong></td>'
+            . '<td class="totals-amount"><strong>'
+            . $escape(number_format((float)$amount, 2, '.', ' '))
+            . '</strong></td>'
             . '<td class="totals-currency">' . $escape((string)$cur) . '</td>'
             . '</tr>';
     }
