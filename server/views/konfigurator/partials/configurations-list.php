@@ -58,9 +58,16 @@ $finishedConfigurations = array_values(array_filter(
   <ul class="configurations-list">
     <?php foreach ($finishedConfigurations as $configuration) : ?>
         <?php $configurationId = (int) ($configuration['id'] ?? 0); ?>
+        <?php $configurationTitle = trim((string) ($configuration['title'] ?? '')); ?>
+        <?php
+        $configurationLabel = $configurationTitle !== ''
+            ? $configurationTitle
+            : ('Konfigurace #' . (string) ($configuration['id'] ?? ''));
+        $pdfHref = $BASE . '/configurator/configuration/pdf?configuration_id=' . (string) $configurationId;
+        ?>
       <li>
         <div class="configuration-entry-main">
-          <strong>Konfigurace #<?= htmlspecialchars((string) $configuration['id']) ?></strong>
+          <strong><?= htmlspecialchars($configurationLabel) ?></strong>
           <?php if (!empty($configuration['updated_at'])) : ?>
             <time datetime="<?= htmlspecialchars((string) $configuration['updated_at']) ?>">
                 <?= htmlspecialchars((string) $configuration['updated_at']) ?>
@@ -69,15 +76,56 @@ $finishedConfigurations = array_values(array_filter(
         </div>
         <?php if ($configurationId > 0) : ?>
           <div class="configuration-entry-actions">
-            <a
-              class="configuration-entry-action configuration-entry-action--solid"
-              href="<?= htmlspecialchars($BASE) ?>/configurator/configuration/pdf?configuration_id=
-                <?= htmlspecialchars((string) $configurationId) ?>"
+            <button
+              type="button"
+              class="configuration-entry-action configuration-entry-action--icon"
+              data-manager-action="rename"
+              data-manager-type="configuration"
+              data-configuration-id="<?= htmlspecialchars((string) $configurationId) ?>"
+              data-configuration-title="<?= htmlspecialchars($configurationTitle) ?>"
+              aria-label="Přejmenovat konfiguraci <?= htmlspecialchars($configurationLabel) ?>"
+              title="Přejmenovat"
             >
               <svg
                 fill="currentColor"
-                width="32px"
-                height="32px"
+                width="16px"
+                height="16px"
+                display="block"
+                aria-hidden="true"
+              >
+                <use href="#icon-rename"></use>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="configuration-entry-action configuration-entry-action--danger configuration-entry-action--icon"
+              data-manager-action="delete"
+              data-manager-type="configuration"
+              data-configuration-id="<?= htmlspecialchars((string) $configurationId) ?>"
+              data-configuration-title="<?= htmlspecialchars($configurationLabel) ?>"
+              aria-label="Smazat konfiguraci <?= htmlspecialchars($configurationLabel) ?>"
+              title="Smazat"
+            >
+              <svg
+                fill="currentColor"
+                width="16px"
+                height="16px"
+                display="block"
+                aria-hidden="true"
+              >
+                <use href="#icon-trash"></use>
+              </svg>
+            </button>
+            <a
+              class="configuration-entry-action configuration-entry-action--solid configuration-entry-action--icon"
+              href="<?= htmlspecialchars($pdfHref) ?>"
+              aria-label="Stáhnout konfiguraci <?= htmlspecialchars($configurationLabel) ?> jako PDF"
+              title="Stáhnout PDF"
+            >
+              <svg
+                fill="currentColor"
+                width="16px"
+                height="16px"
                 display="block"
                 aria-hidden="true"
               >

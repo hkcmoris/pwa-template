@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Administration\Repository as AdministrationRepository;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 
@@ -30,7 +31,7 @@ if ($configurationId <= 0) {
 $pdo = get_db_connection();
 
 $configurationStmt = $pdo->prepare(
-    'SELECT id, user_id, status, updated_at FROM configurations WHERE id = :id LIMIT 1'
+    'SELECT id, user_id, title, status, updated_at FROM configurations WHERE id = :id LIMIT 1'
 );
 $configurationStmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
 $configurationStmt->execute();
@@ -95,34 +96,155 @@ $resolveLocalImagePath = static function (string $image): string {
         $path = $image;
     }
     $path = rawurldecode($path);
-
-    // Must be root-relative or assets/public path you control
     if ($path[0] !== '/') {
-        return '';
+        $path = '/' . ltrim($path, '/');
     }
 
     /** @var string $basePath */
     $basePath = defined('BASE_PATH') ? (string) BASE_PATH : '';
     if ($basePath === '/') {
-        $basePath = '';
-    }
-    if ($basePath !== '' && str_starts_with($path, $basePath . '/')) {
-        $path = substr($path, strlen($basePath));
+        $basePath = '/server';
     }
 
-    // server/ absolute path
-    $serverRoot = dirname(__DIR__, 3); // controllers/... -> server/
-    $candidate = $serverRoot . $path;
+    $pathVariants = [$path];
+    if ($basePath !== '') {
+        $basePath = '/' . trim($basePath, '/');
+        $prefixedPath = $basePath . $path;
+        $strippedPath = str_starts_with($path, $basePath . '/')
+            ? substr($path, strlen($basePath))
+            : null;
 
-    // Normalize slashes for Windows
-    $candidate = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate);
-
-    if (!is_file($candidate)) {
-        log_message("Missing image: $candidate", 'DEBUG');
+        if ($strippedPath !== null && $strippedPath !== '') {
+            $pathVariants[] = $strippedPath;
+        }
+        if (!str_starts_with($path, $basePath . '/')) {
+            $pathVariants[] = $prefixedPath;
+        }
     }
 
-    return (is_file($candidate) && is_readable($candidate)) ? $candidate : '';
+    $projectRoot = dirname(__DIR__, 4);
+    /** @var array<string, bool> $seenVariants */
+    $seenVariants = [];
+    foreach ($pathVariants as $variant) {
+        if (isset($seenVariants[$variant])) {
+            continue;
+        }
+        $seenVariants[$variant] = true;
+
+        $candidate = $projectRoot . $variant;
+        $candidate = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate);
+
+        log_message('Checking image path: ' . $candidate, 'DEBUG');
+
+        if (is_file($candidate) && is_readable($candidate)) {
+            return $candidate;
+        }
+    }
+
+    log_message('Missing image: ' . $path, 'DEBUG');
+    return '';
 };
+
+/**
+ * Return a PDF-safe local image path for mPDF.
+ * - Non-WebP images are returned unchanged
+ * - WebP images are converted to cached PNG (to preserve transparency)
+ * - Cached PNG is reused until source file changes
+ */
+$ensurePdfSafeImagePath = static function (string $sourcePath): string {
+    $sourcePath = trim($sourcePath);
+    if ($sourcePath === '' || !is_file($sourcePath) || !is_readable($sourcePath)) {
+        return '';
+    }
+
+    $extension = strtolower((string) pathinfo($sourcePath, PATHINFO_EXTENSION));
+
+    // Fast path: if it is not WebP, just use original
+    if ($extension !== 'webp') {
+        return $sourcePath;
+    }
+
+    $serverRoot = dirname(__DIR__, 3);
+    $cacheDir = $serverRoot . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'pdf-image-cache';
+
+    if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+        log_message("Failed to create PDF image cache dir: $cacheDir", 'ERROR');
+        return $sourcePath; // fallback
+    }
+
+    $mtime = @filemtime($sourcePath);
+    $mtimeKey = $mtime !== false ? (string) $mtime : '0';
+
+    // Deterministic cache key: source path + filemtime
+    $cacheKey = sha1($sourcePath . '|' . $mtimeKey);
+    $targetPath = $cacheDir . DIRECTORY_SEPARATOR . $cacheKey . '.png';
+
+    if (is_file($targetPath) && is_readable($targetPath)) {
+        return $targetPath;
+    }
+
+    // Try Imagick first if available
+    if (class_exists(Imagick::class)) {
+        try {
+            $imagick = new Imagick();
+            $imagick->readImage($sourcePath);
+
+            // Flattening would kill transparency, so don't do that.
+            $imagick->setImageFormat('png');
+            $imagick->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
+            $imagick->thumbnailImage(378, 260, true, true);
+            $imagick->stripImage();
+
+            $imagick->writeImage($targetPath);
+            $imagick->clear();
+            $imagick->destroy();
+
+            if (is_file($targetPath) && is_readable($targetPath)) {
+                return $targetPath;
+            }
+        } catch (\Throwable $e) {
+            log_message('Imagick WebP->PNG conversion failed: ' . $e->getMessage(), 'ERROR');
+        }
+    }
+
+    // Fallback to GD
+    if (function_exists('imagecreatefromwebp') && function_exists('imagepng')) {
+        try {
+            $image = @imagecreatefromwebp($sourcePath);
+            if ($image !== false) {
+                // Preserve alpha
+                imagealphablending($image, false);
+                imagesavealpha($image, true);
+
+                // Write PNG with default compression
+                if (@imagepng($image, $targetPath) === true) {
+                    imagedestroy($image);
+
+                    if (is_file($targetPath) && is_readable($targetPath)) {
+                        return $targetPath;
+                    }
+                }
+
+                imagedestroy($image);
+            }
+        } catch (\Throwable $e) {
+            log_message('GD WebP->PNG conversion failed: ' . $e->getMessage(), 'ERROR');
+        }
+    }
+
+    // Last resort: return original and accept that mPDF may render artifacts
+    log_message("Could not convert WebP for PDF, using original: $sourcePath", 'ERROR');
+    return $sourcePath;
+};
+
+$logoRepository = new AdministrationRepository($pdo);
+$logoSettings = $logoRepository->readLogoSettings();
+$logoPath = trim((string) $logoSettings['path']);
+if ($logoPath !== '' && $logoPath[0] !== '/') {
+    $logoPath = '/' . ltrim($logoPath, '/');
+}
+$logoLocal = $logoPath !== '' ? $resolveLocalImagePath($logoPath) : '';
+$logoPdfSafe = $ensurePdfSafeImagePath($logoLocal);
 
 // ---- Build view model ----
 $finalPriceByCurrency = [];
@@ -147,40 +269,85 @@ foreach ($options as $option) {
     $priceLabel = 'N/A';
     if ($amountRaw !== '' && is_numeric($amountRaw)) {
         $amount = (float)$amountRaw;
-        $priceLabel = number_format($amount, 2, '.', ' ') . ' ' . $currency;
+        $priceLabel = number_format($amount, 2, ',', ' ') . ' ' . $currency;
 
         $finalPriceByCurrency[$currency] = ($finalPriceByCurrency[$currency] ?? 0.0) + $amount;
     }
 
     $imageRaw = trim((string)($option['option_image'] ?? ''));
     $imageLocal = $resolveLocalImagePath($imageRaw);
+    $imagePdfSafe = $ensurePdfSafeImagePath($imageLocal);
 
     $items[] = [
       'title' => $title,
       'image_local' => $imageLocal,   // <- use this
+      'image_pdf_safe' => $imagePdfSafe, // <- use this for PDF compatibility
       'price_label' => $priceLabel,
     ];
 }
 
-$updatedAt = (string)($configuration['updated_at'] ?? '');
-$generatedAt = date('Y-m-d H:i:s');
+$updatedAtRaw = (string)($configuration['updated_at'] ?? '');
+$dt = new DateTimeImmutable($updatedAtRaw, new DateTimeZone('Europe/Prague'));
+$updatedAt = $dt->format('d.m.Y H:i:s');
+$generatedAt = date('d.m.Y H:i:s');
+$configurationTitle = trim((string)($configuration['title'] ?? ''));
+$documentTitle = $configurationTitle !== ''
+    ? $configurationTitle
+    : "Konfigurace #{$configurationId}";
+
+$slugifyForFilename = static function (string $value): string {
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (function_exists('iconv')) {
+        $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+        if ($transliterated !== false) {
+            $value = $transliterated;
+        }
+    }
+
+    $value = strtolower($value);
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
+    $value = trim($value, '-');
+
+    return $value;
+};
 
 $escape = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 // ---- HTML for PDF ----
+$watermarkTile = dirname(__DIR__, 3) . '/public/watermark-tile.svg';
+$watermarkTile = str_replace('\\', '/', $watermarkTile);
 $css = <<<CSS
+@page {
+    background-image: url('{$watermarkTile}');
+    background-repeat: repeat;
+    background-position: 0 0;
+    odd-footer-name: html_configFooter;
+    even-footer-name: html_configFooter;
+}
+body {font-family: sans-serif; font-size: 11pt; color: #111;}
 table.head { width: 100%; border-collapse: collapse; }
 .head-left { width: 70%; vertical-align: top; }
 .head-right { width: 30%; vertical-align: top; text-align: right; }
+.brand-logo {
+  display: block;
+  max-width: 34mm;
+  max-height: 8mm;
+  width: auto;
+  height: auto;
+  margin: 0 0 2mm 0;
+}
 .head h1 { margin: 0 0 1mm 0; }
-body { font-family: sans-serif; font-size: 11pt; color: #111; }
 h1 { font-size: 16pt; margin: 0 0 4mm 0; }
 .meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
-.hr { height: 1px; background: #ddd; margin: 4mm 0; }
+.hr { height: 1px; background: #bbb; margin: 4mm 0; }
 
 table { width: 100%; border-collapse: collapse; }
-thead th { text-align: left; font-size: 9pt; color: #444; border-bottom: 2px solid #ddd; padding: 3mm 2mm; }
-tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top; }
+thead th { text-align: left; font-size: 9pt; color: #444; border-bottom: 2px solid #bbb; padding: 3mm 2mm; }
+tbody td { border-bottom: 1px solid #ccc; padding: 3mm 2mm; vertical-align: top; }
 .col-no { width: 10mm; color:#666; }
 .col-img { width: 35mm; }
 .thumb {
@@ -188,7 +355,7 @@ tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top;
   max-height: 22mm;
   width: auto;
   height: auto;
-  border: 0.2mm solid #eee;
+  border: 0.2mm solid #ccc;
   border-radius: 2mm;
   background: #fafafa;
   display: block;
@@ -196,9 +363,31 @@ tbody td { border-bottom: 1px solid #eee; padding: 3mm 2mm; vertical-align: top;
 .price { white-space: nowrap; }
 
 .totals { margin-top: 6mm; }
-.totals-box { border: 0.2mm solid #ddd; border-radius: 3mm; padding: 3mm; width: 70mm; margin-left: auto; }
+.totals-box { 
+    background-color: rgba(0, 0, 0, 0.05);
+    border: 0.2mm solid #bbb;
+    border-radius: 3mm;
+    padding: 3mm;
+    width: 70mm;
+    margin-left: auto;
+}
 .totals-title { font-weight: bold; margin-bottom: 2mm; }
-.totals-row { display: flex; justify-content: space-between; padding: 1mm 0; }
+.totals-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.totals-table td {
+  border: 0;
+}
+.totals-amount {
+  padding-right: 1.5mm !important;
+  white-space: nowrap;
+  text-align: right;
+}
+.totals-currency {
+  color: #444;
+  white-space: nowrap;
+}
 CSS;
 
 $rowsHtml = '';
@@ -207,8 +396,8 @@ if ($items === []) {
 } else {
     foreach ($items as $i => $item) {
         $imgHtml = '—';
-        if ($item['image_local'] !== '') {
-            $imgHtml = '<img class="thumb" src="' . $escape($item['image_local']) . '" alt="">';
+        if ($item['image_pdf_safe'] !== '') {
+            $imgHtml = '<img class="thumb" src="' . $escape($item['image_pdf_safe']) . '" alt="">';
         }
 
         $rowsHtml .= '<tr>'
@@ -220,25 +409,40 @@ if ($items === []) {
     }
 }
 
+$logoHtml = '';
+if ($logoPdfSafe !== '') {
+    $logoHtml = '<img class="brand-logo" src="' . $escape($logoPdfSafe) . '" alt="Logo">';
+}
+
 $totalsHtml = '';
 if ($finalPriceByCurrency === []) {
-    $totalsHtml = '<div class="totals-row"><span>—</span><strong>N/A</strong></div>';
+    $totalsHtml .= '<tr>'
+        . '<td class="totals-amount"><strong>' . $escape(number_format(0, 2, ',', ' ')) . '</strong></td>'
+        . '<td class="totals-currency">-</td>'
+        . '</tr>';
 } else {
+    $totalsHtml = '<table class="totals-table">';
     foreach ($finalPriceByCurrency as $cur => $amount) {
-        $totalsHtml .= '<div class="totals-row"><span>' . $escape((string)$cur) . '</span><strong>'
-            . $escape(number_format((float)$amount, 2, '.', ' '))
-            . '</strong></div>';
+        $totalsHtml .= '<tr>'
+            . '<td class="totals-amount"><strong>'
+            . $escape(number_format((float)$amount, 2, ',', ' '))
+            . '</strong></td>'
+            . '<td class="totals-currency">' . $escape((string)$cur) . '</td>'
+            . '</tr>';
     }
+    $totalsHtml .= '</table>';
 }
 
 $html = <<<HTML
 <table class="head">
   <tr>
     <td class="head-left">
-      <h1>Konfigurace #{$configurationId}</h1>
-      <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
+      {$logoHtml}
+      <h1>{$escape($documentTitle)}</h1>
+      <div class="meta">{$user['email']}</div>
     </td>
     <td class="head-right">
+      <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
       <div class="meta">Vygenerováno: {$escape($generatedAt)}</div>
     </td>
   </tr>
@@ -267,6 +471,8 @@ $html = <<<HTML
 </div>
 HTML;
 
+$footerHtml = '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>';
+
 // ---- Render PDF ----
 try {
     $tempDir = dirname(__DIR__, 3) . '/tmp/mpdf';
@@ -286,20 +492,17 @@ try {
     // Helps with images over HTTPS with odd certs (optional):
     // $mpdf->curlAllowUnsafeSslRequests = true;
 
-    $mpdf->SetTitle("Konfigurace #{$configurationId}");
+    $mpdf->SetTitle($documentTitle);
     $mpdf->SetAuthor('HAGEMANN konfigurátor');
     $mpdf->SetDisplayMode('fullpage');
     $mpdf->AliasNbPages();
-
-    // Footer/page numbers
-    $mpdf->SetHTMLFooter(
-        '<div style="text-align:right; font-size:9pt; color:#666;">Strana {PAGENO} / {nb}</div>'
-    );
+    $mpdf->DefHTMLFooterByName('configFooter', $footerHtml);
 
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
 
-    $filename = "configuration-{$configurationId}.pdf";
+    $filenameSlug = $slugifyForFilename($documentTitle);
+    $filename = ($filenameSlug !== '' ? $filenameSlug : "configuration-{$configurationId}") . '.pdf';
     // mPDF will send headers + output
     $mpdf->Output($filename, Destination::DOWNLOAD);
 } catch (\Throwable $e) {
