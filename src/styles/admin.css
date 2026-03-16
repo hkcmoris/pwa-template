@@ -1,8 +1,19 @@
 .admin-panel {
+    margin-bottom: 1.5rem;
+}
+
+.admin-panel-row, .admin-panel-col {
     display: flex;
-    flex-direction: row;
     justify-content: space-between;
     gap: 1rem;
+}
+
+.admin-panel-row {
+    flex-direction: row;
+}
+
+.admin-panel-col {
+    flex-direction: column;
 }
 
 #admin-sql-query-input {
@@ -56,7 +67,6 @@
 }
 
 .admin-transfer {
-    margin-bottom: 1.5rem;
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -76,7 +86,6 @@
 }
 
 .admin-logo {
-    margin-bottom: 1.5rem;
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -89,7 +98,6 @@
 }
 
 .admin-address {
-    margin-bottom: 1.5rem;
     padding: 1rem;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -124,10 +132,17 @@
 
 .admin-field input {
     border: 1px solid var(--border);
-    border-radius: 0.4rem;
+    border-radius: 0.35rem;
     padding: 0.4rem 0.5rem;
+    font: inherit;
     background: var(--bg);
     color: inherit;
+    width: 100%;
+}
+
+.admin-field input:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
 }
 
 .admin-address-feedback {
