@@ -148,6 +148,7 @@ $controllerRoutes = [
     'POST admin/export'                          => __DIR__ . '/controllers/admin/export.php',
     'POST admin/import'                          => __DIR__ . '/controllers/admin/import.php',
     'POST admin/logo'                            => __DIR__ . '/controllers/admin/logo.php',
+    'POST admin/address'                         => __DIR__ . '/controllers/admin/address.php',
 ];
 
 $nonHtmxControllers = [

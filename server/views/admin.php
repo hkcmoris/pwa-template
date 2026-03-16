@@ -1,5 +1,9 @@
 <?php
 
+require_once __DIR__ . '/../lib/Administration/Repository.php';
+
+use Administration\Repository as AdministrationRepository;
+
 // Normalize base path for view usage.
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
@@ -35,6 +39,9 @@ if ($__editorRole != 'superadmin') {
     echo '</div>';
     return;
 }
+
+$adminRepository = new AdministrationRepository();
+$companyAddress = $adminRepository->readCompanyAddress();
 ?>
 <h1>Administrace</h1>
 <div class="admin-panel">
@@ -173,6 +180,76 @@ if ($__editorRole != 'superadmin') {
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="admin-address" data-island="admin">
+    <h2>Firemní adresa</h2>
+    <p>Nastavte adresu společnosti pro tisk výstupů a další administrativu.</p>
+    <form id="admin-address-form" class="admin-address-form" novalidate>
+      <?= csrf_field(); ?>
+      <label class="admin-field">
+        <span>Kód země</span>
+        <input
+          type="text"
+          name="country_code"
+          maxlength="2"
+          minlength="2"
+          required
+          value="<?= htmlspecialchars((string)($companyAddress['country_code'] ?? 'CZ'), ENT_QUOTES, 'UTF-8') ?>"
+          autocomplete="country">
+      </label>
+      <label class="admin-field">
+        <span>Stát / kraj</span>
+        <input
+          type="text"
+          name="state"
+          required
+          value="<?= htmlspecialchars((string)($companyAddress['state'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+          autocomplete="address-level1">
+      </label>
+      <label class="admin-field">
+        <span>Město</span>
+        <input
+          type="text"
+          name="city"
+          required
+          value="<?= htmlspecialchars((string)($companyAddress['city'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+          autocomplete="address-level2">
+      </label>
+      <div class="admin-field-row">
+        <label class="admin-field">
+          <span>Ulice</span>
+          <input
+            type="text"
+            name="street"
+            required
+            value="<?= htmlspecialchars((string)($companyAddress['street'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+            autocomplete="address-line1">
+        </label>
+        <label class="admin-field">
+          <span>Číslo popisné/orientační</span>
+          <input
+            type="text"
+            name="street_number"
+            required
+            value="<?= htmlspecialchars((string)($companyAddress['street_number'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+            autocomplete="address-line2">
+        </label>
+      </div>
+      <label class="admin-field">
+        <span>PSČ</span>
+        <input
+          type="text"
+          name="post_code"
+          required
+          value="<?= htmlspecialchars((string)($companyAddress['post_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+          autocomplete="postal-code">
+      </label>
+      <div class="admin-modal-actions">
+        <button type="submit" class="admin-action admin-action--primary">Uložit adresu</button>
+      </div>
+      <p id="admin-address-feedback" class="admin-address-feedback hidden" role="status" aria-live="polite"></p>
+    </form>
   </section>
 </div>
 <textarea

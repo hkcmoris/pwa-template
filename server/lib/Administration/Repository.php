@@ -98,6 +98,113 @@ final class Repository
     }
 
     /**
+     * @param array{country_code: string, state: string, city: string, street: string, street_number: string, post_code: string} $address
+     */
+    public function saveCompanyAddress(array $address): int
+    {
+        $this->pdo->beginTransaction();
+        try {
+            $settings = $this->getMany(['company_address_id']);
+            $existingId = isset($settings['company_address_id']) ? (int) $settings['company_address_id'] : 0;
+
+            if ($existingId > 0) {
+                $update = $this->pdo->prepare(
+                    'UPDATE addresses
+                     SET country_code = :country_code,
+                         state = :state,
+                         city = :city,
+                         street = :street,
+                         street_number = :street_number,
+                         post_code = :post_code
+                     WHERE id = :id'
+                );
+                $update->execute([
+                    ':id' => $existingId,
+                    ':country_code' => $address['country_code'],
+                    ':state' => $address['state'],
+                    ':city' => $address['city'],
+                    ':street' => $address['street'],
+                    ':street_number' => $address['street_number'],
+                    ':post_code' => $address['post_code'],
+                ]);
+
+                if ($update->rowCount() > 0 || $this->addressExists($existingId)) {
+                    $this->set('company_address_id', (string) $existingId);
+                    $this->pdo->commit();
+                    return $existingId;
+                }
+            }
+
+            $insert = $this->pdo->prepare(
+                'INSERT INTO addresses (country_code, state, city, street, street_number, post_code)
+                 VALUES (:country_code, :state, :city, :street, :street_number, :post_code)'
+            );
+            $insert->execute([
+                ':country_code' => $address['country_code'],
+                ':state' => $address['state'],
+                ':city' => $address['city'],
+                ':street' => $address['street'],
+                ':street_number' => $address['street_number'],
+                ':post_code' => $address['post_code'],
+            ]);
+
+            $addressId = (int) $this->pdo->lastInsertId();
+            $this->set('company_address_id', (string) $addressId);
+            $this->pdo->commit();
+
+            return $addressId;
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * @return array{id: int, country_code: string, state: string, city: string, street: string, street_number: string, post_code: string}|null
+     */
+    public function readCompanyAddress(): ?array
+    {
+        $settings = $this->getMany(['company_address_id']);
+        $addressId = isset($settings['company_address_id']) ? (int) $settings['company_address_id'] : 0;
+        if ($addressId <= 0) {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT id, country_code, state, city, street, street_number, post_code
+             FROM addresses
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $stmt->execute([':id' => $addressId]);
+
+        /** @var array{id: int|string, country_code: string, state: string, city: string, street: string, street_number: string, post_code: string}|false $row */
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row === false) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $row['id'],
+            'country_code' => (string) $row['country_code'],
+            'state' => (string) $row['state'],
+            'city' => (string) $row['city'],
+            'street' => (string) $row['street'],
+            'street_number' => (string) $row['street_number'],
+            'post_code' => (string) $row['post_code'],
+        ];
+    }
+
+    private function addressExists(int $id): bool
+    {
+        $stmt = $this->pdo->prepare('SELECT id FROM addresses WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetchColumn() !== false;
+    }
+
+    /**
      * Extract width and height from SVG string. Returns [width, height] or defaults if not found.
      * @return array{0: float, 1: float}
      */
