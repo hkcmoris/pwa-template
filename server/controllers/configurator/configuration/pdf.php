@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Administration\Repository as AdministrationRepository;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
 
@@ -95,33 +96,53 @@ $resolveLocalImagePath = static function (string $image): string {
         $path = $image;
     }
     $path = rawurldecode($path);
-
-    // Must be root-relative or assets/public path you control
     if ($path[0] !== '/') {
-        return '';
+        $path = '/' . ltrim($path, '/');
     }
 
     /** @var string $basePath */
     $basePath = defined('BASE_PATH') ? (string) BASE_PATH : '';
     if ($basePath === '/') {
-        $basePath = '';
-    }
-    if ($basePath !== '' && str_starts_with($path, $basePath . '/')) {
-        $path = substr($path, strlen($basePath));
+        $basePath = '/server';
     }
 
-    // server/ absolute path
-    $serverRoot = dirname(__DIR__, 4); // controllers/... -> server/
-    $candidate = $serverRoot . $path;
+    $pathVariants = [$path];
+    if ($basePath !== '') {
+        $basePath = '/' . trim($basePath, '/');
+        $prefixedPath = $basePath . $path;
+        $strippedPath = str_starts_with($path, $basePath . '/')
+            ? substr($path, strlen($basePath))
+            : null;
 
-    // Normalize slashes for Windows
-    $candidate = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate);
-
-    if (!is_file($candidate)) {
-        log_message("Missing image: $candidate", 'DEBUG');
+        if ($strippedPath !== null && $strippedPath !== '') {
+            $pathVariants[] = $strippedPath;
+        }
+        if (!str_starts_with($path, $basePath . '/')) {
+            $pathVariants[] = $prefixedPath;
+        }
     }
 
-    return (is_file($candidate) && is_readable($candidate)) ? $candidate : '';
+    $projectRoot = dirname(__DIR__, 4);
+    /** @var array<string, bool> $seenVariants */
+    $seenVariants = [];
+    foreach ($pathVariants as $variant) {
+        if (isset($seenVariants[$variant])) {
+            continue;
+        }
+        $seenVariants[$variant] = true;
+
+        $candidate = $projectRoot . $variant;
+        $candidate = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $candidate);
+
+        log_message('Checking image path: ' . $candidate, 'DEBUG');
+
+        if (is_file($candidate) && is_readable($candidate)) {
+            return $candidate;
+        }
+    }
+
+    log_message('Missing image: ' . $path, 'DEBUG');
+    return '';
 };
 
 /**
@@ -216,6 +237,15 @@ $ensurePdfSafeImagePath = static function (string $sourcePath): string {
     return $sourcePath;
 };
 
+$logoRepository = new AdministrationRepository($pdo);
+$logoSettings = $logoRepository->readLogoSettings();
+$logoPath = trim((string) $logoSettings['path']);
+if ($logoPath !== '' && $logoPath[0] !== '/') {
+    $logoPath = '/' . ltrim($logoPath, '/');
+}
+$logoLocal = $logoPath !== '' ? $resolveLocalImagePath($logoPath) : '';
+$logoPdfSafe = $ensurePdfSafeImagePath($logoLocal);
+
 // ---- Build view model ----
 $finalPriceByCurrency = [];
 $items = [];
@@ -302,6 +332,14 @@ body {font-family: sans-serif; font-size: 11pt; color: #111;}
 table.head { width: 100%; border-collapse: collapse; }
 .head-left { width: 70%; vertical-align: top; }
 .head-right { width: 30%; vertical-align: top; text-align: right; }
+.brand-logo {
+  display: block;
+  max-width: 34mm;
+  max-height: 8mm;
+  width: auto;
+  height: auto;
+  margin: 0 0 2mm 0;
+}
 .head h1 { margin: 0 0 1mm 0; }
 h1 { font-size: 16pt; margin: 0 0 4mm 0; }
 .meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
@@ -371,6 +409,11 @@ if ($items === []) {
     }
 }
 
+$logoHtml = '';
+if ($logoPdfSafe !== '') {
+    $logoHtml = '<img class="brand-logo" src="' . $escape($logoPdfSafe) . '" alt="Logo">';
+}
+
 $totalsHtml = '';
 if ($finalPriceByCurrency === []) {
     $totalsHtml .= '<tr>'
@@ -394,6 +437,7 @@ $html = <<<HTML
 <table class="head">
   <tr>
     <td class="head-left">
+      {$logoHtml}
       <h1>{$escape($documentTitle)}</h1>
       <div class="meta">{$user['email']}</div>
     </td>
