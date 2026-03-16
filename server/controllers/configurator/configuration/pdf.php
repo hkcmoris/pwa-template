@@ -239,7 +239,7 @@ foreach ($options as $option) {
     $priceLabel = 'N/A';
     if ($amountRaw !== '' && is_numeric($amountRaw)) {
         $amount = (float)$amountRaw;
-        $priceLabel = number_format($amount, 2, '.', ' ') . ' ' . $currency;
+        $priceLabel = number_format($amount, 2, ',', ' ') . ' ' . $currency;
 
         $finalPriceByCurrency[$currency] = ($finalPriceByCurrency[$currency] ?? 0.0) + $amount;
     }
@@ -350,7 +350,7 @@ if ($items === []) {
 $totalsHtml = '';
 if ($finalPriceByCurrency === []) {
     $totalsHtml .= '<tr>'
-        . '<td class="totals-amount"><strong>' . $escape(number_format(0, 2, '.', ' ')) . '</strong></td>'
+        . '<td class="totals-amount"><strong>' . $escape(number_format(0, 2, ',', ' ')) . '</strong></td>'
         . '<td class="totals-currency">-</td>'
         . '</tr>';
 } else {
@@ -358,7 +358,7 @@ if ($finalPriceByCurrency === []) {
     foreach ($finalPriceByCurrency as $cur => $amount) {
         $totalsHtml .= '<tr>'
             . '<td class="totals-amount"><strong>'
-            . $escape(number_format((float)$amount, 2, '.', ' '))
+            . $escape(number_format((float)$amount, 2, ',', ' '))
             . '</strong></td>'
             . '<td class="totals-currency">' . $escape((string)$cur) . '</td>'
             . '</tr>';
