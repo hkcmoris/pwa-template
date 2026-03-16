@@ -98,7 +98,14 @@ final class Repository
     }
 
     /**
-     * @param array{country_code: string, state: string, city: string, street: string, street_number: string, post_code: string} $address
+     * @param array{
+     *     country_code: string,
+     *     state: string,
+     *     city: string,
+     *     street: string,
+     *     street_number: string,
+     *     post_code: string
+     * } $address
      */
     public function saveCompanyAddress(array $address): int
     {
@@ -162,7 +169,15 @@ final class Repository
     }
 
     /**
-     * @return array{id: int, country_code: string, state: string, city: string, street: string, street_number: string, post_code: string}|null
+     * @return array{
+     *     id: int,
+     *     country_code: string,
+     *     state: string,
+     *     city: string,
+     *     street: string,
+     *     street_number: string,
+     *     post_code: string
+     * }|null
      */
     public function readCompanyAddress(): ?array
     {
@@ -180,7 +195,16 @@ final class Repository
         );
         $stmt->execute([':id' => $addressId]);
 
-        /** @var array{id: int|string, country_code: string, state: string, city: string, street: string, street_number: string, post_code: string}|false $row */
+        /** @var array{
+         *     id: int|string,
+         *     country_code: string,
+         *     state: string,
+         *     city: string,
+         *     street: string,
+         *     street_number: string,
+         *     post_code: string
+         * }|false $row
+         */
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row === false) {
             return null;

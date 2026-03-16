@@ -40,8 +40,14 @@ export const initAdminAddress = (root: HTMLElement) => {
 
     const showFeedback = (message: string, kind: 'success' | 'error') => {
         feedback.classList.remove('hidden');
-        feedback.classList.toggle('admin-address-feedback--success', kind === 'success');
-        feedback.classList.toggle('admin-address-feedback--error', kind === 'error');
+        feedback.classList.toggle(
+            'admin-address-feedback--success',
+            kind === 'success'
+        );
+        feedback.classList.toggle(
+            'admin-address-feedback--error',
+            kind === 'error'
+        );
         feedback.textContent = message;
     };
 
@@ -58,13 +64,17 @@ export const initAdminAddress = (root: HTMLElement) => {
                 credentials: 'include',
                 headers: {
                     'X-CSRF-Token': getCsrfToken(),
+                    'HX-Request': 'true',
                 },
             });
 
-            const payload = (await response.json().catch(() => null)) as unknown;
+            const payload = (await response
+                .json()
+                .catch(() => null)) as unknown;
 
             if (!response.ok) {
-                const message = getAddressError(payload) ?? 'Uložení adresy selhalo.';
+                const message =
+                    getAddressError(payload) ?? 'Uložení adresy selhalo.';
                 showFeedback(message, 'error');
                 return;
             }

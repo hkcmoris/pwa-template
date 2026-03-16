@@ -2,7 +2,8 @@
     margin-bottom: 1.5rem;
 }
 
-.admin-panel-row, .admin-panel-col {
+.admin-panel-row,
+.admin-panel-col {
     display: flex;
     justify-content: space-between;
     gap: 1rem;

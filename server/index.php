@@ -156,6 +156,7 @@ $nonHtmxControllers = [
     'POST admin/export',
     'POST admin/import',
     'POST admin/logo',
+    'POST admin/address',
     'GET configurator/configuration/pdf',
 ];
 
