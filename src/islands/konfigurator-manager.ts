@@ -1,6 +1,13 @@
 import { getCsrfToken } from '../utils/api';
 
 type ManagerAction = 'rename' | 'delete';
+type ManagerItemType = 'draft' | 'configuration';
+
+type ManagerItem = {
+    id: string;
+    title: string;
+    type: ManagerItemType;
+};
 
 const escapeHtml = (value: string) =>
     value
@@ -29,19 +36,24 @@ const parseAndSwapOob = (html: string) => {
         });
 };
 
-const postDraftAction = async (
+const postManagerAction = async (
     action: ManagerAction,
-    draftId: string,
+    item: ManagerItem,
     title?: string
 ) => {
     const rootBase = document.documentElement.dataset.base ?? '';
-    const path =
-        action === 'rename'
-            ? '/configurator/wizard/rename'
-            : '/configurator/wizard/delete';
+    const isConfiguration = item.type === 'configuration';
+    const path = isConfiguration
+        ? action === 'rename'
+            ? '/configurator/configuration/rename'
+            : '/configurator/configuration/delete'
+        : action === 'rename'
+          ? '/configurator/wizard/rename'
+          : '/configurator/wizard/delete';
+    const idParam = isConfiguration ? 'configuration_id' : 'draft_id';
     const params = new URLSearchParams();
 
-    params.set('draft_id', draftId);
+    params.set(idParam, item.id);
     if (title !== undefined) {
         params.set('title', title);
     }
@@ -125,9 +137,9 @@ const createModal = (modalRoot: HTMLElement) => {
 
 const openRenameModal = (
     modal: ReturnType<typeof createModal>,
-    draftId: string,
-    draftTitle: string
+    item: ManagerItem
 ) => {
+    const itemLabel = item.type === 'configuration' ? 'konfiguraci' : 'návrh';
     const form = document.createElement('form');
     form.className = 'konfigurator-manager-form';
     form.innerHTML = `
@@ -138,7 +150,7 @@ const openRenameModal = (
             type="text"
             name="title"
             maxlength="191"
-            value="${escapeHtml(draftTitle)}"
+            value="${escapeHtml(item.title)}"
             required
           >
         </div>
@@ -148,7 +160,7 @@ const openRenameModal = (
         </div>
     `;
 
-    modal.open('Přejmenovat návrh', form);
+    modal.open(`Přejmenovat ${itemLabel}`, form);
 
     const input = form.querySelector<HTMLInputElement>('input[name="title"]');
     input?.focus();
@@ -165,32 +177,36 @@ const openRenameModal = (
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
         const title = input?.value.trim() ?? '';
-        if (!title || title === draftTitle.trim()) {
+        if (!title || title === item.title.trim()) {
             modal.close();
             return;
         }
 
-        await postDraftAction('rename', draftId, title);
+        await postManagerAction('rename', item, title);
         modal.close();
     });
 };
 
 const openDeleteModal = (
     modal: ReturnType<typeof createModal>,
-    draftId: string,
-    draftTitle: string
+    item: ManagerItem
 ) => {
+    const itemLabel = item.type === 'configuration' ? 'konfiguraci' : 'návrh';
+    const itemTypeLabel =
+        item.type === 'configuration' ? 'Konfigurace' : 'Návrh';
+    const displayTitle =
+        item.title.trim() !== '' ? item.title : `${itemTypeLabel} #${item.id}`;
     const body = document.createElement('div');
     body.className = 'konfigurator-manager-modal-copy';
     body.innerHTML = `
-      <p>Opravdu chcete smazat návrh <strong>${escapeHtml(draftTitle)}</strong>?</p>
+      <p>Opravdu chcete smazat ${itemLabel} <strong>${escapeHtml(displayTitle)}</strong>?</p>
       <div class="konfigurator-manager-modal-actions">
         <button type="button" class="configuration-entry-action" data-modal-close>Storno</button>
         <button type="button" class="configuration-entry-action configuration-entry-action--danger configuration-entry-action--solid" data-modal-confirm>Smazat</button>
       </div>
     `;
 
-    modal.open('Smazat návrh', body);
+    modal.open(`Smazat ${itemLabel}`, body);
 
     body.querySelector('[data-modal-close]')?.addEventListener(
         'click',
@@ -203,7 +219,7 @@ const openDeleteModal = (
     body.querySelector('[data-modal-confirm]')?.addEventListener(
         'click',
         async () => {
-            await postDraftAction('delete', draftId);
+            await postManagerAction('delete', item);
             modal.close();
         }
     );
@@ -231,20 +247,39 @@ export default (root: HTMLElement) => {
         const action = button.dataset.managerAction as
             | ManagerAction
             | undefined;
-        const draftId = button.dataset.draftId ?? '';
-        const draftTitle = button.dataset.draftTitle ?? '';
+        const type =
+            button.dataset.managerType === 'configuration'
+                ? 'configuration'
+                : 'draft';
+        const itemId =
+            type === 'configuration'
+                ? (button.dataset.configurationId ??
+                  button.dataset.draftId ??
+                  '')
+                : (button.dataset.draftId ??
+                  button.dataset.configurationId ??
+                  '');
+        const itemTitle =
+            type === 'configuration'
+                ? (button.dataset.configurationTitle ??
+                  button.dataset.draftTitle ??
+                  '')
+                : (button.dataset.draftTitle ??
+                  button.dataset.configurationTitle ??
+                  '');
 
-        if (!action || !draftId) {
+        if (!action || !itemId) {
             return;
         }
 
         event.preventDefault();
+        const item: ManagerItem = { id: itemId, title: itemTitle, type };
 
         if (action === 'rename') {
-            openRenameModal(modal, draftId, draftTitle);
+            openRenameModal(modal, item);
             return;
         }
 
-        openDeleteModal(modal, draftId, draftTitle);
+        openDeleteModal(modal, item);
     });
 };

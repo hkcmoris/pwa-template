@@ -30,7 +30,7 @@ if ($configurationId <= 0) {
 $pdo = get_db_connection();
 
 $configurationStmt = $pdo->prepare(
-    'SELECT id, user_id, status, updated_at FROM configurations WHERE id = :id LIMIT 1'
+    'SELECT id, user_id, title, status, updated_at FROM configurations WHERE id = :id LIMIT 1'
 );
 $configurationStmt->bindValue(':id', $configurationId, PDO::PARAM_INT);
 $configurationStmt->execute();
@@ -260,6 +260,30 @@ $updatedAtRaw = (string)($configuration['updated_at'] ?? '');
 $dt = new DateTimeImmutable($updatedAtRaw, new DateTimeZone('Europe/Prague'));
 $updatedAt = $dt->format('d.m.Y H:i:s');
 $generatedAt = date('d.m.Y H:i:s');
+$configurationTitle = trim((string)($configuration['title'] ?? ''));
+$documentTitle = $configurationTitle !== ''
+    ? $configurationTitle
+    : "Konfigurace #{$configurationId}";
+
+$slugifyForFilename = static function (string $value): string {
+    $value = trim($value);
+    if ($value === '') {
+        return '';
+    }
+
+    if (function_exists('iconv')) {
+        $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
+        if ($transliterated !== false) {
+            $value = $transliterated;
+        }
+    }
+
+    $value = strtolower($value);
+    $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
+    $value = trim($value, '-');
+
+    return $value;
+};
 
 $escape = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
@@ -370,7 +394,7 @@ $html = <<<HTML
 <table class="head">
   <tr>
     <td class="head-left">
-      <h1>Konfigurace #{$configurationId}</h1>
+      <h1>{$escape($documentTitle)}</h1>
       <div class="meta">{$user['email']}</div>
     </td>
     <td class="head-right">
@@ -424,7 +448,7 @@ try {
     // Helps with images over HTTPS with odd certs (optional):
     // $mpdf->curlAllowUnsafeSslRequests = true;
 
-    $mpdf->SetTitle("Konfigurace #{$configurationId}");
+    $mpdf->SetTitle($documentTitle);
     $mpdf->SetAuthor('HAGEMANN konfigurátor');
     $mpdf->SetDisplayMode('fullpage');
     $mpdf->AliasNbPages();
@@ -433,7 +457,8 @@ try {
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
 
-    $filename = "configuration-{$configurationId}.pdf";
+    $filenameSlug = $slugifyForFilename($documentTitle);
+    $filename = ($filenameSlug !== '' ? $filenameSlug : "configuration-{$configurationId}") . '.pdf';
     // mPDF will send headers + output
     $mpdf->Output($filename, Destination::DOWNLOAD);
 } catch (\Throwable $e) {

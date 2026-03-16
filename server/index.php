@@ -135,6 +135,7 @@ $controllerRoutes = [
 
     'POST configurator/configuration/create'     => __DIR__ . '/controllers/configurator/configuration/create.php',
     'POST configurator/configuration/update'     => __DIR__ . '/controllers/configurator/configuration/update.php',
+    'POST configurator/configuration/rename'     => __DIR__ . '/controllers/configurator/configuration/rename.php',
     'POST configurator/configuration/delete'     => __DIR__ . '/controllers/configurator/configuration/delete.php',
     'GET configurator/configuration/page'        => __DIR__ . '/controllers/configurator/configuration/page.php',
     'GET configurator/configuration/pdf'         => __DIR__ . '/controllers/configurator/configuration/pdf.php',
