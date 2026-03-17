@@ -190,6 +190,16 @@ $companyAddress = $adminRepository->readCompanyAddress();
     <form id="admin-address-form" class="admin-address-form" novalidate>
       <?= csrf_field(); ?>
       <label class="admin-field">
+        <span>Název firmy</span>
+        <input
+          type="text"
+          name="company_name"
+          required
+          placeholder="Název firmy"
+          value="<?= htmlspecialchars((string)($companyAddress['company_name'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+          autocomplete="organization">
+      </label>
+      <label class="admin-field">
         <span>Kód země</span>
         <input
           type="text"
@@ -197,6 +207,7 @@ $companyAddress = $adminRepository->readCompanyAddress();
           maxlength="2"
           minlength="2"
           required
+          placeholder="Kód země"
           value="<?= htmlspecialchars((string)($companyAddress['country_code'] ?? 'CZ'), ENT_QUOTES, 'UTF-8') ?>"
           autocomplete="country">
       </label>
@@ -205,7 +216,7 @@ $companyAddress = $adminRepository->readCompanyAddress();
         <input
           type="text"
           name="state"
-          required
+          placeholder="Stát / kraj"
           value="<?= htmlspecialchars((string)($companyAddress['state'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
           autocomplete="address-level1">
       </label>
@@ -215,6 +226,7 @@ $companyAddress = $adminRepository->readCompanyAddress();
           type="text"
           name="city"
           required
+          placeholder="Město"
           value="<?= htmlspecialchars((string)($companyAddress['city'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
           autocomplete="address-level2">
       </label>
@@ -225,6 +237,7 @@ $companyAddress = $adminRepository->readCompanyAddress();
             type="text"
             name="street"
             required
+            placeholder="Ulice"
             value="<?= htmlspecialchars((string)($companyAddress['street'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
             autocomplete="address-line1">
         </label>
@@ -234,6 +247,7 @@ $companyAddress = $adminRepository->readCompanyAddress();
             type="text"
             name="street_number"
             required
+            placeholder="Číslo popisné/orientační"
             value="<?= htmlspecialchars((string)($companyAddress['street_number'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
             autocomplete="address-line2">
         </label>
@@ -244,6 +258,7 @@ $companyAddress = $adminRepository->readCompanyAddress();
           type="text"
           name="post_code"
           required
+          placeholder="PSČ"
           value="<?= htmlspecialchars((string)($companyAddress['post_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
           autocomplete="postal-code">
       </label>

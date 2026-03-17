@@ -21,6 +21,7 @@ if ($role !== 'superadmin') {
 }
 
 $countryCode = strtoupper(trim((string) ($_POST['country_code'] ?? 'CZ')));
+$companyName = trim((string) ($_POST['company_name'] ?? ''));
 $state = trim((string) ($_POST['state'] ?? ''));
 $city = trim((string) ($_POST['city'] ?? ''));
 $street = trim((string) ($_POST['street'] ?? ''));
@@ -34,14 +35,14 @@ if ($countryCode === '' || strlen($countryCode) !== 2) {
 }
 
 if (
-    $state === '' ||
+    $companyName === '' ||
     $city === '' ||
     $street === '' ||
     $streetNumber === '' ||
     $postCode === ''
 ) {
     http_response_code(422);
-    echo json_encode(['error' => 'Vyplňte všechna povinná pole adresy.']);
+    echo json_encode(['error' => 'Vyplňte název firmy a všechna povinná pole adresy.']);
     exit;
 }
 
@@ -49,6 +50,7 @@ $repository = new Repository();
 
 try {
     $addressId = $repository->saveCompanyAddress([
+        'company_name' => $companyName,
         'country_code' => $countryCode,
         'state' => $state,
         'city' => $city,

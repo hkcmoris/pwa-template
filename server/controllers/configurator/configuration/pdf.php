@@ -3,7 +3,12 @@
 declare(strict_types=1);
 
 use Administration\Repository as AdministrationRepository;
+use Components\Repository as ComponentsRepository;
+use Configuration\RuleEngine;
+use Configuration\WizardRepository;
 use Mpdf\Mpdf;
+use Mpdf\Config\ConfigVariables;
+use Mpdf\Config\FontVariables;
 use Mpdf\Output\Destination;
 
 require_once __DIR__ . '/../../../bootstrap.php';
@@ -53,13 +58,18 @@ if (($configuration['status'] ?? 'draft') === 'draft') {
 $optionsStmt = $pdo->prepare(
     <<<'SQL'
     SELECT
+        o.id AS selection_id,
+        o.component_id AS selected_component_id,
+        o.parent_component_id AS selected_parent_component_id,
         COALESCE(NULLIF(c.alternate_title, ''), d.title) AS option_title,
+        COALESCE(parent_d.title, '') AS option_parent_title,
         COALESCE(JSON_UNQUOTE(JSON_EXTRACT(c.images, '$[0]')), '') AS option_image,
         lp.amount AS option_price_amount,
         UPPER(COALESCE(NULLIF(lp.currency, ''), 'CZK')) AS option_price_currency
     FROM configuration_selections o
     INNER JOIN components c ON c.id = o.component_id
     INNER JOIN definitions d ON d.id = c.definition_id
+    LEFT JOIN definitions parent_d ON parent_d.id = d.parent_id
     LEFT JOIN (
         SELECT p.component_id, p.amount, p.currency
         FROM prices p
@@ -77,8 +87,46 @@ $optionsStmt = $pdo->prepare(
 );
 $optionsStmt->bindValue(':configuration_id', $configurationId, PDO::PARAM_INT);
 $optionsStmt->execute();
-/** @var list<array{option_title: string|null, option_image: string|null, option_price_amount: string|null, option_price_currency: string|null}> $options */
+/** @var list<array{
+ *     selection_id: int|string|null,
+ *     selected_component_id: int|string|null,
+ *     selected_parent_component_id: int|string|null,
+ *     option_title: string|null,
+ *     option_parent_title: string|null,
+ *     option_image: string|null,
+ *     option_price_amount: string|null,
+ *     option_price_currency: string|null
+ * }> $options
+ */
 $options = $optionsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$wizardRepository = new WizardRepository($pdo);
+$componentsRepository = new ComponentsRepository($pdo);
+$ruleEngine = new RuleEngine();
+$selectedPath = $wizardRepository->fetchSelectedPath($configurationId);
+
+/** @var array<int, bool> $singleChoiceSelectionIds */
+$singleChoiceSelectionIds = [];
+$pathPrefix = [];
+foreach ($selectedPath as $selection) {
+    $selectionId = isset($selection['id']) ? (int) $selection['id'] : 0;
+    $parentComponentId = isset($selection['parent_component_id']) ? (int) $selection['parent_component_id'] : 0;
+    $parentComponentId = $parentComponentId > 0 ? $parentComponentId : null;
+
+    $children = $componentsRepository->fetchChildren($parentComponentId);
+    $availableCount = 0;
+    foreach ($children as $child) {
+        if ($ruleEngine->allowsComponent($child, $pathPrefix)) {
+            $availableCount++;
+        }
+    }
+
+    if ($selectionId > 0) {
+        $singleChoiceSelectionIds[$selectionId] = $availableCount === 1;
+    }
+
+    $pathPrefix[] = $selection;
+}
 
 /**
  * Convert stored image URL/path to a local filesystem path for mPDF.
@@ -237,8 +285,9 @@ $ensurePdfSafeImagePath = static function (string $sourcePath): string {
     return $sourcePath;
 };
 
-$logoRepository = new AdministrationRepository($pdo);
-$logoSettings = $logoRepository->readLogoSettings();
+$repository = new AdministrationRepository($pdo);
+$logoSettings = $repository->readLogoSettings();
+$companyAddress = $repository->readCompanyAddress();
 $logoPath = trim((string) $logoSettings['path']);
 if ($logoPath !== '' && $logoPath[0] !== '/') {
     $logoPath = '/' . ltrim($logoPath, '/');
@@ -254,11 +303,28 @@ $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' :
 $host = $_SERVER['HTTP_HOST'] ?? '';
 $origin = ($host !== '') ? ($scheme . '://' . $host) : '';
 
+/** @var list<array{
+ *     selection_id: int,
+ *     component_id: int,
+ *     parent_component_id: int|null,
+ *     title: string,
+ *     image_pdf_safe: string,
+ *     price_label: string
+ * }> $optionNodes
+ */
+$optionNodes = [];
+
 foreach ($options as $option) {
     $title = trim((string)($option['option_title'] ?? ''));
     if ($title === '') {
         $title = 'Option';
     }
+
+    $parentTitle = trim((string) ($option['option_parent_title'] ?? ''));
+    if ($parentTitle !== '') {
+        $title = $parentTitle . ' / ' . $title;
+    }
+
     $amountRaw = trim((string)($option['option_price_amount'] ?? ''));
     $currency = strtoupper(trim((string)($option['option_price_currency'] ?? 'CZK')));
     if ($currency === '') {
@@ -278,12 +344,166 @@ foreach ($options as $option) {
     $imageLocal = $resolveLocalImagePath($imageRaw);
     $imagePdfSafe = $ensurePdfSafeImagePath($imageLocal);
 
-    $items[] = [
-      'title' => $title,
-      'image_local' => $imageLocal,   // <- use this
-      'image_pdf_safe' => $imagePdfSafe, // <- use this for PDF compatibility
-      'price_label' => $priceLabel,
+    $componentId = isset($option['selected_component_id']) ? (int) $option['selected_component_id'] : 0;
+    $parentComponentId = $option['selected_parent_component_id'] !== null
+        ? (int) $option['selected_parent_component_id']
+        : null;
+    $selectionId = isset($option['selection_id']) ? (int) $option['selection_id'] : 0;
+
+    $optionNodes[] = [
+        'selection_id' => $selectionId,
+        'component_id' => $componentId,
+        'parent_component_id' => $parentComponentId,
+        'title' => $title,
+        'image_pdf_safe' => $imagePdfSafe,
+        'price_label' => $priceLabel,
     ];
+}
+
+/** @var array<int, array{
+ *     selection_id: int,
+ *     component_id: int,
+ *     parent_component_id: int|null,
+ *     title: string,
+ *     image_pdf_safe: string,
+ *     price_label: string
+ * }> $nodesByComponentId
+ */
+$nodesByComponentId = [];
+/** @var array<int, list<array{
+ *     selection_id: int,
+ *     component_id: int,
+ *     parent_component_id: int|null,
+ *     title: string,
+ *     image_pdf_safe: string,
+ *     price_label: string
+ * }>> $childrenByParentId
+ */
+$childrenByParentId = [];
+
+foreach ($optionNodes as $node) {
+    $componentId = $node['component_id'];
+    if ($componentId <= 0) {
+        continue;
+    }
+
+    $nodesByComponentId[$componentId] = $node;
+
+    $parentId = $node['parent_component_id'];
+    if ($parentId !== null) {
+        if (!isset($childrenByParentId[$parentId])) {
+            $childrenByParentId[$parentId] = [];
+        }
+        $childrenByParentId[$parentId][] = $node;
+    }
+}
+
+/** @var array<int, bool> $visited */
+$visited = [];
+$rootIndex = 0;
+
+/**
+ * @param array{
+ *     selection_id: int,
+ *     component_id: int,
+ *     parent_component_id: int|null,
+ *     title: string,
+ *     image_pdf_safe: string,
+ *     price_label: string
+ * } $rootNode
+ */
+$appendChain = static function (
+    array $rootNode,
+    array $childrenByParentId,
+    array $singleChoiceSelectionIds,
+    array &$items,
+    array &$visited,
+    int &$rootIndex
+): void {
+    if ($rootNode['component_id'] <= 0) {
+        return;
+    }
+
+    $rootIndex++;
+
+    /** @var list<array{
+     *     node: array{
+     *         selection_id: int,
+     *         component_id: int,
+     *         parent_component_id: int|null,
+     *         title: string,
+     *         image_pdf_safe: string,
+     *         price_label: string
+     *     },
+     *     depth: int,
+     *     is_root: bool
+     * }> $stack
+     */
+    $stack = [[
+        'node' => $rootNode,
+        'depth' => 0,
+        'is_root' => true,
+    ]];
+
+    while ($stack !== []) {
+        $entry = array_pop($stack);
+
+        $node = $entry['node'];
+        $componentId = $node['component_id'];
+        if (isset($visited[$componentId])) {
+            continue;
+        }
+        $visited[$componentId] = true;
+
+        $selectionId = $node['selection_id'];
+        $isSingleChoiceStep = !$entry['is_root']
+            && $selectionId > 0
+            && ($singleChoiceSelectionIds[$selectionId] ?? false);
+        $hasChildren = count($childrenByParentId[$componentId] ?? []) > 0;
+        $shouldSkipNode = $isSingleChoiceStep && $hasChildren;
+
+        if (!$shouldSkipNode) {
+            $items[] = [
+                'row_number' => $entry['is_root'] ? (string) $rootIndex : '',
+                'depth' => $entry['depth'],
+                'is_root' => $entry['is_root'],
+                'title' => $node['title'],
+                'image_pdf_safe' => $node['image_pdf_safe'],
+                'price_label' => $node['price_label'],
+            ];
+        }
+
+        $children = $childrenByParentId[$componentId] ?? [];
+        for ($i = count($children) - 1; $i >= 0; $i--) {
+            $stack[] = [
+                'node' => $children[$i],
+                'depth' => $entry['depth'] + ($shouldSkipNode ? 0 : 1),
+                'is_root' => false,
+            ];
+        }
+    }
+};
+
+foreach ($optionNodes as $node) {
+    $componentId = $node['component_id'];
+    if ($componentId <= 0) {
+        continue;
+    }
+
+    $parentId = $node['parent_component_id'];
+    $isRoot = $parentId === null || !isset($nodesByComponentId[$parentId]);
+    if ($isRoot) {
+        $appendChain($node, $childrenByParentId, $singleChoiceSelectionIds, $items, $visited, $rootIndex);
+    }
+}
+
+foreach ($optionNodes as $node) {
+    $componentId = $node['component_id'];
+    if ($componentId <= 0 || isset($visited[$componentId])) {
+        continue;
+    }
+
+    $appendChain($node, $childrenByParentId, $singleChoiceSelectionIds, $items, $visited, $rootIndex);
 }
 
 $updatedAtRaw = (string)($configuration['updated_at'] ?? '');
@@ -328,21 +548,24 @@ $css = <<<CSS
     odd-footer-name: html_configFooter;
     even-footer-name: html_configFooter;
 }
-body {font-family: sans-serif; font-size: 11pt; color: #111;}
+body {font-family: 'Montserrat', sans-serif; font-size: 11pt; color: #111;}
 table.head { width: 100%; border-collapse: collapse; }
 .head-left { width: 70%; vertical-align: top; }
 .head-right { width: 30%; vertical-align: top; text-align: right; }
 .brand-logo {
   display: block;
-  max-width: 34mm;
-  max-height: 8mm;
+  max-width: 36mm;
+  min-height: 10mm;
   width: auto;
   height: auto;
   margin: 0 0 2mm 0;
 }
 .head h1 { margin: 0 0 1mm 0; }
-h1 { font-size: 16pt; margin: 0 0 4mm 0; }
+h1 { font-size: 16pt; margin: 0 0 4mm 0; text-align: center; }
 .meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
+.supplier { margin-top: 3mm; font-size: 9pt; }
+.supplier-label { font-weight: bold; margin-bottom: 1mm; }
+.supplier-line { margin: 0; }
 .hr { height: 1px; background: #bbb; margin: 4mm 0; }
 
 table { width: 100%; border-collapse: collapse; }
@@ -394,17 +617,23 @@ $rowsHtml = '';
 if ($items === []) {
     $rowsHtml = '<tr><td colspan="4">Žádné vybrané možnosti.</td></tr>';
 } else {
-    foreach ($items as $i => $item) {
+    foreach ($items as $item) {
         $imgHtml = '—';
         if ($item['image_pdf_safe'] !== '') {
             $imgHtml = '<img class="thumb" src="' . $escape($item['image_pdf_safe']) . '" alt="">';
         }
 
+        $titlePrefix = $item['depth'] > 0 ? str_repeat('— ', (int) $item['depth']) : '';
+        $titleText = $titlePrefix . $item['title'];
+        $titleHtml = $item['is_root']
+            ? '<strong>' . $escape($titleText) . '</strong>'
+            : $escape($titleText);
+
         $rowsHtml .= '<tr>'
-            . '<td class="col-no">' . ($i + 1) . '</td>'
-            . '<td><strong>' . $escape($item['title']) . '</strong></td>'
-            . '<td class="col-img">' . $imgHtml . '</td>'
+            . '<td class="col-no">' . $escape($item['row_number']) . '</td>'
+            . '<td>' . $titleHtml . '</td>'
             . '<td class="price">' . $escape($item['price_label']) . '</td>'
+            . '<td class="col-img">' . $imgHtml . '</td>'
             . '</tr>';
     }
 }
@@ -412,6 +641,53 @@ if ($items === []) {
 $logoHtml = '';
 if ($logoPdfSafe !== '') {
     $logoHtml = '<img class="brand-logo" src="' . $escape($logoPdfSafe) . '" alt="Logo">';
+}
+
+$supplierHtml = '';
+if ($companyAddress !== null) {
+    $supplierLines = [];
+
+    $companyName = trim((string) $companyAddress['company_name']);
+    if ($companyName !== '') {
+        $supplierLines[] = $companyName;
+    }
+
+    $streetParts = array_values(array_filter([
+        trim((string) $companyAddress['street']),
+        trim((string) $companyAddress['street_number']),
+    ], static fn(string $part): bool => $part !== ''));
+    if ($streetParts !== []) {
+        $supplierLines[] = implode(' ', $streetParts);
+    }
+
+    $cityParts = array_values(array_filter([
+        trim((string) $companyAddress['post_code']),
+        trim((string) $companyAddress['city']),
+    ], static fn(string $part): bool => $part !== ''));
+    if ($cityParts !== []) {
+        $supplierLines[] = implode(' ', $cityParts);
+    }
+
+    $state = trim((string) $companyAddress['state']);
+    if ($state !== '') {
+        $supplierLines[] = $state;
+    }
+
+    $country = strtoupper(trim((string) $companyAddress['country_code']));
+    if ($country !== '') {
+        $supplierLines[] = $country;
+    }
+
+    if ($supplierLines !== []) {
+        $supplierHtml = '<div class="supplier">'
+            . '<div class="supplier-label">Dodavatel</div>';
+
+        foreach ($supplierLines as $supplierLine) {
+            $supplierHtml .= '<p class="supplier-line">' . $escape($supplierLine) . '</p>';
+        }
+
+        $supplierHtml .= '</div>';
+    }
 }
 
 $totalsHtml = '';
@@ -438,24 +714,24 @@ $html = <<<HTML
   <tr>
     <td class="head-left">
       {$logoHtml}
-      <h1>{$escape($documentTitle)}</h1>
-      <div class="meta">{$user['email']}</div>
+      {$supplierHtml}
     </td>
     <td class="head-right">
       <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
       <div class="meta">Vygenerováno: {$escape($generatedAt)}</div>
+      <div class="meta">{$user['email']}</div>
     </td>
   </tr>
 </table>
 <div class="hr"></div>
-
+<h1>{$escape($documentTitle)}</h1>
 <table>
   <thead>
     <tr>
       <th class="col-no">#</th>
       <th>Volba</th>
-      <th class="col-img">Obrázek</th>
       <th class="price">Cena</th>
+      <th class="col-img">Obrázek</th>
     </tr>
   </thead>
   <tbody>
@@ -479,10 +755,36 @@ try {
     if (!is_dir($tempDir)) {
         @mkdir($tempDir, 0777, true);
     }
+
+    $fontConfig = (new FontVariables())->getDefaults();
+    $fontData = $fontConfig['fontdata'];
+    $config = (new ConfigVariables())->getDefaults();
+    $fontDirs = $config['fontDir'];
+
+    $customFontDir = dirname(__DIR__, 3) . '/src/assets/fonts';
+    $montserratRegular = $customFontDir . '/Montserrat-Medium.ttf';
+    $montserratBold = $customFontDir . '/Montserrat-Bold.ttf';
+    $hasMontserratRegular = is_file($montserratRegular) && is_readable($montserratRegular);
+    $hasMontserratBold = is_file($montserratBold) && is_readable($montserratBold);
+
+    if (!$hasMontserratRegular) {
+        log_message('Montserrat font file is missing: ' . $montserratRegular, 'ERROR');
+    }
+
+    if ($hasMontserratRegular) {
+        $fontData['montserrat'] = [
+            'R' => 'Montserrat-Medium.ttf',
+            'B' => $hasMontserratBold ? 'Montserrat-Bold.ttf' : 'Montserrat-Medium.ttf',
+        ];
+    }
+
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4',
         'tempDir' => $tempDir,
+        'fontDir' => array_merge($fontDirs, [$customFontDir]),
+        'fontdata' => $fontData,
+        'default_font' => $hasMontserratRegular ? 'montserrat' : 'dejavusans',
         'margin_left' => 12,
         'margin_right' => 12,
         'margin_top' => 12,

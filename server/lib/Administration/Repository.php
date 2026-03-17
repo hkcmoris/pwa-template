@@ -99,6 +99,7 @@ final class Repository
 
     /**
      * @param array{
+     *     company_name: string,
      *     country_code: string,
      *     state: string,
      *     city: string,
@@ -111,6 +112,7 @@ final class Repository
     {
         $this->pdo->beginTransaction();
         try {
+            $this->set('company_name', $address['company_name']);
             $settings = $this->getMany(['company_address_id']);
             $existingId = isset($settings['company_address_id']) ? (int) $settings['company_address_id'] : 0;
 
@@ -171,6 +173,7 @@ final class Repository
     /**
      * @return array{
      *     id: int,
+     *     company_name: string,
      *     country_code: string,
      *     state: string,
      *     city: string,
@@ -181,10 +184,25 @@ final class Repository
      */
     public function readCompanyAddress(): ?array
     {
-        $settings = $this->getMany(['company_address_id']);
+        $settings = $this->getMany(['company_address_id', 'company_name']);
         $addressId = isset($settings['company_address_id']) ? (int) $settings['company_address_id'] : 0;
+        $companyName = trim((string) ($settings['company_name'] ?? ''));
+
         if ($addressId <= 0) {
-            return null;
+            if ($companyName === '') {
+                return null;
+            }
+
+            return [
+                'id' => 0,
+                'company_name' => $companyName,
+                'country_code' => '',
+                'state' => '',
+                'city' => '',
+                'street' => '',
+                'street_number' => '',
+                'post_code' => '',
+            ];
         }
 
         $stmt = $this->pdo->prepare(
@@ -207,11 +225,25 @@ final class Repository
          */
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row === false) {
-            return null;
+            if ($companyName === '') {
+                return null;
+            }
+
+            return [
+                'id' => 0,
+                'company_name' => $companyName,
+                'country_code' => '',
+                'state' => '',
+                'city' => '',
+                'street' => '',
+                'street_number' => '',
+                'post_code' => '',
+            ];
         }
 
         return [
             'id' => (int) $row['id'],
+            'company_name' => $companyName,
             'country_code' => (string) $row['country_code'],
             'state' => (string) $row['state'],
             'city' => (string) $row['city'],

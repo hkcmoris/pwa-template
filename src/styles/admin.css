@@ -146,6 +146,11 @@
     outline-offset: 1px;
 }
 
+.admin-field input:required:placeholder-shown {
+    border-color: var(--danger);
+    outline-color: var(--danger);
+}
+
 .admin-address-feedback {
     margin: 0;
     font-size: 0.95rem;

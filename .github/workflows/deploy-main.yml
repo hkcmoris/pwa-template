@@ -95,8 +95,8 @@ jobs:
                     --parallel=6 \
                     --exclude-glob .env \
                     --exclude-glob .env.* \
-                    --exclude-glob logs \
-                    --exclude-glob public/assets/logo/logo.svg \
+                    --exclude-glob logs/* \
+                    --exclude-glob public/assets/logo/* \
                     --exclude-glob public/assets/images/upload/* \
                     deploy/ .
                   bye
