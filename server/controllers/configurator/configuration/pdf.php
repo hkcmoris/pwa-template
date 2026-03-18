@@ -62,13 +62,23 @@ $optionsStmt = $pdo->prepare(
         o.component_id AS selected_component_id,
         o.parent_component_id AS selected_parent_component_id,
         COALESCE(NULLIF(c.alternate_title, ''), d.title) AS option_title,
-        COALESCE(parent_d.title, '') AS option_parent_title,
+        COALESCE(
+            NULLIF(parent_c.alternate_title, ''),
+            parent_def.title,
+            parent_d.title,
+            ''
+        ) AS option_parent_title,
+        COALESCE(c.description, '') AS option_description,
+        c.properties AS option_properties,
+        COALESCE(c.color, '') AS option_color,
         COALESCE(JSON_UNQUOTE(JSON_EXTRACT(c.images, '$[0]')), '') AS option_image,
         lp.amount AS option_price_amount,
         UPPER(COALESCE(NULLIF(lp.currency, ''), 'CZK')) AS option_price_currency
     FROM configuration_selections o
     INNER JOIN components c ON c.id = o.component_id
     INNER JOIN definitions d ON d.id = c.definition_id
+    LEFT JOIN components parent_c ON parent_c.id = o.parent_component_id
+    LEFT JOIN definitions parent_def ON parent_def.id = parent_c.definition_id
     LEFT JOIN definitions parent_d ON parent_d.id = d.parent_id
     LEFT JOIN (
         SELECT p.component_id, p.amount, p.currency
@@ -93,6 +103,9 @@ $optionsStmt->execute();
  *     selected_parent_component_id: int|string|null,
  *     option_title: string|null,
  *     option_parent_title: string|null,
+ *     option_description: string|null,
+ *     option_properties: string|null,
+ *     option_color: string|null,
  *     option_image: string|null,
  *     option_price_amount: string|null,
  *     option_price_currency: string|null
@@ -223,26 +236,81 @@ $ensurePdfSafeImagePath = static function (string $sourcePath): string {
     $mtime = @filemtime($sourcePath);
     $mtimeKey = $mtime !== false ? (string) $mtime : '0';
 
-    // Deterministic cache key: source path + filemtime
-    $cacheKey = sha1($sourcePath . '|' . $mtimeKey);
+    // Deterministic cache key with converter version (to invalidate old WebP conversions).
+    $cacheKey = sha1('pdf-image-safe-v2|' . $sourcePath . '|' . $mtimeKey);
     $targetPath = $cacheDir . DIRECTORY_SEPARATOR . $cacheKey . '.png';
 
     if (is_file($targetPath) && is_readable($targetPath)) {
         return $targetPath;
     }
 
-    // Try Imagick first if available
+    $maxWidth = 378;
+    $maxHeight = 260;
+
+    // Prefer GD for WebP conversion to keep alpha channel fully intact.
+    if (
+        function_exists('imagecreatefromwebp')
+        && function_exists('imagecreatetruecolor')
+        && function_exists('imagecopyresampled')
+        && function_exists('imagepng')
+    ) {
+        try {
+            $source = @imagecreatefromwebp($sourcePath);
+            if ($source !== false) {
+                $sourceWidth = imagesx($source);
+                $sourceHeight = imagesy($source);
+                $scale = min($maxWidth / $sourceWidth, $maxHeight / $sourceHeight, 1.0);
+                $targetWidth = max(1, (int) round($sourceWidth * $scale));
+                $targetHeight = max(1, (int) round($sourceHeight * $scale));
+
+                $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+                if ($canvas !== false) {
+                    imagealphablending($canvas, false);
+                    imagesavealpha($canvas, true);
+                    $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+                    imagefilledrectangle($canvas, 0, 0, $targetWidth - 1, $targetHeight - 1, $transparent);
+                    imagecopyresampled(
+                        $canvas,
+                        $source,
+                        0,
+                        0,
+                        0,
+                        0,
+                        $targetWidth,
+                        $targetHeight,
+                        $sourceWidth,
+                        $sourceHeight
+                    );
+
+                    if (@imagepng($canvas, $targetPath) === true) {
+                        imagedestroy($canvas);
+                        imagedestroy($source);
+
+                        if (is_file($targetPath) && is_readable($targetPath)) {
+                            return $targetPath;
+                        }
+                    }
+
+                    imagedestroy($canvas);
+                }
+
+                imagedestroy($source);
+            }
+        } catch (\Throwable $e) {
+            log_message('GD WebP->PNG conversion failed: ' . $e->getMessage(), 'ERROR');
+        }
+    }
+
+    // Fallback to Imagick
     if (class_exists(Imagick::class)) {
         try {
             $imagick = new Imagick();
             $imagick->readImage($sourcePath);
-
-            // Flattening would kill transparency, so don't do that.
+            $imagick->setImageBackgroundColor(new \ImagickPixel('transparent'));
             $imagick->setImageFormat('png');
-            $imagick->setImageAlphaChannel(Imagick::ALPHACHANNEL_ACTIVATE);
-            $imagick->thumbnailImage(378, 260, true, true);
+            $imagick->setImageAlphaChannel(Imagick::ALPHACHANNEL_SET);
+            $imagick->thumbnailImage($maxWidth, $maxHeight, true, true);
             $imagick->stripImage();
-
             $imagick->writeImage($targetPath);
             $imagick->clear();
             $imagick->destroy();
@@ -255,34 +323,491 @@ $ensurePdfSafeImagePath = static function (string $sourcePath): string {
         }
     }
 
-    // Fallback to GD
-    if (function_exists('imagecreatefromwebp') && function_exists('imagepng')) {
-        try {
-            $image = @imagecreatefromwebp($sourcePath);
-            if ($image !== false) {
-                // Preserve alpha
-                imagealphablending($image, false);
-                imagesavealpha($image, true);
-
-                // Write PNG with default compression
-                if (@imagepng($image, $targetPath) === true) {
-                    imagedestroy($image);
-
-                    if (is_file($targetPath) && is_readable($targetPath)) {
-                        return $targetPath;
-                    }
-                }
-
-                imagedestroy($image);
-            }
-        } catch (\Throwable $e) {
-            log_message('GD WebP->PNG conversion failed: ' . $e->getMessage(), 'ERROR');
-        }
-    }
-
     // Last resort: return original and accept that mPDF may render artifacts
     log_message("Could not convert WebP for PDF, using original: $sourcePath", 'ERROR');
     return $sourcePath;
+};
+
+/**
+ * Convert a product photo to a PDF-safe PNG and remove edge-connected white matte.
+ * Keeps interior white details intact by removing only white regions reachable from edges.
+ */
+$ensurePdfPhotoImagePath = static function (string $sourcePath): string {
+    $sourcePath = trim($sourcePath);
+    if ($sourcePath === '' || !is_file($sourcePath) || !is_readable($sourcePath)) {
+        return '';
+    }
+
+    $extension = strtolower((string) pathinfo($sourcePath, PATHINFO_EXTENSION));
+    if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+        return $sourcePath;
+    }
+
+    if (
+        !function_exists('imagecreatefromstring')
+        || !function_exists('imagecreatetruecolor')
+        || !function_exists('imagecopyresampled')
+        || !function_exists('imagepng')
+    ) {
+        return $sourcePath;
+    }
+
+    $serverRoot = dirname(__DIR__, 3);
+    $cacheDir = $serverRoot . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'pdf-image-cache';
+    if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+        log_message("Failed to create PDF photo cache dir: $cacheDir", 'ERROR');
+        return $sourcePath;
+    }
+
+    $mtime = @filemtime($sourcePath);
+    $mtimeKey = $mtime !== false ? (string) $mtime : '0';
+    $cacheKey = sha1('pdf-photo-v1|mattecut|378x260|' . $sourcePath . '|' . $mtimeKey);
+    $targetPath = $cacheDir . DIRECTORY_SEPARATOR . $cacheKey . '.png';
+    if (is_file($targetPath) && is_readable($targetPath)) {
+        return $targetPath;
+    }
+
+    $raw = @file_get_contents($sourcePath);
+    if ($raw === false) {
+        return $sourcePath;
+    }
+
+    $source = @imagecreatefromstring($raw);
+    if ($source === false) {
+        return $sourcePath;
+    }
+
+    $sourceWidth = imagesx($source);
+    $sourceHeight = imagesy($source);
+
+    $maxWidth = 378;
+    $maxHeight = 260;
+    $scale = min($maxWidth / $sourceWidth, $maxHeight / $sourceHeight, 1.0);
+    $targetWidth = max(1, (int) round($sourceWidth * $scale));
+    $targetHeight = max(1, (int) round($sourceHeight * $scale));
+
+    $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
+    if ($canvas === false) {
+        imagedestroy($source);
+        return $sourcePath;
+    }
+
+    imagealphablending($canvas, false);
+    imagesavealpha($canvas, true);
+    $transparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+    imagefilledrectangle($canvas, 0, 0, $targetWidth - 1, $targetHeight - 1, $transparent);
+    imagecopyresampled(
+        $canvas,
+        $source,
+        0,
+        0,
+        0,
+        0,
+        $targetWidth,
+        $targetHeight,
+        $sourceWidth,
+        $sourceHeight
+    );
+    imagedestroy($source);
+
+    imagealphablending($canvas, true);
+
+    $isNearWhite = static function (int $color): bool {
+        $alpha = ($color >> 24) & 0x7F;
+        $red = ($color >> 16) & 0xFF;
+        $green = ($color >> 8) & 0xFF;
+        $blue = $color & 0xFF;
+
+        return $alpha < 120 && $red >= 245 && $green >= 245 && $blue >= 245;
+    };
+
+    $corners = [
+        [0, 0],
+        [$targetWidth - 1, 0],
+        [0, $targetHeight - 1],
+        [$targetWidth - 1, $targetHeight - 1],
+    ];
+    $whiteCorners = 0;
+    foreach ($corners as [$cornerX, $cornerY]) {
+        $cornerColor = imagecolorat($canvas, $cornerX, $cornerY);
+        if ($isNearWhite($cornerColor)) {
+            $whiteCorners++;
+        }
+    }
+
+    if ($whiteCorners >= 3) {
+        $queueX = [];
+        $queueY = [];
+        $head = 0;
+        /** @var array<int, bool> $visited */
+        $visited = [];
+
+        $pushPixel = static function (
+            int $x,
+            int $y,
+            int $width,
+            int $height,
+            $image,
+            int $transparentColor,
+            array &$queueX,
+            array &$queueY,
+            array &$visited,
+            callable $isNearWhite
+        ): void {
+            if ($x < 0 || $y < 0 || $x >= $width || $y >= $height) {
+                return;
+            }
+
+            $index = ($y * $width) + $x;
+            if (isset($visited[$index])) {
+                return;
+            }
+
+            $color = imagecolorat($image, $x, $y);
+            if (!$isNearWhite($color)) {
+                return;
+            }
+
+            $visited[$index] = true;
+            $queueX[] = $x;
+            $queueY[] = $y;
+            imagesetpixel($image, $x, $y, $transparentColor);
+        };
+
+        for ($x = 0; $x < $targetWidth; $x++) {
+            $pushPixel(
+                $x,
+                0,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+            $pushPixel(
+                $x,
+                $targetHeight - 1,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+        }
+        for ($y = 0; $y < $targetHeight; $y++) {
+            $pushPixel(
+                0,
+                $y,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+            $pushPixel(
+                $targetWidth - 1,
+                $y,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+        }
+
+        $queueSize = count($queueX);
+        while ($head < $queueSize) {
+            $x = $queueX[$head];
+            $y = $queueY[$head];
+            $head++;
+
+            $pushPixel(
+                $x + 1,
+                $y,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+            $pushPixel(
+                $x - 1,
+                $y,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+            $pushPixel(
+                $x,
+                $y + 1,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+            $pushPixel(
+                $x,
+                $y - 1,
+                $targetWidth,
+                $targetHeight,
+                $canvas,
+                $transparent,
+                $queueX,
+                $queueY,
+                $visited,
+                $isNearWhite
+            );
+
+            $queueSize = count($queueX);
+        }
+    }
+
+    imagealphablending($canvas, false);
+    $saved = @imagepng($canvas, $targetPath);
+    imagedestroy($canvas);
+
+    if ($saved === true && is_file($targetPath) && is_readable($targetPath)) {
+        return $targetPath;
+    }
+
+    return $sourcePath;
+};
+
+/**
+ * Render a color swatch to cached PNG for reliable mPDF output.
+ * Includes a soft semi-transparent shadow baked into pixels.
+ */
+$ensurePdfSafeColorSwatchPath = static function (string $color): string {
+    $color = trim($color);
+    if ($color === '') {
+        return '';
+    }
+
+    $parseColor = static function (string $value): ?array {
+        $value = trim($value);
+
+        if (preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $value) === 1) {
+            $hex = substr($value, 1);
+            if ($hex === false) {
+                return null;
+            }
+
+            if (strlen($hex) === 3) {
+                $r = hexdec(str_repeat($hex[0], 2));
+                $g = hexdec(str_repeat($hex[1], 2));
+                $b = hexdec(str_repeat($hex[2], 2));
+                $alpha = 1.0;
+            } elseif (strlen($hex) === 6) {
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+                $alpha = 1.0;
+            } else {
+                $r = hexdec(substr($hex, 0, 2));
+                $g = hexdec(substr($hex, 2, 2));
+                $b = hexdec(substr($hex, 4, 2));
+                $alpha = hexdec(substr($hex, 6, 2)) / 255;
+            }
+
+            return ['r' => $r, 'g' => $g, 'b' => $b, 'alpha' => $alpha];
+        }
+
+        if (
+            preg_match(
+                '/^rgba?\\(\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})\\s*,\\s*(\\d{1,3})(?:\\s*,\\s*(0|1|0?\\.\\d+))?\\s*\\)$/',
+                $value,
+                $matches
+            ) === 1
+        ) {
+            $r = max(0, min(255, (int) $matches[1]));
+            $g = max(0, min(255, (int) $matches[2]));
+            $b = max(0, min(255, (int) $matches[3]));
+            $alpha = isset($matches[4]) ? (float) $matches[4] : 1.0;
+            $alpha = max(0.0, min(1.0, $alpha));
+
+            return ['r' => $r, 'g' => $g, 'b' => $b, 'alpha' => $alpha];
+        }
+
+        return null;
+    };
+
+    $rgba = $parseColor($color);
+    if ($rgba === null) {
+        return '';
+    }
+
+    if (!function_exists('imagecreatetruecolor') || !function_exists('imagepng')) {
+        return '';
+    }
+
+    $serverRoot = dirname(__DIR__, 3);
+    $cacheDir = $serverRoot . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'pdf-image-cache';
+    if (!is_dir($cacheDir) && !@mkdir($cacheDir, 0777, true) && !is_dir($cacheDir)) {
+        log_message("Failed to create PDF swatch cache dir: $cacheDir", 'ERROR');
+        return '';
+    }
+
+    $cacheKey = sha1('color-swatch|v4|160x110|' . $color);
+    $targetPath = $cacheDir . DIRECTORY_SEPARATOR . $cacheKey . '.png';
+    if (is_file($targetPath) && is_readable($targetPath)) {
+        return $targetPath;
+    }
+
+    $width = 160;
+    $height = 110;
+    $scale = 4;
+    $sourceWidth = $width * $scale;
+    $sourceHeight = $height * $scale;
+
+    $source = imagecreatetruecolor($sourceWidth, $sourceHeight);
+    if ($source === false) {
+        return '';
+    }
+
+    imagealphablending($source, false);
+    imagesavealpha($source, true);
+
+    $transparent = imagecolorallocatealpha($source, 0, 0, 0, 127);
+    imagefilledrectangle($source, 0, 0, $sourceWidth - 1, $sourceHeight - 1, $transparent);
+    imagealphablending($source, true);
+
+    $left = 2 * $scale;
+    $top = 2 * $scale;
+    $right = 152 * $scale;
+    $bottom = 102 * $scale;
+    $radius = 10 * $scale;
+
+    $fillRoundedRect = static function (
+        $image,
+        int $x1,
+        int $y1,
+        int $x2,
+        int $y2,
+        int $cornerRadius,
+        int $colorId
+    ): void {
+        $rectWidth = max(1, $x2 - $x1 + 1);
+        $rectHeight = max(1, $y2 - $y1 + 1);
+        $maxRadius = (int) floor(min($rectWidth, $rectHeight) / 2);
+        $r = max(0, min($cornerRadius, $maxRadius));
+
+        if ($r === 0) {
+            imagefilledrectangle($image, $x1, $y1, $x2, $y2, $colorId);
+            return;
+        }
+
+        $topCenterY = $y1 + $r;
+        $bottomCenterY = $y2 - $r;
+        $radiusSquared = $r * $r;
+
+        // Draw one horizontal run per scanline to avoid alpha overdraw in corners.
+        for ($y = $y1; $y <= $y2; $y++) {
+            $inset = 0;
+
+            if ($y < $topCenterY) {
+                $dy = $topCenterY - $y;
+                $inset = (int) ceil($r - sqrt(max(0, $radiusSquared - ($dy * $dy))));
+            } elseif ($y > $bottomCenterY) {
+                $dy = $y - $bottomCenterY;
+                $inset = (int) ceil($r - sqrt(max(0, $radiusSquared - ($dy * $dy))));
+            }
+
+            imageline($image, $x1 + $inset, $y, $x2 - $inset, $y, $colorId);
+        }
+    };
+
+    $shadowLayers = [
+        ['offset' => 6 * $scale, 'alpha' => 124],
+        ['offset' => 4 * $scale, 'alpha' => 120],
+        ['offset' => 2 * $scale, 'alpha' => 116],
+    ];
+    foreach ($shadowLayers as $layer) {
+        $shadow = imagecolorallocatealpha($source, 0, 0, 0, $layer['alpha']);
+        $fillRoundedRect(
+            $source,
+            $left + $layer['offset'],
+            $top + $layer['offset'],
+            $right + $layer['offset'],
+            $bottom + $layer['offset'],
+            $radius,
+            $shadow
+        );
+    }
+
+    $fillAlpha = 127 - (int) round((float) $rgba['alpha'] * 127);
+    $fillAlpha = max(0, min(127, $fillAlpha));
+    $fill = imagecolorallocatealpha($source, (int) $rgba['r'], (int) $rgba['g'], (int) $rgba['b'], $fillAlpha);
+
+    $border = imagecolorallocatealpha($source, 184, 189, 197, 20);
+    $fillRoundedRect($source, $left, $top, $right, $bottom, $radius, $border);
+    $fillRoundedRect(
+        $source,
+        $left + $scale,
+        $top + $scale,
+        $right - $scale,
+        $bottom - $scale,
+        $radius - $scale,
+        $fill
+    );
+
+    $canvas = imagecreatetruecolor($width, $height);
+    if ($canvas === false) {
+        imagedestroy($source);
+        return '';
+    }
+
+    imagealphablending($canvas, false);
+    imagesavealpha($canvas, true);
+    $canvasTransparent = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+    imagefilledrectangle($canvas, 0, 0, $width - 1, $height - 1, $canvasTransparent);
+    imagealphablending($canvas, true);
+
+    imagecopyresampled(
+        $canvas,
+        $source,
+        0,
+        0,
+        0,
+        0,
+        $width,
+        $height,
+        $sourceWidth,
+        $sourceHeight
+    );
+    imagedestroy($source);
+
+    $saved = @imagepng($canvas, $targetPath);
+    imagedestroy($canvas);
+
+    if ($saved === true && is_file($targetPath) && is_readable($targetPath)) {
+        return $targetPath;
+    }
+
+    return '';
 };
 
 $repository = new AdministrationRepository($pdo);
@@ -308,6 +833,9 @@ $origin = ($host !== '') ? ($scheme . '://' . $host) : '';
  *     component_id: int,
  *     parent_component_id: int|null,
  *     title: string,
+ *     description: string,
+ *     property_rows: list<array{name: string, value: string, unit: string}>,
+ *     color_swatch_pdf_safe: string,
  *     image_pdf_safe: string,
  *     price_label: string,
  *     price_amount: float|null,
@@ -315,6 +843,73 @@ $origin = ($host !== '') ? ($scheme . '://' . $host) : '';
  * }> $optionNodes
  */
 $optionNodes = [];
+
+/**
+ * @param mixed $rawProperties
+ * @return list<array{name: string, value: string, unit: string}>
+ */
+$normalisePropertyRows = static function ($rawProperties): array {
+    if (is_string($rawProperties)) {
+        $decoded = json_decode($rawProperties, true);
+        $rawProperties = is_array($decoded) ? $decoded : [];
+    }
+
+    if (!is_array($rawProperties)) {
+        return [];
+    }
+
+    $rows = [];
+    /** @var array<string, bool> $seen */
+    $seen = [];
+    foreach ($rawProperties as $property) {
+        if (!is_array($property)) {
+            continue;
+        }
+
+        $name = isset($property['name']) ? trim((string) $property['name']) : '';
+        $value = isset($property['value']) ? trim((string) $property['value']) : '';
+        $unit = isset($property['unit']) ? trim((string) $property['unit']) : '';
+        if ($name === '' && $value === '' && $unit === '') {
+            continue;
+        }
+
+        $key = $name . '|' . $value . '|' . $unit;
+        if (isset($seen[$key])) {
+            continue;
+        }
+        $seen[$key] = true;
+
+        $rows[] = [
+            'name' => $name,
+            'value' => $value,
+            'unit' => $unit,
+        ];
+    }
+
+    return $rows;
+};
+
+/**
+ * Accept only CSS color formats we can safely inject into SVG `fill`.
+ */
+$normaliseColor = static function (string $rawColor): string {
+    $color = trim($rawColor);
+    if ($color === '') {
+        return '';
+    }
+
+    if (preg_match('/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/', $color) === 1) {
+        return $color;
+    }
+
+    $rgbaPattern = '/^rgba?\\(\\s*\\d{1,3}\\s*,\\s*\\d{1,3}\\s*,\\s*\\d{1,3}'
+        . '(?:\\s*,\\s*(?:0|1|0?\\.\\d+))?\\s*\\)$/';
+    if (preg_match($rgbaPattern, $color) === 1) {
+        return $color;
+    }
+
+    return '';
+};
 
 foreach ($options as $option) {
     $title = trim((string)($option['option_title'] ?? ''));
@@ -345,6 +940,11 @@ foreach ($options as $option) {
     $imageRaw = trim((string)($option['option_image'] ?? ''));
     $imageLocal = $resolveLocalImagePath($imageRaw);
     $imagePdfSafe = $ensurePdfSafeImagePath($imageLocal);
+    $imagePdfSafe = $ensurePdfPhotoImagePath($imagePdfSafe);
+    $color = $normaliseColor((string) ($option['option_color'] ?? ''));
+    $colorSwatchPdfSafe = $color !== '' ? $ensurePdfSafeColorSwatchPath($color) : '';
+    $description = trim((string) ($option['option_description'] ?? ''));
+    $propertyRows = $normalisePropertyRows($option['option_properties'] ?? null);
 
     $componentId = isset($option['selected_component_id']) ? (int) $option['selected_component_id'] : 0;
     $parentComponentId = $option['selected_parent_component_id'] !== null
@@ -357,6 +957,9 @@ foreach ($options as $option) {
         'component_id' => $componentId,
         'parent_component_id' => $parentComponentId,
         'title' => $title,
+        'description' => $description,
+        'property_rows' => $propertyRows,
+        'color_swatch_pdf_safe' => $colorSwatchPdfSafe,
         'image_pdf_safe' => $imagePdfSafe,
         'price_label' => $priceLabel,
         'price_amount' => $amount,
@@ -369,6 +972,9 @@ foreach ($options as $option) {
  *     component_id: int,
  *     parent_component_id: int|null,
  *     title: string,
+ *     description: string,
+ *     property_rows: list<array{name: string, value: string, unit: string}>,
+ *     color_swatch_pdf_safe: string,
  *     image_pdf_safe: string,
  *     price_label: string,
  *     price_amount: float|null,
@@ -381,6 +987,9 @@ $nodesByComponentId = [];
  *     component_id: int,
  *     parent_component_id: int|null,
  *     title: string,
+ *     description: string,
+ *     property_rows: list<array{name: string, value: string, unit: string}>,
+ *     color_swatch_pdf_safe: string,
  *     image_pdf_safe: string,
  *     price_label: string,
  *     price_amount: float|null,
@@ -430,8 +1039,29 @@ $formatSummedPriceLabel = static function (array $priceByCurrency): string {
  * Merge a node title into its visible parent when they overlap.
  * Example: parent "Nástavba — Valník" + child "Valník — Bez plachty"
  * becomes parent "Nástavba — Valník — Bez plachty".
+ *
+ * @param array<int, array{
+ *     row_number: string,
+ *     depth: int,
+ *     is_root: bool,
+ *     title: string,
+ *     description: string,
+ *     property_rows: list<array{name: string, value: string, unit: string}>,
+ *     color_swatch_pdf_safe: string,
+ *     image_pdf_safe: string,
+ *     price_label: string
+ * }> $items
+ * @param list<array{name: string, value: string, unit: string}> $nodePropertyRows
  */
-$mergeNodeTitleIntoVisibleParent = static function (array &$items, int $depth, string $nodeTitle): bool {
+$mergeNodeTitleIntoVisibleParent = static function (
+    array &$items,
+    int $depth,
+    string $nodeTitle,
+    string $nodeDescription,
+    array $nodePropertyRows,
+    string $nodeColorSwatchPdfSafe,
+    string $nodeImagePdfSafe
+): bool {
     if ($depth <= 0 || $items === []) {
         return false;
     }
@@ -484,6 +1114,52 @@ $mergeNodeTitleIntoVisibleParent = static function (array &$items, int $depth, s
 
     $items[$parentIndex]['title'] .= ' — ' . implode(' — ', $tail);
 
+    if ($nodeDescription !== '') {
+        $parentDescription = trim((string) ($items[$parentIndex]['description'] ?? ''));
+        if ($parentDescription === '') {
+            $items[$parentIndex]['description'] = $nodeDescription;
+        } elseif ($parentDescription !== $nodeDescription) {
+            $items[$parentIndex]['description'] = $parentDescription . ' | ' . $nodeDescription;
+        }
+    }
+
+    if ($nodePropertyRows !== []) {
+        /** @var list<array{name: string, value: string, unit: string}> $parentPropertyRows */
+        $parentPropertyRows = isset($items[$parentIndex]['property_rows'])
+            && is_array($items[$parentIndex]['property_rows'])
+            ? $items[$parentIndex]['property_rows']
+            : [];
+
+        /** @var array<string, bool> $existing */
+        $existing = [];
+        foreach ($parentPropertyRows as $propertyRow) {
+            $existing[$propertyRow['name'] . '|' . $propertyRow['value'] . '|' . $propertyRow['unit']] = true;
+        }
+
+        foreach ($nodePropertyRows as $propertyRow) {
+            $key = $propertyRow['name'] . '|' . $propertyRow['value'] . '|' . $propertyRow['unit'];
+            if (isset($existing[$key])) {
+                continue;
+            }
+            $existing[$key] = true;
+            $parentPropertyRows[] = $propertyRow;
+        }
+
+        $items[$parentIndex]['property_rows'] = $parentPropertyRows;
+    }
+
+    if ($nodeImagePdfSafe !== '') {
+        // Prefer child visual when title is merged.
+        $items[$parentIndex]['image_pdf_safe'] = $nodeImagePdfSafe;
+        $items[$parentIndex]['color_swatch_pdf_safe'] = '';
+    } elseif (
+        ($items[$parentIndex]['color_swatch_pdf_safe'] ?? '') === ''
+        && ($items[$parentIndex]['image_pdf_safe'] ?? '') === ''
+        && $nodeColorSwatchPdfSafe !== ''
+    ) {
+        $items[$parentIndex]['color_swatch_pdf_safe'] = $nodeColorSwatchPdfSafe;
+    }
+
     return true;
 };
 
@@ -493,6 +1169,9 @@ $mergeNodeTitleIntoVisibleParent = static function (array &$items, int $depth, s
  *     component_id: int,
  *     parent_component_id: int|null,
  *     title: string,
+ *     description: string,
+ *     property_rows: list<array{name: string, value: string, unit: string}>,
+ *     color_swatch_pdf_safe: string,
  *     image_pdf_safe: string,
  *     price_label: string,
  *     price_amount: float|null,
@@ -521,6 +1200,9 @@ $appendChain = static function (
      *         component_id: int,
      *         parent_component_id: int|null,
      *         title: string,
+     *         description: string,
+     *         property_rows: list<array{name: string, value: string, unit: string}>,
+     *         color_swatch_pdf_safe: string,
      *         image_pdf_safe: string,
      *         price_label: string,
      *         price_amount: float|null,
@@ -560,15 +1242,25 @@ $appendChain = static function (
             && $selectionId > 0
             && ($singleChoiceSelectionIds[$selectionId] ?? false);
         $hasChildren = count($childrenByParentId[$componentId] ?? []) > 0;
-        $shouldSkipNode = $isSingleChoiceStep && $hasChildren;
+        $shouldSkipNode = $isSingleChoiceStep
+            && $hasChildren
+            && $node['price_label'] === ''
+            && $node['image_pdf_safe'] === ''
+            && $node['color_swatch_pdf_safe'] === '';
         $shouldMergeIntoParent = false;
 
         if (!$shouldSkipNode) {
             $shouldMergeIntoParent = !$entry['is_root']
-                && $hasChildren
                 && $node['price_label'] === ''
-                && $node['image_pdf_safe'] === ''
-                && $mergeNodeTitleIntoVisibleParent($items, $entry['depth'], $node['title']);
+                && $mergeNodeTitleIntoVisibleParent(
+                    $items,
+                    $entry['depth'],
+                    $node['title'],
+                    $node['description'],
+                    $node['property_rows'],
+                    $node['color_swatch_pdf_safe'],
+                    $node['image_pdf_safe']
+                );
         }
 
         if (!$shouldSkipNode && !$shouldMergeIntoParent) {
@@ -577,6 +1269,9 @@ $appendChain = static function (
                 'depth' => $entry['depth'],
                 'is_root' => $entry['is_root'],
                 'title' => $node['title'],
+                'description' => $node['description'],
+                'property_rows' => $node['property_rows'],
+                'color_swatch_pdf_safe' => $node['color_swatch_pdf_safe'],
                 'image_pdf_safe' => $node['image_pdf_safe'],
                 'price_label' => $entry['is_root'] ? $node['price_label'] : '',
             ];
@@ -685,8 +1380,8 @@ $css = <<<CSS
 }
 body {font-family: 'Montserrat', sans-serif; font-size: 11pt; color: #111;}
 table.head { width: 100%; border-collapse: collapse; }
-.head-left { width: 70%; vertical-align: top; }
-.head-right { width: 30%; vertical-align: top; text-align: right; }
+.head-left { width: 50%; vertical-align: top; }
+.head-right { width: 50%; vertical-align: top; text-align: right; }
 .brand-logo {
   display: block;
   max-width: 36mm;
@@ -697,28 +1392,64 @@ table.head { width: 100%; border-collapse: collapse; }
 }
 .head h1 { margin: 0 0 1mm 0; }
 h1 { font-size: 16pt; margin: 0 0 4mm 0; text-align: center; }
-.meta { color: #444; font-size: 9pt; margin-bottom: 4mm; }
+.meta { color: #444; font-size: 7pt; margin-bottom: 4mm; }
 .supplier { margin-top: 3mm; font-size: 9pt; }
 .supplier-label { font-weight: bold; margin-bottom: 1mm; }
 .supplier-line { margin: 0; }
 .hr { height: 1px; background: #bbb; margin: 4mm 0; }
 
 table { width: 100%; border-collapse: collapse; }
-thead th { text-align: left; font-size: 9pt; color: #444; border-bottom: 2px solid #bbb; padding: 3mm 2mm; }
+thead th { font-size: 9pt; color: #444; border-bottom: 2px solid #bbb; padding: 3mm 2mm; }
 tbody td { border-bottom: 1px solid #ccc; padding: 3mm 2mm; vertical-align: top; }
-.col-no { width: 10mm; color:#666; }
-.col-img { width: 35mm; }
+.col-no { width: 10mm; color:#666; text-align: left; }
+.col-img { width: 35mm; text-align: right; }
 .thumb {
   max-width: 32mm;
   max-height: 22mm;
   width: auto;
   height: auto;
-  border: 0.2mm solid #ccc;
-  border-radius: 2mm;
-  background: #fafafa;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   display: block;
 }
-.price { white-space: nowrap; }
+.color-swatch {
+  width: 32mm;
+  height: 22mm;
+  background: transparent;
+}
+.price { white-space: nowrap; text-align: right; }
+.option-description {
+  margin-top: 1.2mm;
+  color: #444;
+  font-size: 9pt;
+}
+.option-properties {
+  width: auto;
+  margin: 0.4mm 0 0 0;
+  display: table;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+.option-properties td {
+  border: 0;
+  color: #444;
+  font-size: 9pt;
+  line-height: 1.05;
+  padding: 0 0 0.3mm 0;
+  vertical-align: top;
+}
+.option-properties td.option-properties-name {
+  padding-right: 5mm;
+}
+.option-properties td.option-properties-value {
+  text-align: right;
+  white-space: nowrap;
+  padding-right: 1.2mm;
+}
+.option-properties td.option-properties-unit {
+  white-space: nowrap;
+}
 
 .totals { margin-top: 6mm; }
 .totals-box { 
@@ -756,16 +1487,43 @@ if ($items === []) {
         $imgHtml = '—';
         if ($item['image_pdf_safe'] !== '') {
             $imgHtml = '<img class="thumb" src="' . $escape($item['image_pdf_safe']) . '" alt="">';
+        } elseif ($item['color_swatch_pdf_safe'] !== '') {
+            $imgHtml = '<img class="color-swatch" src="' . $escape($item['color_swatch_pdf_safe']) . '" alt="">';
         }
 
         $titleText = $item['title'];
         $titleHtml = $item['is_root']
             ? '<strong>' . $escape($titleText) . '</strong>'
             : $escape($titleText);
+        $descriptionHtml = '';
+        if ($item['description'] !== '') {
+            $descriptionHtml = '<div class="option-description">' . $escape($item['description']) . '</div>';
+        }
+        $propertiesHtml = '';
+        if ($item['property_rows'] !== []) {
+            $propertyRowsHtml = '';
+            foreach ($item['property_rows'] as $propertyRow) {
+                $propertyName = trim((string) ($propertyRow['name'] ?? ''));
+                $propertyValue = trim((string) ($propertyRow['value'] ?? ''));
+                $propertyUnit = trim((string) ($propertyRow['unit'] ?? ''));
+                if ($propertyName === '' && $propertyValue === '' && $propertyUnit === '') {
+                    continue;
+                }
+                $propertyRowsHtml .= '<tr>'
+                    . '<td class="option-properties-name">' . $escape($propertyName) . '</td>'
+                    . '<td class="option-properties-value">' . $escape($propertyValue) . '</td>'
+                    . '<td class="option-properties-unit">' . $escape($propertyUnit) . '</td>'
+                    . '</tr>';
+            }
+
+            if ($propertyRowsHtml !== '') {
+                $propertiesHtml = '<table class="option-properties">' . $propertyRowsHtml . '</table>';
+            }
+        }
 
         $rowsHtml .= '<tr>'
             . '<td class="col-no">' . $escape($item['row_number']) . '</td>'
-            . '<td>' . $titleHtml . '</td>'
+            . '<td>' . $titleHtml . $descriptionHtml . $propertiesHtml . '</td>'
             . '<td class="price">' . $escape($item['price_label']) . '</td>'
             . '<td class="col-img">' . $imgHtml . '</td>'
             . '</tr>';
@@ -851,8 +1609,7 @@ $html = <<<HTML
       {$supplierHtml}
     </td>
     <td class="head-right">
-      <div class="meta">Aktualizace: {$escape($updatedAt)}</div>
-      <div class="meta">Vygenerováno: {$escape($generatedAt)}</div>
+      <div class="meta">Vytištěno: {$escape($generatedAt)}</div>
       <div class="meta">{$user['email']}</div>
     </td>
   </tr>
