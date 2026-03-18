@@ -309,7 +309,9 @@ $origin = ($host !== '') ? ($scheme . '://' . $host) : '';
  *     parent_component_id: int|null,
  *     title: string,
  *     image_pdf_safe: string,
- *     price_label: string
+ *     price_label: string,
+ *     price_amount: float|null,
+ *     price_currency: string
  * }> $optionNodes
  */
 $optionNodes = [];
@@ -322,7 +324,7 @@ foreach ($options as $option) {
 
     $parentTitle = trim((string) ($option['option_parent_title'] ?? ''));
     if ($parentTitle !== '') {
-        $title = $parentTitle . ' / ' . $title;
+        $title = $parentTitle . ' — ' . $title;
     }
 
     $amountRaw = trim((string)($option['option_price_amount'] ?? ''));
@@ -332,7 +334,7 @@ foreach ($options as $option) {
     }
 
     $amount = null;
-    $priceLabel = 'N/A';
+    $priceLabel = '';
     if ($amountRaw !== '' && is_numeric($amountRaw)) {
         $amount = (float)$amountRaw;
         $priceLabel = number_format($amount, 2, ',', ' ') . ' ' . $currency;
@@ -357,6 +359,8 @@ foreach ($options as $option) {
         'title' => $title,
         'image_pdf_safe' => $imagePdfSafe,
         'price_label' => $priceLabel,
+        'price_amount' => $amount,
+        'price_currency' => $currency,
     ];
 }
 
@@ -366,7 +370,9 @@ foreach ($options as $option) {
  *     parent_component_id: int|null,
  *     title: string,
  *     image_pdf_safe: string,
- *     price_label: string
+ *     price_label: string,
+ *     price_amount: float|null,
+ *     price_currency: string
  * }> $nodesByComponentId
  */
 $nodesByComponentId = [];
@@ -376,7 +382,9 @@ $nodesByComponentId = [];
  *     parent_component_id: int|null,
  *     title: string,
  *     image_pdf_safe: string,
- *     price_label: string
+ *     price_label: string,
+ *     price_amount: float|null,
+ *     price_currency: string
  * }>> $childrenByParentId
  */
 $childrenByParentId = [];
@@ -403,19 +411,100 @@ $visited = [];
 $rootIndex = 0;
 
 /**
+ * @param array<string, float> $priceByCurrency
+ */
+$formatSummedPriceLabel = static function (array $priceByCurrency): string {
+    if ($priceByCurrency === []) {
+        return '';
+    }
+
+    $parts = [];
+    foreach ($priceByCurrency as $currency => $amount) {
+        $parts[] = number_format((float) $amount, 2, ',', ' ') . ' ' . $currency;
+    }
+
+    return implode(' + ', $parts);
+};
+
+/**
+ * Merge a node title into its visible parent when they overlap.
+ * Example: parent "Nástavba — Valník" + child "Valník — Bez plachty"
+ * becomes parent "Nástavba — Valník — Bez plachty".
+ */
+$mergeNodeTitleIntoVisibleParent = static function (array &$items, int $depth, string $nodeTitle): bool {
+    if ($depth <= 0 || $items === []) {
+        return false;
+    }
+
+    $parentIndex = null;
+    for ($i = count($items) - 1; $i >= 0; $i--) {
+        if (($items[$i]['depth'] ?? -1) === ($depth - 1)) {
+            $parentIndex = $i;
+            break;
+        }
+    }
+
+    if ($parentIndex === null) {
+        return false;
+    }
+
+    $splitSegments = static function (string $title): array {
+        $parts = preg_split('/\s+—\s+/u', trim($title));
+        if (!is_array($parts)) {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', $parts), static fn(string $part): bool => $part !== ''));
+    };
+
+    $parentSegments = $splitSegments((string) ($items[$parentIndex]['title'] ?? ''));
+    $nodeSegments = $splitSegments($nodeTitle);
+
+    if ($parentSegments === [] || count($nodeSegments) < 2) {
+        return false;
+    }
+
+    $maxOverlap = min(count($parentSegments), count($nodeSegments) - 1);
+    $overlap = 0;
+    for ($k = $maxOverlap; $k >= 1; $k--) {
+        if (array_slice($parentSegments, -$k) === array_slice($nodeSegments, 0, $k)) {
+            $overlap = $k;
+            break;
+        }
+    }
+
+    if ($overlap === 0) {
+        return false;
+    }
+
+    $tail = array_slice($nodeSegments, $overlap);
+    if ($tail === []) {
+        return false;
+    }
+
+    $items[$parentIndex]['title'] .= ' — ' . implode(' — ', $tail);
+
+    return true;
+};
+
+/**
  * @param array{
  *     selection_id: int,
  *     component_id: int,
  *     parent_component_id: int|null,
  *     title: string,
  *     image_pdf_safe: string,
- *     price_label: string
+ *     price_label: string,
+ *     price_amount: float|null,
+ *     price_currency: string
  * } $rootNode
  */
 $appendChain = static function (
     array $rootNode,
     array $childrenByParentId,
     array $singleChoiceSelectionIds,
+    callable $formatSummedPriceLabel,
+    callable $mergeNodeTitleIntoVisibleParent,
     array &$items,
     array &$visited,
     int &$rootIndex
@@ -433,7 +522,9 @@ $appendChain = static function (
      *         parent_component_id: int|null,
      *         title: string,
      *         image_pdf_safe: string,
-     *         price_label: string
+     *         price_label: string,
+     *         price_amount: float|null,
+     *         price_currency: string
      *     },
      *     depth: int,
      *     is_root: bool
@@ -444,6 +535,9 @@ $appendChain = static function (
         'depth' => 0,
         'is_root' => true,
     ]];
+    $rootItemIndex = null;
+    /** @var array<string, float> $chainPriceByCurrency */
+    $chainPriceByCurrency = [];
 
     while ($stack !== []) {
         $entry = array_pop($stack);
@@ -455,32 +549,55 @@ $appendChain = static function (
         }
         $visited[$componentId] = true;
 
+        if ($node['price_amount'] !== null) {
+            $priceCurrency = $node['price_currency'] !== '' ? $node['price_currency'] : 'CZK';
+            $chainPriceByCurrency[$priceCurrency] = ($chainPriceByCurrency[$priceCurrency] ?? 0.0)
+                + (float) $node['price_amount'];
+        }
+
         $selectionId = $node['selection_id'];
         $isSingleChoiceStep = !$entry['is_root']
             && $selectionId > 0
             && ($singleChoiceSelectionIds[$selectionId] ?? false);
         $hasChildren = count($childrenByParentId[$componentId] ?? []) > 0;
         $shouldSkipNode = $isSingleChoiceStep && $hasChildren;
+        $shouldMergeIntoParent = false;
 
         if (!$shouldSkipNode) {
+            $shouldMergeIntoParent = !$entry['is_root']
+                && $hasChildren
+                && $node['price_label'] === ''
+                && $node['image_pdf_safe'] === ''
+                && $mergeNodeTitleIntoVisibleParent($items, $entry['depth'], $node['title']);
+        }
+
+        if (!$shouldSkipNode && !$shouldMergeIntoParent) {
             $items[] = [
                 'row_number' => $entry['is_root'] ? (string) $rootIndex : '',
                 'depth' => $entry['depth'],
                 'is_root' => $entry['is_root'],
                 'title' => $node['title'],
                 'image_pdf_safe' => $node['image_pdf_safe'],
-                'price_label' => $node['price_label'],
+                'price_label' => $entry['is_root'] ? $node['price_label'] : '',
             ];
+
+            if ($entry['is_root']) {
+                $rootItemIndex = count($items) - 1;
+            }
         }
 
         $children = $childrenByParentId[$componentId] ?? [];
         for ($i = count($children) - 1; $i >= 0; $i--) {
             $stack[] = [
                 'node' => $children[$i],
-                'depth' => $entry['depth'] + ($shouldSkipNode ? 0 : 1),
+                'depth' => $entry['depth'] + (($shouldSkipNode || $shouldMergeIntoParent) ? 0 : 1),
                 'is_root' => false,
             ];
         }
+    }
+
+    if ($rootItemIndex !== null) {
+        $items[$rootItemIndex]['price_label'] = $formatSummedPriceLabel($chainPriceByCurrency);
     }
 };
 
@@ -493,7 +610,16 @@ foreach ($optionNodes as $node) {
     $parentId = $node['parent_component_id'];
     $isRoot = $parentId === null || !isset($nodesByComponentId[$parentId]);
     if ($isRoot) {
-        $appendChain($node, $childrenByParentId, $singleChoiceSelectionIds, $items, $visited, $rootIndex);
+        $appendChain(
+            $node,
+            $childrenByParentId,
+            $singleChoiceSelectionIds,
+            $formatSummedPriceLabel,
+            $mergeNodeTitleIntoVisibleParent,
+            $items,
+            $visited,
+            $rootIndex
+        );
     }
 }
 
@@ -503,7 +629,16 @@ foreach ($optionNodes as $node) {
         continue;
     }
 
-    $appendChain($node, $childrenByParentId, $singleChoiceSelectionIds, $items, $visited, $rootIndex);
+    $appendChain(
+        $node,
+        $childrenByParentId,
+        $singleChoiceSelectionIds,
+        $formatSummedPriceLabel,
+        $mergeNodeTitleIntoVisibleParent,
+        $items,
+        $visited,
+        $rootIndex
+    );
 }
 
 $updatedAtRaw = (string)($configuration['updated_at'] ?? '');
@@ -623,8 +758,7 @@ if ($items === []) {
             $imgHtml = '<img class="thumb" src="' . $escape($item['image_pdf_safe']) . '" alt="">';
         }
 
-        $titlePrefix = $item['depth'] > 0 ? str_repeat('— ', (int) $item['depth']) : '';
-        $titleText = $titlePrefix . $item['title'];
+        $titleText = $item['title'];
         $titleHtml = $item['is_root']
             ? '<strong>' . $escape($titleText) . '</strong>'
             : $escape($titleText);
@@ -728,8 +862,7 @@ $html = <<<HTML
 <table>
   <thead>
     <tr>
-      <th class="col-no">#</th>
-      <th>Volba</th>
+      <th class="col-no" colspan="2">#</th>
       <th class="price">Cena</th>
       <th class="col-img">Obrázek</th>
     </tr>
