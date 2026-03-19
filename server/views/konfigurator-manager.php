@@ -52,6 +52,9 @@ $latestDraftNumber = $drafts !== [] && isset($drafts[0]['draft_number'])
 $latestDraftLabel = $latestDraftId !== null
     ? ($latestDraftTitle !== '' ? $latestDraftTitle : ('Návrh #' . $latestDraftNumber))
     : '';
+$recentlyCompletedConfigurationId = isset($_GET['completed_configuration_id'])
+    ? (int) $_GET['completed_configuration_id']
+    : 0;
 ?>
 
 <section data-island="konfigurator-manager">
