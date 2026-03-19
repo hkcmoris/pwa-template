@@ -244,8 +244,8 @@ $ensurePdfSafeImagePath = static function (string $sourcePath): string {
         return $targetPath;
     }
 
-    $maxWidth = 378;
-    $maxHeight = 260;
+    $maxWidth = 707;
+    $maxHeight = 488;
 
     // Prefer GD for WebP conversion to keep alpha channel fully intact.
     if (
@@ -1404,8 +1404,8 @@ tbody td { border-bottom: 1px solid #ccc; padding: 3mm 2mm; vertical-align: top;
 .col-no { width: 10mm; color:#666; text-align: left; }
 .col-img { width: 35mm; text-align: right; }
 .thumb {
-  max-width: 32mm;
-  max-height: 22mm;
+  max-width: 60mm;
+  max-height: 41.25mm;
   width: auto;
   height: auto;
   border: 0;
