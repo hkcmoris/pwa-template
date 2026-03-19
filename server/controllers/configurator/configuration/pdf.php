@@ -1345,22 +1345,16 @@ $documentTitle = $configurationTitle !== ''
     ? $configurationTitle
     : "Konfigurace #{$configurationId}";
 
-$slugifyForFilename = static function (string $value): string {
+$sanitizeFilenameForDownload = static function (string $value): string {
     $value = trim($value);
     if ($value === '') {
         return '';
     }
 
-    if (function_exists('iconv')) {
-        $transliterated = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
-        if ($transliterated !== false) {
-            $value = $transliterated;
-        }
-    }
-
-    $value = strtolower($value);
-    $value = preg_replace('/[^a-z0-9]+/', '-', $value) ?? '';
-    $value = trim($value, '-');
+    $value = preg_replace('/[\x00-\x1F\x7F]/u', '', $value) ?? '';
+    $value = preg_replace('/[<>:"\/\\\\|?*]/u', '-', $value) ?? '';
+    $value = preg_replace('/\s+/u', ' ', $value) ?? '';
+    $value = trim($value, " .\t\n\r\0\x0B-");
 
     return $value;
 };
@@ -1693,8 +1687,8 @@ try {
     $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
     $mpdf->WriteHTML($html, \Mpdf\HTMLParserMode::HTML_BODY);
 
-    $filenameSlug = $slugifyForFilename($documentTitle);
-    $filename = ($filenameSlug !== '' ? $filenameSlug : "configuration-{$configurationId}") . '.pdf';
+    $filenameBase = $sanitizeFilenameForDownload($documentTitle);
+    $filename = ($filenameBase !== '' ? $filenameBase : "configuration-{$configurationId}") . '.pdf';
     // mPDF will send headers + output
     $mpdf->Output($filename, Destination::DOWNLOAD);
 } catch (\Throwable $e) {
