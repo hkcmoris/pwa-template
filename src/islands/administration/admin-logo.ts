@@ -35,7 +35,8 @@ const toPositiveInt = (value: unknown, fallback = 0) => {
 
 const applyHeaderLogoFromDataset = () => {
     const root = document.documentElement;
-    const headerLogo = document.querySelector<HTMLImageElement>('[data-app-logo]');
+    const headerLogo =
+        document.querySelector<HTMLImageElement>('[data-app-logo]');
     if (!headerLogo) {
         return;
     }
@@ -45,7 +46,10 @@ const applyHeaderLogoFromDataset = () => {
 
     const lightSrc = root.dataset.logoLightSrc ?? '';
     const darkSrc = root.dataset.logoDarkSrc ?? '';
-    const lightWidth = toPositiveInt(root.dataset.logoLightWidth, headerLogo.width);
+    const lightWidth = toPositiveInt(
+        root.dataset.logoLightWidth,
+        headerLogo.width
+    );
     const lightHeight = toPositiveInt(
         root.dataset.logoLightHeight,
         headerLogo.height
@@ -137,9 +141,9 @@ export const initAdminLogo = (root: HTMLElement) => {
     const hasAnyFile = () =>
         Boolean(
             lightInput?.files?.length ||
-                darkInput?.files?.length ||
-                pdfInput?.files?.length ||
-                watermarkInput?.files?.length
+            darkInput?.files?.length ||
+            pdfInput?.files?.length ||
+            watermarkInput?.files?.length
         );
 
     const setSubmitState = () => {
@@ -155,8 +159,14 @@ export const initAdminLogo = (root: HTMLElement) => {
         }
         feedback.textContent = message;
         feedback.classList.remove('hidden');
-        feedback.classList.toggle('admin-address-feedback--success', kind === 'success');
-        feedback.classList.toggle('admin-address-feedback--error', kind === 'error');
+        feedback.classList.toggle(
+            'admin-address-feedback--success',
+            kind === 'success'
+        );
+        feedback.classList.toggle(
+            'admin-address-feedback--error',
+            kind === 'error'
+        );
     };
 
     const hideFeedback = () => {
@@ -192,10 +202,14 @@ export const initAdminLogo = (root: HTMLElement) => {
         if (darkPreview) {
             if (hasDarkLogo && dark?.url) {
                 darkPreview.src = dark.url;
-                darkPreview.classList.remove('admin-logo-preview-image--fallback-invert');
+                darkPreview.classList.remove(
+                    'admin-logo-preview-image--fallback-invert'
+                );
             } else if (light?.url) {
                 darkPreview.src = light.url;
-                darkPreview.classList.add('admin-logo-preview-image--fallback-invert');
+                darkPreview.classList.add(
+                    'admin-logo-preview-image--fallback-invert'
+                );
             }
         }
 
@@ -221,20 +235,32 @@ export const initAdminLogo = (root: HTMLElement) => {
         if (light?.url) {
             doc.dataset.logoLightSrc = light.url;
             doc.dataset.logoLightWidth = String(
-                toPositiveInt(light.width, toPositiveInt(doc.dataset.logoLightWidth, 130))
+                toPositiveInt(
+                    light.width,
+                    toPositiveInt(doc.dataset.logoLightWidth, 130)
+                )
             );
             doc.dataset.logoLightHeight = String(
-                toPositiveInt(light.height, toPositiveInt(doc.dataset.logoLightHeight, 30))
+                toPositiveInt(
+                    light.height,
+                    toPositiveInt(doc.dataset.logoLightHeight, 30)
+                )
             );
         }
         doc.dataset.logoHasDark = hasDarkLogo ? '1' : '0';
         if (hasDarkLogo && dark?.url) {
             doc.dataset.logoDarkSrc = dark.url;
             doc.dataset.logoDarkWidth = String(
-                toPositiveInt(dark.width, toPositiveInt(doc.dataset.logoDarkWidth, 130))
+                toPositiveInt(
+                    dark.width,
+                    toPositiveInt(doc.dataset.logoDarkWidth, 130)
+                )
             );
             doc.dataset.logoDarkHeight = String(
-                toPositiveInt(dark.height, toPositiveInt(doc.dataset.logoDarkHeight, 30))
+                toPositiveInt(
+                    dark.height,
+                    toPositiveInt(doc.dataset.logoDarkHeight, 30)
+                )
             );
         } else {
             delete doc.dataset.logoDarkSrc;
@@ -270,7 +296,10 @@ export const initAdminLogo = (root: HTMLElement) => {
         hideFeedback();
 
         if (!hasAnyFile()) {
-            showFeedback('Vyberte alespoň jeden SVG soubor k nahrání.', 'error');
+            showFeedback(
+                'Vyberte alespoň jeden SVG soubor k nahrání.',
+                'error'
+            );
             return;
         }
 
@@ -300,7 +329,10 @@ export const initAdminLogo = (root: HTMLElement) => {
             }
 
             applyResponse(payload ?? {});
-            showFeedback(payload?.message ?? 'Soubory byly úspěšně nahrány.', 'success');
+            showFeedback(
+                payload?.message ?? 'Soubory byly úspěšně nahrány.',
+                'success'
+            );
 
             form.reset();
             cleanupObjectUrls();

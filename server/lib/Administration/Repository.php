@@ -185,12 +185,20 @@ final class Repository
             'height' => isset($settings['logo_height']) ? (float) $settings['logo_height'] : self::MAX_LOGO_HEIGHT,
             'updated_at' => (string) ($pathMeta['logo_path']['updated_at'] ?? ''),
             'dark_path' => $settings['logo_dark_path'] ?? '',
-            'dark_width' => isset($settings['logo_dark_width']) ? (float) $settings['logo_dark_width'] : self::MAX_LOGO_WIDTH,
-            'dark_height' => isset($settings['logo_dark_height']) ? (float) $settings['logo_dark_height'] : self::MAX_LOGO_HEIGHT,
+            'dark_width' => isset($settings['logo_dark_width'])
+                ? (float) $settings['logo_dark_width']
+                : self::MAX_LOGO_WIDTH,
+            'dark_height' => isset($settings['logo_dark_height'])
+                ? (float) $settings['logo_dark_height']
+                : self::MAX_LOGO_HEIGHT,
             'dark_updated_at' => (string) ($pathMeta['logo_dark_path']['updated_at'] ?? ''),
             'pdf_path' => $settings['logo_pdf_path'] ?? '',
-            'pdf_width' => isset($settings['logo_pdf_width']) ? (float) $settings['logo_pdf_width'] : self::MAX_LOGO_WIDTH,
-            'pdf_height' => isset($settings['logo_pdf_height']) ? (float) $settings['logo_pdf_height'] : self::MAX_LOGO_HEIGHT,
+            'pdf_width' => isset($settings['logo_pdf_width'])
+                ? (float) $settings['logo_pdf_width']
+                : self::MAX_LOGO_WIDTH,
+            'pdf_height' => isset($settings['logo_pdf_height'])
+                ? (float) $settings['logo_pdf_height']
+                : self::MAX_LOGO_HEIGHT,
             'pdf_updated_at' => (string) ($pathMeta['logo_pdf_path']['updated_at'] ?? ''),
             'pdf_watermark_path' => $settings['pdf_watermark_tile_path'] ?? '',
             'pdf_watermark_updated_at' => (string) ($pathMeta['pdf_watermark_tile_path']['updated_at'] ?? ''),

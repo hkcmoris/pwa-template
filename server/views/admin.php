@@ -98,8 +98,14 @@ if ($canAccessSuperadminTabs && $activeTab === 'company') {
     $hasCustomPdfWatermark = $watermarkPath !== '';
 
     $logoLightPreviewUrl = $assetUrl($lightPath, $lightUpdatedAt);
-    $logoDarkPreviewUrl = $assetUrl($hasDarkLogo ? $darkPath : $lightPath, $hasDarkLogo ? $darkUpdatedAt : $lightUpdatedAt);
-    $logoPdfPreviewUrl = $assetUrl($hasPdfLogo ? $pdfPath : $lightPath, $hasPdfLogo ? $pdfUpdatedAt : $lightUpdatedAt);
+    $logoDarkPreviewUrl = $assetUrl(
+        $hasDarkLogo ? $darkPath : $lightPath,
+        $hasDarkLogo ? $darkUpdatedAt : $lightUpdatedAt
+    );
+    $logoPdfPreviewUrl = $assetUrl(
+        $hasPdfLogo ? $pdfPath : $lightPath,
+        $hasPdfLogo ? $pdfUpdatedAt : $lightUpdatedAt
+    );
     $logoWatermarkPreviewUrl = $assetUrl(
         $hasCustomPdfWatermark ? $watermarkPath : 'public/watermark-tile.svg',
         $hasCustomPdfWatermark ? $watermarkUpdatedAt : ''
@@ -259,7 +265,9 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
       <div class="admin-panel-col">
         <section class="admin-logo">
           <h3>Loga a vodoznak</h3>
-          <p>Nahrajte varianty loga ve formátu SVG. Pokud tmavé logo není nastavené, použije se invertované hlavní logo.</p>
+          <p>
+            Nahrajte varianty loga ve formátu SVG. Pokud tmavé logo není nastavené, použije se invertované hlavní logo.
+          </p>
 
           <form id="admin-logo-form" class="admin-logo-form" enctype="multipart/form-data" novalidate>
             <?= csrf_field(); ?>
@@ -334,7 +342,10 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
                     alt="Aktuální vodoznak pro PDF"
                   >
                 </div>
-                <p id="admin-logo-watermark-fallback-hint" class="admin-file-hint<?= $hasCustomPdfWatermark ? ' hidden' : '' ?>">
+                <p
+                  id="admin-logo-watermark-fallback-hint"
+                  class="admin-file-hint<?= $hasCustomPdfWatermark ? ' hidden' : '' ?>"
+                >
                   Není nastaven vlastní vodoznak, PDF používá výchozí.
                 </p>
                 <label class="admin-field">
@@ -348,7 +359,9 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
             </div>
             <p class="admin-file-hint">Můžete nahrát pouze vybrané soubory, ostatní zůstanou beze změny.</p>
             <div class="admin-modal-actions">
-              <button type="submit" class="admin-action admin-action--primary" data-admin-logo-submit>Uložit soubory</button>
+              <button type="submit" class="admin-action admin-action--primary" data-admin-logo-submit>
+                Uložit soubory
+              </button>
             </div>
             <p id="admin-logo-feedback" class="admin-address-feedback hidden" role="status" aria-live="polite"></p>
           </form>

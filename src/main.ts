@@ -244,17 +244,24 @@ const applyHeaderLogoForTheme = () => {
     const lightSrc = root.dataset.logoLightSrc ?? '';
     const darkSrc = root.dataset.logoDarkSrc ?? '';
 
-    const lightWidth = toPositiveNumber(root.dataset.logoLightWidth, appLogo.width);
+    const lightWidth = toPositiveNumber(
+        root.dataset.logoLightWidth,
+        appLogo.width
+    );
     const lightHeight = toPositiveNumber(
         root.dataset.logoLightHeight,
         appLogo.height
     );
     const darkWidth = toPositiveNumber(root.dataset.logoDarkWidth, lightWidth);
-    const darkHeight = toPositiveNumber(root.dataset.logoDarkHeight, lightHeight);
+    const darkHeight = toPositiveNumber(
+        root.dataset.logoDarkHeight,
+        lightHeight
+    );
 
     const nextSrc =
         currentTheme === 'dark' && hasDarkLogo && darkSrc ? darkSrc : lightSrc;
-    const nextWidth = currentTheme === 'dark' && hasDarkLogo ? darkWidth : lightWidth;
+    const nextWidth =
+        currentTheme === 'dark' && hasDarkLogo ? darkWidth : lightWidth;
     const nextHeight =
         currentTheme === 'dark' && hasDarkLogo ? darkHeight : lightHeight;
 

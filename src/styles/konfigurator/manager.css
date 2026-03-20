@@ -44,7 +44,8 @@
 
 .configurations-list li.configuration-entry--recent {
     border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent),
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent),
         0 8px 20px rgb(from var(--primary) r g b / 20%);
 }
 
@@ -113,7 +114,8 @@
 
 .configuration-entry-action--pdf-highlight:hover,
 .configuration-entry-action--pdf-highlight:focus-visible {
-    box-shadow: 0 0 0 2px rgb(from var(--primary) r g b / 35%),
+    box-shadow:
+        0 0 0 2px rgb(from var(--primary) r g b / 35%),
         0 4px 12px rgb(from var(--primary) r g b / 35%);
 }
 
@@ -251,7 +253,8 @@
 
     50% {
         transform: translateY(-1px);
-        box-shadow: 0 0 0 4px rgb(from var(--primary) r g b / 20%),
+        box-shadow:
+            0 0 0 4px rgb(from var(--primary) r g b / 20%),
             0 6px 16px rgb(from var(--primary) r g b / 28%);
     }
 }
