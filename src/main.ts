@@ -219,15 +219,67 @@ onIdle(() => initNavActions());
 
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'theme';
+const appLogo = document.querySelector<HTMLImageElement>('[data-app-logo]');
 
 const setThemeCookie = (theme: string) => {
     const path = BASE || '/';
     document.cookie = `theme=${theme};path=${path};max-age=31536000;SameSite=Lax`;
 };
 
+const toPositiveNumber = (value: string | undefined, fallback: number) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+        return fallback;
+    }
+    return Math.round(parsed);
+};
+
+const applyHeaderLogoForTheme = () => {
+    if (!appLogo) {
+        return;
+    }
+
+    const currentTheme = root.dataset.theme === 'dark' ? 'dark' : 'light';
+    const hasDarkLogo = root.dataset.logoHasDark === '1';
+    const lightSrc = root.dataset.logoLightSrc ?? '';
+    const darkSrc = root.dataset.logoDarkSrc ?? '';
+
+    const lightWidth = toPositiveNumber(
+        root.dataset.logoLightWidth,
+        appLogo.width
+    );
+    const lightHeight = toPositiveNumber(
+        root.dataset.logoLightHeight,
+        appLogo.height
+    );
+    const darkWidth = toPositiveNumber(root.dataset.logoDarkWidth, lightWidth);
+    const darkHeight = toPositiveNumber(
+        root.dataset.logoDarkHeight,
+        lightHeight
+    );
+
+    const nextSrc =
+        currentTheme === 'dark' && hasDarkLogo && darkSrc ? darkSrc : lightSrc;
+    const nextWidth =
+        currentTheme === 'dark' && hasDarkLogo ? darkWidth : lightWidth;
+    const nextHeight =
+        currentTheme === 'dark' && hasDarkLogo ? darkHeight : lightHeight;
+
+    if (nextSrc && appLogo.getAttribute('src') !== nextSrc) {
+        appLogo.setAttribute('src', nextSrc);
+    }
+    if (nextWidth > 0) {
+        appLogo.width = nextWidth;
+    }
+    if (nextHeight > 0) {
+        appLogo.height = nextHeight;
+    }
+};
+
 const applyTheme = (theme: string) => {
     document.documentElement.dataset.theme = theme;
     setThemeCookie(theme);
+    applyHeaderLogoForTheme();
 };
 
 const getCookie = (name: string) =>
@@ -239,6 +291,8 @@ const getCookie = (name: string) =>
 const stored = localStorage.getItem(THEME_KEY) ?? getCookie(THEME_KEY);
 if (stored) {
     applyTheme(stored);
+} else {
+    applyHeaderLogoForTheme();
 }
 
 themeToggle?.addEventListener('click', () => {
@@ -261,9 +315,6 @@ const registerLink = document.getElementById(
 const logoutBtn = document.getElementById(
     'logout-btn'
 ) as HTMLButtonElement | null;
-const usersLink = document.getElementById(
-    'users-link'
-) as HTMLAnchorElement | null;
 const configuratorLink = document.getElementById(
     'configurator-link'
 ) as HTMLAnchorElement | null;
@@ -371,9 +422,6 @@ const setRoleUI = (role: string | null) => {
     const allowed = role === 'admin' || role === 'superadmin';
     if (editorLink) {
         editorLink.classList.toggle('hidden', !allowed);
-    }
-    if (usersLink) {
-        usersLink.classList.toggle('hidden', !allowed);
     }
 };
 
@@ -540,6 +588,20 @@ const ensureEditorStyleSlot = () => {
     head.appendChild(link);
 };
 
+const ensureSubnavStyleSlot = () => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const head = document.head;
+    if (!head || document.getElementById('subnav')) {
+        return;
+    }
+    const link = document.createElement('link');
+    link.id = 'subnav';
+    link.rel = 'stylesheet';
+    head.appendChild(link);
+};
+
 const ensureKonfiguratorStyleSlots = () => {
     if (typeof document === 'undefined') {
         return;
@@ -666,6 +728,7 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
 
     if (path.includes('/editor/') || queryRoute.startsWith('editor')) {
         ensureEditorStyleSlot();
+        ensureSubnavStyleSlot();
     }
     if (
         path.includes('/konfigurator') ||
@@ -675,6 +738,7 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
     }
     if (path.includes('/admin') || queryRoute === 'admin') {
         ensureAdminStyleSlot();
+        ensureSubnavStyleSlot();
     }
 });
 

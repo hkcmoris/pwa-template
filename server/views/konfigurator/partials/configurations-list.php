@@ -3,6 +3,9 @@
 /** @var array<int, array<string, mixed>> $configurations */
 $configurations = $configurations ?? [];
 $BASE = isset($BASE) ? (string) $BASE : '';
+$recentlyCompletedConfigurationId = isset($recentlyCompletedConfigurationId)
+    ? (int) $recentlyCompletedConfigurationId
+    : 0;
 
 $finishedConfigurations = array_values(array_filter(
     $configurations,
@@ -59,13 +62,21 @@ $finishedConfigurations = array_values(array_filter(
     <?php foreach ($finishedConfigurations as $configuration) : ?>
         <?php $configurationId = (int) ($configuration['id'] ?? 0); ?>
         <?php $configurationTitle = trim((string) ($configuration['title'] ?? '')); ?>
+        <?php $isRecentlyCompleted = $recentlyCompletedConfigurationId > 0
+            && $configurationId === $recentlyCompletedConfigurationId; ?>
         <?php
         $configurationLabel = $configurationTitle !== ''
             ? $configurationTitle
             : ('Konfigurace #' . (string) ($configuration['id'] ?? ''));
         $pdfHref = $BASE . '/configurator/configuration/pdf?configuration_id=' . (string) $configurationId;
+        $pdfActionClass = 'configuration-entry-action configuration-entry-action--solid '
+            . 'configuration-entry-action--icon'
+            . ($isRecentlyCompleted ? ' configuration-entry-action--pdf-highlight' : '');
         ?>
-      <li>
+      <li
+        class="configuration-entry<?= $isRecentlyCompleted ? ' configuration-entry--recent' : '' ?>"
+        <?= $isRecentlyCompleted ? 'data-recently-completed="true"' : '' ?>
+      >
         <div class="configuration-entry-main">
           <strong><?= htmlspecialchars($configurationLabel) ?></strong>
           <?php if (!empty($configuration['updated_at'])) : ?>
@@ -117,7 +128,7 @@ $finishedConfigurations = array_values(array_filter(
               </svg>
             </button>
             <a
-              class="configuration-entry-action configuration-entry-action--solid configuration-entry-action--icon"
+              class="<?= htmlspecialchars($pdfActionClass) ?>"
               href="<?= htmlspecialchars($pdfHref) ?>"
               aria-label="Stáhnout konfiguraci <?= htmlspecialchars($configurationLabel) ?> jako PDF"
               title="Stáhnout PDF"

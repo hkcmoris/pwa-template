@@ -225,6 +225,29 @@ const openDeleteModal = (
     );
 };
 
+const revealRecentlyCompletedConfiguration = (root: HTMLElement) => {
+    const recentEntry = root.querySelector<HTMLElement>(
+        '[data-recently-completed="true"]'
+    );
+    if (!recentEntry) {
+        return;
+    }
+
+    recentEntry.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    const currentUrl = new URL(window.location.href);
+    if (!currentUrl.searchParams.has('completed_configuration_id')) {
+        return;
+    }
+
+    currentUrl.searchParams.delete('completed_configuration_id');
+    const updatedPath =
+        currentUrl.pathname +
+        (currentUrl.search ? currentUrl.search : '') +
+        currentUrl.hash;
+    window.history.replaceState(window.history.state, '', updatedPath);
+};
+
 export default (root: HTMLElement) => {
     const modalRoot = root.querySelector<HTMLElement>(
         '#konfigurator-manager-modal'
@@ -234,6 +257,7 @@ export default (root: HTMLElement) => {
     }
 
     const modal = createModal(modalRoot);
+    revealRecentlyCompletedConfiguration(root);
 
     root.addEventListener('click', (event) => {
         const button = (event.target as HTMLElement).closest<HTMLButtonElement>(

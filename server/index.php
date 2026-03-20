@@ -95,6 +95,17 @@ if ($requiresAdminView && !$hasAdminPrivileges) {
     $forcedView = '403';
 }
 
+if ($route === 'users' && $forcedView === null) {
+    $target = ($basePath !== '' ? $basePath : '') . '/admin?tab=users';
+    if ($isHx) {
+        header('HX-Redirect: ' . $target);
+        http_response_code(204);
+        exit;
+    }
+    header('Location: ' . $target, true, 302);
+    exit;
+}
+
 // For controller calls (usually POST HTMX), deny early if not admin
 if ($requiresAdmin && !in_array($role, ['admin','superadmin'], true) && $method !== 'GET') {
     if ($isHx) {
@@ -238,10 +249,22 @@ $descMap = [
 $description = $descMap[$view] ?? 'HAGEMANN konfigurátor';
 
 $viewStylesMap = [
-    'admin' => ['admin' => 'src/styles/admin.css'],
-    'editor/definitions' => ['editor-partial-style' => 'src/styles/editor/definitions.css'],
-    'editor/components' => ['editor-partial-style' => 'src/styles/editor/components.css'],
-    'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
+    'admin' => [
+        'subnav' => 'src/styles/subnav.css',
+        'admin' => 'src/styles/admin.css',
+    ],
+    'editor/definitions' => [
+        'subnav' => 'src/styles/subnav.css',
+        'editor-partial-style' => 'src/styles/editor/definitions.css',
+    ],
+    'editor/components' => [
+        'subnav' => 'src/styles/subnav.css',
+        'editor-partial-style' => 'src/styles/editor/components.css',
+    ],
+    'editor/images' => [
+        'subnav' => 'src/styles/subnav.css',
+        'editor-partial-style' => 'src/styles/editor/images.css',
+    ],
     'konfigurator' => [
         'konfigurator-breadcrumbs' => 'src/styles/konfigurator/breadcrumbs.css',
         'konfigurator-configuration-wizard' => 'src/styles/konfigurator/configuration-wizard.css',

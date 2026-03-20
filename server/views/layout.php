@@ -22,18 +22,38 @@ if ($theme !== 'dark' && $theme !== 'light') {
 }
 $logoRepository = new AdministrationRepository();
 $logoSettings = $logoRepository->readLogoSettings();
-$logoW = $logoSettings['width'];
-$logoH = $logoSettings['height'];
-$logoUrl = $logoSettings['path'];
-if (!empty($logoSettings['updated_at'])) {
-    $logoUrl .= '?v=' . rawurlencode((string)$logoSettings['updated_at']);
-}
+$buildLogoUrl = static function (string $path, string $updatedAt, string $base): string {
+    $normalizedPath = ltrim($path, '/');
+    $url = ($base !== '' ? $base : '') . '/' . $normalizedPath;
+    if ($updatedAt !== '') {
+        $url .= '?v=' . rawurlencode($updatedAt);
+    }
+    return $url;
+};
+
+$logoLightPath = (string) $logoSettings['path'];
+$logoLightUpdatedAt = (string) $logoSettings['updated_at'];
+$logoLightWidth = (float) $logoSettings['width'];
+$logoLightHeight = (float) $logoSettings['height'];
+
+$logoDarkPath = trim((string) $logoSettings['dark_path']);
+$logoDarkUpdatedAt = (string) $logoSettings['dark_updated_at'];
+$logoDarkWidth = (float) $logoSettings['dark_width'];
+$logoDarkHeight = (float) $logoSettings['dark_height'];
+$hasDarkLogo = $logoDarkPath !== '';
 
 $csrfToken = csrf_token_if_active();
 
 // Normalized base path for subfolder deployments ('' or '/subdir')
 $BASE = rtrim((defined('BASE_PATH') ? (string) BASE_PATH : ''), '/');
 $prettyUrlsEnabled = defined('PRETTY_URLS') ? (bool) PRETTY_URLS : false;
+
+$logoLightUrl = $buildLogoUrl($logoLightPath, $logoLightUpdatedAt, $BASE);
+$logoDarkUrl = $hasDarkLogo ? $buildLogoUrl($logoDarkPath, $logoDarkUpdatedAt, $BASE) : '';
+$renderDarkLogo = $theme === 'dark' && $hasDarkLogo;
+$logoRenderUrl = $renderDarkLogo ? $logoDarkUrl : $logoLightUrl;
+$logoRenderWidth = $renderDarkLogo ? $logoDarkWidth : $logoLightWidth;
+$logoRenderHeight = $renderDarkLogo ? $logoDarkHeight : $logoLightHeight;
 
 $appEnvValue = getenv('APP_ENV');
 if (!is_string($appEnvValue) || $appEnvValue === '') {
@@ -76,6 +96,13 @@ $cspNonceAttr = $cspNonce !== ''
   data-authenticated="<?= $isAuthenticated ? '1' : '0' ?>"
   data-auth-email="<?= htmlspecialchars((string) ($email ?? ''), ENT_QUOTES, 'UTF-8') ?>"
   data-auth-role="<?= htmlspecialchars((string) $role, ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-light-src="<?= htmlspecialchars($logoLightUrl, ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-light-width="<?= htmlspecialchars((string) (int) round($logoLightWidth), ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-light-height="<?= htmlspecialchars((string) (int) round($logoLightHeight), ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-dark-src="<?= htmlspecialchars($logoDarkUrl, ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-dark-width="<?= htmlspecialchars((string) (int) round($logoDarkWidth), ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-dark-height="<?= htmlspecialchars((string) (int) round($logoDarkHeight), ENT_QUOTES, 'UTF-8') ?>"
+  data-logo-has-dark="<?= $hasDarkLogo ? '1' : '0' ?>"
   data-csp-nonce="<?= htmlspecialchars((string)($GLOBALS['csp_nonce'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
 >
 <head>
@@ -347,10 +374,10 @@ $cspNonceAttr = $cspNonce !== ''
     <header id="main-header">
       <div class="logo">
         <img
-          src="<?= htmlspecialchars($BASE) ?>/<?= $logoUrl ?>"
+          src="<?= htmlspecialchars($logoRenderUrl, ENT_QUOTES, 'UTF-8') ?>"
           alt="Logo"
-          width="<?= (int)$logoW ?>"
-          height="<?= (int)$logoH ?>"
+          width="<?= (int) round($logoRenderWidth) ?>"
+          height="<?= (int) round($logoRenderHeight) ?>"
           decoding="async"
           data-app-logo
         >
@@ -392,17 +419,6 @@ $cspNonceAttr = $cspNonce !== ''
             <?= $__editor_allowed ? '' : ' class="hidden"' ?>
           >
             Administrace
-          </a>
-          <a
-            id="users-link"
-            href="<?= htmlspecialchars($BASE) ?>/users"
-            hx-get="<?= htmlspecialchars($BASE) ?>/users"
-            hx-push-url="true"
-            hx-target="#content"
-            hx-swap="innerHTML"
-            <?= $__editor_allowed ? '' : ' class="hidden"' ?>
-          >
-            Uživatelé
           </a>
           <a
             id="editor-link"
