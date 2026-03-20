@@ -813,12 +813,24 @@ $ensurePdfSafeColorSwatchPath = static function (string $color): string {
 $repository = new AdministrationRepository($pdo);
 $logoSettings = $repository->readLogoSettings();
 $companyAddress = $repository->readCompanyAddress();
-$logoPath = trim((string) $logoSettings['path']);
+$logoPath = trim((string) $logoSettings['pdf_path']);
+if ($logoPath === '') {
+    $logoPath = trim((string) $logoSettings['path']);
+}
 if ($logoPath !== '' && $logoPath[0] !== '/') {
     $logoPath = '/' . ltrim($logoPath, '/');
 }
 $logoLocal = $logoPath !== '' ? $resolveLocalImagePath($logoPath) : '';
 $logoPdfSafe = $ensurePdfSafeImagePath($logoLocal);
+
+$watermarkPath = trim((string) $logoSettings['pdf_watermark_path']);
+if ($watermarkPath === '') {
+    $watermarkPath = 'public/watermark-tile.svg';
+}
+if ($watermarkPath[0] !== '/') {
+    $watermarkPath = '/' . ltrim($watermarkPath, '/');
+}
+$watermarkLocal = $resolveLocalImagePath($watermarkPath);
 
 // ---- Build view model ----
 $finalPriceByCurrency = [];
@@ -1362,7 +1374,10 @@ $sanitizeFilenameForDownload = static function (string $value): string {
 $escape = static fn(string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 // ---- HTML for PDF ----
-$watermarkTile = dirname(__DIR__, 3) . '/public/watermark-tile.svg';
+$watermarkTile = $watermarkLocal;
+if ($watermarkTile === '' || !is_file($watermarkTile)) {
+    $watermarkTile = dirname(__DIR__, 3) . '/public/watermark-tile.svg';
+}
 $watermarkTile = str_replace('\\', '/', $watermarkTile);
 $css = <<<CSS
 @page {

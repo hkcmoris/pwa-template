@@ -299,10 +299,6 @@
     margin: 0;
 }
 
-.component-modal-tab.is-active {
-    font-weight: 900;
-}
-
 .component-modal-tabpanel {
     display: grid;
     gap: 1rem;

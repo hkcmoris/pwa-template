@@ -66,14 +66,49 @@ final class Repository
         return $result;
     }
 
-    public function saveLogoSettings(string $path, float $width, float $height, string $updatedAt): void
+    /**
+     * @param list<string> $keys
+     * @return array<string, array{v: string, updated_at: string}>
+     */
+    public function getManyWithMeta(array $keys): array
+    {
+        if ($keys === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+        foreach ($keys as $index => $key) {
+            $placeholder = ':k' . $index;
+            $placeholders[] = $placeholder;
+            $params[$placeholder] = $key;
+        }
+
+        $stmt = $this->pdo->prepare(
+            'SELECT k, v, updated_at FROM app_settings WHERE k IN (' . implode(', ', $placeholders) . ')'
+        );
+        $stmt->execute($params);
+
+        /** @var array<int, array{k: string, v: string, updated_at: string}> $rows */
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(string) $row['k']] = [
+                'v' => (string) $row['v'],
+                'updated_at' => (string) $row['updated_at'],
+            ];
+        }
+
+        return $result;
+    }
+
+    public function saveLogoSettings(string $path, float $width, float $height): void
     {
         $this->pdo->beginTransaction();
         try {
             $this->set('logo_path', $path);
             $this->set('logo_width', (string) $width);
             $this->set('logo_height', (string) $height);
-            $this->set('logo_updated_at', $updatedAt);
             $this->pdo->commit();
         } catch (Throwable $e) {
             if ($this->pdo->inTransaction()) {
@@ -84,16 +119,81 @@ final class Repository
     }
 
     /**
-     * @return array{path: string, width: float, height: float, updated_at: string}
+     * @param array<string, string> $settings
+     */
+    public function saveSettingsBatch(array $settings): void
+    {
+        if ($settings === []) {
+            return;
+        }
+
+        $this->pdo->beginTransaction();
+        try {
+            foreach ($settings as $key => $value) {
+                $this->set((string) $key, (string) $value);
+            }
+            $this->pdo->commit();
+        } catch (Throwable $e) {
+            if ($this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * @return array{
+     *     path: string,
+     *     width: float,
+     *     height: float,
+     *     updated_at: string,
+     *     dark_path: string,
+     *     dark_width: float,
+     *     dark_height: float,
+     *     dark_updated_at: string,
+     *     pdf_path: string,
+     *     pdf_width: float,
+     *     pdf_height: float,
+     *     pdf_updated_at: string,
+     *     pdf_watermark_path: string,
+     *     pdf_watermark_updated_at: string
+     * }
      */
     public function readLogoSettings(): array
     {
-        $settings = $this->getMany(['logo_path', 'logo_width', 'logo_height', 'logo_updated_at']);
+        $settings = $this->getMany([
+            'logo_path',
+            'logo_width',
+            'logo_height',
+            'logo_dark_path',
+            'logo_dark_width',
+            'logo_dark_height',
+            'logo_pdf_path',
+            'logo_pdf_width',
+            'logo_pdf_height',
+            'pdf_watermark_tile_path',
+        ]);
+        $pathMeta = $this->getManyWithMeta([
+            'logo_path',
+            'logo_dark_path',
+            'logo_pdf_path',
+            'pdf_watermark_tile_path',
+        ]);
         return [
             'path' => $settings['logo_path'] ?? self::DEFAULT_LOGO_PATH,
             'width' => isset($settings['logo_width']) ? (float) $settings['logo_width'] : self::MAX_LOGO_WIDTH,
             'height' => isset($settings['logo_height']) ? (float) $settings['logo_height'] : self::MAX_LOGO_HEIGHT,
-            'updated_at' => $settings['logo_updated_at'] ?? '',
+            'updated_at' => (string) ($pathMeta['logo_path']['updated_at'] ?? ''),
+            'dark_path' => $settings['logo_dark_path'] ?? '',
+            'dark_width' => isset($settings['logo_dark_width']) ? (float) $settings['logo_dark_width'] : self::MAX_LOGO_WIDTH,
+            'dark_height' => isset($settings['logo_dark_height']) ? (float) $settings['logo_dark_height'] : self::MAX_LOGO_HEIGHT,
+            'dark_updated_at' => (string) ($pathMeta['logo_dark_path']['updated_at'] ?? ''),
+            'pdf_path' => $settings['logo_pdf_path'] ?? '',
+            'pdf_width' => isset($settings['logo_pdf_width']) ? (float) $settings['logo_pdf_width'] : self::MAX_LOGO_WIDTH,
+            'pdf_height' => isset($settings['logo_pdf_height']) ? (float) $settings['logo_pdf_height'] : self::MAX_LOGO_HEIGHT,
+            'pdf_updated_at' => (string) ($pathMeta['logo_pdf_path']['updated_at'] ?? ''),
+            'pdf_watermark_path' => $settings['pdf_watermark_tile_path'] ?? '',
+            'pdf_watermark_updated_at' => (string) ($pathMeta['pdf_watermark_tile_path']['updated_at'] ?? ''),
         ];
     }
 

@@ -62,9 +62,48 @@ $activeTab = in_array($requestedTab, $allowedTabs, true)
     : $allowedTabs[0];
 
 $companyAddress = [];
+$logoSettings = [];
+$logoLightPreviewUrl = '';
+$logoDarkPreviewUrl = '';
+$logoPdfPreviewUrl = '';
+$logoWatermarkPreviewUrl = '';
+$hasDarkLogo = false;
+$hasPdfLogo = false;
+$hasCustomPdfWatermark = false;
 if ($canAccessSuperadminTabs && $activeTab === 'company') {
     $adminRepository = new AdministrationRepository();
     $companyAddress = $adminRepository->readCompanyAddress();
+    $logoSettings = $adminRepository->readLogoSettings();
+
+    $assetUrl = static function (string $path, string $updatedAt) use ($BASE): string {
+        $normalizedPath = ltrim($path, '/');
+        $url = ($BASE !== '' ? $BASE : '') . '/' . $normalizedPath;
+        if ($updatedAt !== '') {
+            $url .= '?v=' . rawurlencode($updatedAt);
+        }
+        return $url;
+    };
+
+    $lightPath = (string) $logoSettings['path'];
+    $lightUpdatedAt = (string) $logoSettings['updated_at'];
+    $darkPath = trim((string) $logoSettings['dark_path']);
+    $darkUpdatedAt = (string) $logoSettings['dark_updated_at'];
+    $pdfPath = trim((string) $logoSettings['pdf_path']);
+    $pdfUpdatedAt = (string) $logoSettings['pdf_updated_at'];
+    $watermarkPath = trim((string) $logoSettings['pdf_watermark_path']);
+    $watermarkUpdatedAt = (string) $logoSettings['pdf_watermark_updated_at'];
+
+    $hasDarkLogo = $darkPath !== '';
+    $hasPdfLogo = $pdfPath !== '';
+    $hasCustomPdfWatermark = $watermarkPath !== '';
+
+    $logoLightPreviewUrl = $assetUrl($lightPath, $lightUpdatedAt);
+    $logoDarkPreviewUrl = $assetUrl($hasDarkLogo ? $darkPath : $lightPath, $hasDarkLogo ? $darkUpdatedAt : $lightUpdatedAt);
+    $logoPdfPreviewUrl = $assetUrl($hasPdfLogo ? $pdfPath : $lightPath, $hasPdfLogo ? $pdfUpdatedAt : $lightUpdatedAt);
+    $logoWatermarkPreviewUrl = $assetUrl(
+        $hasCustomPdfWatermark ? $watermarkPath : 'public/watermark-tile.svg',
+        $hasCustomPdfWatermark ? $watermarkUpdatedAt : ''
+    );
 }
 
 $tabLabels = [
@@ -219,61 +258,100 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
     <div class="admin-panel admin-panel-row" data-island="admin">
       <div class="admin-panel-col">
         <section class="admin-logo">
-          <h3>Nahrát logo</h3>
-          <p>Nahrajte logo ve formátu svg</p>
-          <div class="admin-logo-actions">
-            <button type="button" class="admin-action" data-admin-modal-logo>
-              Vybrat soubor
-            </button>
-          </div>
-          <div id="admin-logo-modal" class="admin-modal hidden" aria-hidden="true">
-            <div class="admin-modal-overlay" data-admin-modal-close></div>
-            <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-logo-title">
-              <header class="admin-modal-header">
-                <h3 id="admin-logo-title">Nahrát logo</h3>
-                <button type="button" class="admin-modal-close" data-admin-modal-close aria-label="Zavřít">×</button>
-              </header>
-              <form id="admin-logo-form" class="admin-modal-body" enctype="multipart/form-data">
-                <?= csrf_field(); ?>
-                <fieldset class="admin-modal-file hidden" data-admin-file>
-                  <legend>SVG soubor</legend>
-                  <label class="admin-file">
-                    <input type="file" name="svg_file" accept=".svg,image/svg+xml">
-                    <span class="admin-file-label">Vyberte SVG soubor k importu</span>
-                  </label>
-                  <p class="admin-file-hint">
-                    Import podporuje pouze SVG soubory.
-                  </p>
-                </fieldset>
-                <div class="admin-logo-preview hidden">
-                  <img id="admin-logo-preview-img" alt="Logo preview">
+          <h3>Loga a vodoznak</h3>
+          <p>Nahrajte varianty loga ve formátu SVG. Pokud tmavé logo není nastavené, použije se invertované hlavní logo.</p>
+
+          <form id="admin-logo-form" class="admin-logo-form" enctype="multipart/form-data" novalidate>
+            <?= csrf_field(); ?>
+            <div class="admin-logo-current-grid">
+              <figure class="admin-logo-current">
+                <figcaption id="admin-logo-light-label">Aktuální logo (světlý režim)</figcaption>
+                <div class="admin-logo-preview">
+                  <img
+                    id="admin-logo-current-light"
+                    src="<?= htmlspecialchars($logoLightPreviewUrl, ENT_QUOTES, 'UTF-8') ?>"
+                    alt="Aktuální logo pro světlý režim"
+                  >
                 </div>
-                <div class="admin-modal-actions">
-                  <button type="button" class="admin-action" data-admin-modal-close>Storno</button>
-                  <button type="submit" class="admin-action admin-action--primary" data-admin-submit>
-                    Nahrát
-                  </button>
+                <label class="admin-field">
+                  <input
+                    type="file"
+                    name="logo_light_svg"
+                    accept=".svg,image/svg+xml"
+                    aria-labelledby="admin-logo-light-label">
+                </label>
+              </figure>
+
+              <figure class="admin-logo-current">
+                <figcaption id="admin-logo-dark-label">Aktuální logo (tmavý režim)</figcaption>
+                <div class="admin-logo-preview admin-logo-preview--dark">
+                  <img
+                    id="admin-logo-current-dark"
+                    class="<?= $hasDarkLogo ? '' : 'admin-logo-preview-image--fallback-invert' ?>"
+                    src="<?= htmlspecialchars($logoDarkPreviewUrl, ENT_QUOTES, 'UTF-8') ?>"
+                    alt="Aktuální logo pro tmavý režim"
+                  >
                 </div>
-              </form>
+                <p id="admin-logo-dark-fallback-hint" class="admin-file-hint<?= $hasDarkLogo ? ' hidden' : '' ?>">
+                  Není nastaveno tmavé logo, aplikace používá invertované hlavní logo.
+                </p>
+                <label class="admin-field">
+                  <input
+                    type="file"
+                    name="logo_dark_svg"
+                    accept=".svg,image/svg+xml"
+                    aria-labelledby="admin-logo-dark-label">
+                </label>
+              </figure>
+
+              <figure class="admin-logo-current">
+                <figcaption id="admin-logo-pdf-label">Aktuální logo pro PDF</figcaption>
+                <div class="admin-logo-preview">
+                  <img
+                    id="admin-logo-current-pdf"
+                    src="<?= htmlspecialchars($logoPdfPreviewUrl, ENT_QUOTES, 'UTF-8') ?>"
+                    alt="Aktuální logo pro PDF"
+                  >
+                </div>
+                <p id="admin-logo-pdf-fallback-hint" class="admin-file-hint<?= $hasPdfLogo ? ' hidden' : '' ?>">
+                  Není nastaveno PDF logo, PDF používá hlavní logo.
+                </p>
+                <label class="admin-field">
+                  <input
+                    type="file"
+                    name="logo_pdf_svg"
+                    accept=".svg,image/svg+xml"
+                    aria-labelledby="admin-logo-pdf-label">
+                </label>
+              </figure>
+
+              <figure class="admin-logo-current">
+                <figcaption id="admin-logo-watermark-label">Aktuální vodoznak pro PDF</figcaption>
+                <div class="admin-logo-preview admin-logo-preview--watermark">
+                  <img
+                    id="admin-logo-current-watermark"
+                    src="<?= htmlspecialchars($logoWatermarkPreviewUrl, ENT_QUOTES, 'UTF-8') ?>"
+                    alt="Aktuální vodoznak pro PDF"
+                  >
+                </div>
+                <p id="admin-logo-watermark-fallback-hint" class="admin-file-hint<?= $hasCustomPdfWatermark ? ' hidden' : '' ?>">
+                  Není nastaven vlastní vodoznak, PDF používá výchozí.
+                </p>
+                <label class="admin-field">
+                  <input
+                    type="file"
+                    name="watermark_tile_svg"
+                    accept=".svg,image/svg+xml"
+                    aria-labelledby="admin-logo-watermark-label">
+                </label>
+              </figure>
             </div>
-          </div>
-          <div id="admin-logo-result-modal" class="admin-modal hidden" aria-hidden="true">
-            <div class="admin-modal-overlay" data-admin-result-close></div>
-            <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-logo-result-title">
-              <header class="admin-modal-header">
-                <h3 id="admin-logo-result-title">Výsledek nahrání</h3>
-                <button type="button" class="admin-modal-close" data-admin-result-close aria-label="Zavřít">×</button>
-              </header>
-              <div class="admin-modal-body">
-                <p id="admin-logo-result-message" class="admin-logo-result-message"></p>
-                <div class="admin-modal-actions">
-                  <button type="button" class="admin-action admin-action--primary" data-admin-result-close>
-                    Rozumím
-                  </button>
-                </div>
-              </div>
+            <p class="admin-file-hint">Můžete nahrát pouze vybrané soubory, ostatní zůstanou beze změny.</p>
+            <div class="admin-modal-actions">
+              <button type="submit" class="admin-action admin-action--primary" data-admin-logo-submit>Uložit soubory</button>
             </div>
-          </div>
+            <p id="admin-logo-feedback" class="admin-address-feedback hidden" role="status" aria-live="polite"></p>
+          </form>
         </section>
       </div>
 
@@ -313,16 +391,28 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
               value="<?= htmlspecialchars((string) ($companyAddress['state'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
               autocomplete="address-level1">
           </label>
-          <label class="admin-field">
-            <span>Město</span>
-            <input
-              type="text"
-              name="city"
-              required
-              placeholder="Město"
-              value="<?= htmlspecialchars((string) ($companyAddress['city'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-              autocomplete="address-level2">
-          </label>
+          <div class="admin-field-row">
+            <label class="admin-field">
+              <span>Město</span>
+              <input
+                type="text"
+                name="city"
+                required
+                placeholder="Město"
+                value="<?= htmlspecialchars((string) ($companyAddress['city'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                autocomplete="address-level2">
+            </label>
+            <label class="admin-field">
+              <span>PSČ</span>
+              <input
+                type="text"
+                name="post_code"
+                required
+                placeholder="PSČ"
+                value="<?= htmlspecialchars((string) ($companyAddress['post_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                autocomplete="postal-code">
+            </label>
+          </div>
           <div class="admin-field-row">
             <label class="admin-field">
               <span>Ulice</span>
@@ -345,16 +435,6 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
                 autocomplete="address-line2">
             </label>
           </div>
-          <label class="admin-field">
-            <span>PSČ</span>
-            <input
-              type="text"
-              name="post_code"
-              required
-              placeholder="PSČ"
-              value="<?= htmlspecialchars((string) ($companyAddress['post_code'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
-              autocomplete="postal-code">
-          </label>
           <div class="admin-modal-actions">
             <button type="submit" class="admin-action admin-action--primary">Uložit adresu</button>
           </div>

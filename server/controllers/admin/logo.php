@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Administration\Repository;
 
 require_once __DIR__ . '/../../bootstrap.php';
@@ -18,99 +20,227 @@ if ($role !== 'superadmin') {
     exit;
 }
 
-log_message("Admin logo upload attempt by user {$user['username']} ID {$user['id']}", 'INFO');
+$basePath = defined('BASE_PATH') ? rtrim((string) BASE_PATH, '/') : '';
+$buildAssetUrl = static function (string $path, string $updatedAt) use ($basePath): string {
+    $normalizedPath = ltrim($path, '/');
+    $url = ($basePath !== '' ? $basePath : '') . '/' . $normalizedPath;
+    if ($updatedAt !== '') {
+        $url .= '?v=' . rawurlencode($updatedAt);
+    }
+    return $url;
+};
 
-if (!isset($_FILES['svg_file'])) {
-    http_response_code(422);
-    log_message("No file uploaded for logo", 'WARNING');
-    echo json_encode(['error' => 'Vyberte SVG soubor k nahrání.']);
-    exit;
-}
+/**
+ * @return array{raw: string, clean: string}
+ */
+$readUploadedSvg = static function (array $upload, string $fieldLabel): array {
+    if (($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        throw new RuntimeException($fieldLabel . ': soubor se nepodařilo nahrát.');
+    }
 
-$upload = $_FILES['svg_file'];
-if (!is_array($upload) || ($upload['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-    http_response_code(422);
-    log_message("File upload error for logo: " . ($upload['error'] ?? 'unknown'), 'WARNING');
-    echo json_encode(['error' => 'Soubor se nepodařilo nahrát.']);
-    exit;
-}
+    $tmpName = (string) ($upload['tmp_name'] ?? '');
+    if ($tmpName === '' || !is_uploaded_file($tmpName)) {
+        throw new RuntimeException($fieldLabel . ': nahraný soubor není dostupný.');
+    }
 
-$tmpName = (string) ($upload['tmp_name'] ?? '');
-if ($tmpName === '' || !is_uploaded_file($tmpName)) {
-    http_response_code(422);
-    log_message("Uploaded file is not valid for logo: tmp_name={$tmpName}", 'WARNING');
-    echo json_encode(['error' => 'Nahraný soubor není dostupný.']);
-    exit;
-}
+    $maxBytes = 200 * 1024;
+    if ((int) ($upload['size'] ?? 0) > $maxBytes) {
+        throw new RuntimeException($fieldLabel . ': SVG je příliš velké (max 200 KB).');
+    }
 
-// size limit (e.g. 200KB)
-$maxBytes = 200 * 1024;
-if (($upload['size'] ?? 0) > $maxBytes) {
-    http_response_code(422);
-    log_message("Uploaded SVG is too large for logo: size={$upload['size']} bytes", 'WARNING');
-    echo json_encode(['error' => 'SVG je příliš velké (max 200 KB).']);
-    exit;
-}
+    $rawSvg = file_get_contents($tmpName);
+    if ($rawSvg === false || trim($rawSvg) === '') {
+        throw new RuntimeException($fieldLabel . ': SVG soubor je prázdný nebo nečitelný.');
+    }
 
-$rawSvg = file_get_contents($tmpName);
-if ($rawSvg === false || trim($rawSvg) === '') {
-    http_response_code(422);
-    log_message("Uploaded SVG file is empty or unreadable for logo", 'WARNING');
-    echo json_encode(['error' => 'SVG soubor je prázdný nebo nečitelný.']);
-    exit;
-}
+    if (stripos($rawSvg, '<svg') === false) {
+        throw new RuntimeException($fieldLabel . ': soubor nevypadá jako SVG.');
+    }
 
-// quick “is it SVG” check
-if (stripos($rawSvg, '<svg') === false) {
-    http_response_code(422);
-    log_message("Uploaded file does not appear to be SVG for logo", 'WARNING');
-    echo json_encode(['error' => 'Soubor nevypadá jako SVG.']);
-    exit;
-}
+    return ['raw' => $rawSvg, 'clean' => $rawSvg];
+};
 
 $repository = new Repository();
-log_message("Repository initialized for logo upload", 'DEBUG');
+
+$fileDefinitions = [
+    'logo_light_svg' => [
+        'label' => 'Logo (světlý režim)',
+        'destination' => 'public/assets/logo/logo.svg',
+        'settings' => [
+            'path' => 'logo_path',
+            'width' => 'logo_width',
+            'height' => 'logo_height',
+        ],
+    ],
+    'logo_dark_svg' => [
+        'label' => 'Logo (tmavý režim)',
+        'destination' => 'public/assets/logo/logo-dark.svg',
+        'settings' => [
+            'path' => 'logo_dark_path',
+            'width' => 'logo_dark_width',
+            'height' => 'logo_dark_height',
+        ],
+    ],
+    'logo_pdf_svg' => [
+        'label' => 'Logo pro PDF',
+        'destination' => 'public/assets/logo/logo-pdf.svg',
+        'settings' => [
+            'path' => 'logo_pdf_path',
+            'width' => 'logo_pdf_width',
+            'height' => 'logo_pdf_height',
+        ],
+    ],
+    'watermark_tile_svg' => [
+        'label' => 'Watermark tile pro PDF',
+        'destination' => 'public/assets/logo/watermark-tile.svg',
+        'settings' => [
+            'path' => 'pdf_watermark_tile_path',
+        ],
+    ],
+];
+
+if (
+    isset($_FILES['svg_file'])
+    && !isset($_FILES['logo_light_svg'])
+    && is_array($_FILES['svg_file'])
+) {
+    $_FILES['logo_light_svg'] = $_FILES['svg_file'];
+}
+
+$hasAnyFile = false;
+foreach ($fileDefinitions as $field => $_definition) {
+    if (
+        isset($_FILES[$field])
+        && is_array($_FILES[$field])
+        && (int) ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK
+    ) {
+        $hasAnyFile = true;
+        break;
+    }
+}
+
+if (!$hasAnyFile) {
+    http_response_code(422);
+    echo json_encode(['error' => 'Vyberte alespoň jeden SVG soubor k nahrání.']);
+    exit;
+}
 
 try {
-    $cleanSvg = $repository->sanitizeSvg($rawSvg);
-    [$w, $h] = $repository->svgDimensions($cleanSvg);
-
-    // store file with stable name (caching can use query param with updated_at)
     $baseDir = realpath(__DIR__ . '/../../public/assets');
     if ($baseDir === false) {
-        log_message("Public assets directory not found for logo upload: " . __DIR__ . '/../../public/assets', 'ERROR');
-        throw new RuntimeException('Public dir not found');
-    }
-    $logoDir = $baseDir . '/logo';
-    if (!is_dir($logoDir) && !mkdir($logoDir, 0775, true)) {
-        log_message("Failed to create logo upload directory: $logoDir", 'ERROR');
-        throw new RuntimeException('Cannot create upload dir');
+        throw new RuntimeException('Public assets directory nebyl nalezen.');
     }
 
-    $logoPathRel = 'public/assets/logo/logo.svg';
-    $logoPathAbs = $baseDir . '/logo/logo.svg';
+    $settingsUpdates = [];
+    $uploadCount = 0;
 
-    // atomic write
-    $tmpOut = $logoPathAbs . '.tmp';
-    if (file_put_contents($tmpOut, $cleanSvg, LOCK_EX) === false) {
-        log_message("Failed to write sanitized SVG to temp file for logo upload", 'ERROR');
-        throw new RuntimeException('Cannot write SVG');
+    foreach ($fileDefinitions as $field => $definition) {
+        if (!isset($_FILES[$field]) || !is_array($_FILES[$field])) {
+            continue;
+        }
+
+        $upload = $_FILES[$field];
+        if ((int) ($upload['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+
+        $svgData = $readUploadedSvg($upload, (string) $definition['label']);
+        $cleanSvg = $repository->sanitizeSvg($svgData['clean']);
+
+        $destinationRel = (string) $definition['destination'];
+        $destinationSuffix = preg_replace('#^public/assets/#', '', $destinationRel) ?? $destinationRel;
+        $destinationAbs = rtrim($baseDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR
+            . str_replace('/', DIRECTORY_SEPARATOR, $destinationSuffix);
+
+        $destinationDir = dirname($destinationAbs);
+        if (!is_dir($destinationDir) && !mkdir($destinationDir, 0775, true)) {
+            throw new RuntimeException((string) $definition['label'] . ': nelze vytvořit cílovou složku.');
+        }
+
+        $tmpOut = $destinationAbs . '.tmp';
+        if (file_put_contents($tmpOut, $cleanSvg, LOCK_EX) === false) {
+            throw new RuntimeException((string) $definition['label'] . ': nelze uložit soubor.');
+        }
+        if (!rename($tmpOut, $destinationAbs)) {
+            @unlink($tmpOut);
+            throw new RuntimeException((string) $definition['label'] . ': nelze přesunout soubor na cílovou cestu.');
+        }
+
+        $settingsMap = $definition['settings'];
+        $pathKey = (string) $settingsMap['path'];
+        $settingsUpdates[$pathKey] = $destinationRel;
+
+        if (isset($settingsMap['width'], $settingsMap['height'])) {
+            $widthKey = (string) $settingsMap['width'];
+            $heightKey = (string) $settingsMap['height'];
+            [$width, $height] = $repository->svgDimensions($cleanSvg);
+            $settingsUpdates[$widthKey] = (string) $width;
+            $settingsUpdates[$heightKey] = (string) $height;
+        }
+
+        $uploadCount++;
     }
-    rename($tmpOut, $logoPathAbs);
 
-    $now = (string)time();
-    log_message("Logo uploaded successfully: path=$logoPathRel, width=$w, height=$h", 'INFO');
-    $repository->saveLogoSettings($logoPathRel, $w, $h, $now);
+    if ($uploadCount <= 0) {
+        http_response_code(422);
+        echo json_encode(['error' => 'Vyberte alespoň jeden SVG soubor k nahrání.']);
+        exit;
+    }
 
-    echo json_encode([
-        'message' => 'Nahrání loga proběhlo úspěšně.',
-        'path' => $logoPathRel,
-        'width' => $w,
-        'height' => $h,
-        'updated_at' => $now,
-    ]);
+    $repository->saveSettingsBatch($settingsUpdates);
+    $settings = $repository->readLogoSettings();
+
+    $lightPath = (string) $settings['path'];
+    $lightUpdatedAt = (string) $settings['updated_at'];
+    $darkPath = (string) $settings['dark_path'];
+    $darkUpdatedAt = (string) $settings['dark_updated_at'];
+    $pdfPath = (string) $settings['pdf_path'];
+    $pdfUpdatedAt = (string) $settings['pdf_updated_at'];
+    $watermarkPath = (string) $settings['pdf_watermark_path'];
+    $watermarkUpdatedAt = (string) $settings['pdf_watermark_updated_at'];
+
+    $response = [
+        'message' => $uploadCount > 1
+            ? 'Soubory byly úspěšně nahrány.'
+            : 'Soubor byl úspěšně nahrán.',
+        'path' => $lightPath,
+        'width' => (float) $settings['width'],
+        'height' => (float) $settings['height'],
+        'updated_at' => $lightUpdatedAt,
+        'logos' => [
+            'light' => [
+                'path' => $lightPath,
+                'width' => (float) $settings['width'],
+                'height' => (float) $settings['height'],
+                'updated_at' => $lightUpdatedAt,
+                'url' => $buildAssetUrl($lightPath, $lightUpdatedAt),
+            ],
+            'dark' => [
+                'path' => $darkPath,
+                'width' => (float) $settings['dark_width'],
+                'height' => (float) $settings['dark_height'],
+                'updated_at' => $darkUpdatedAt,
+                'url' => $darkPath !== '' ? $buildAssetUrl($darkPath, $darkUpdatedAt) : '',
+            ],
+            'pdf' => [
+                'path' => $pdfPath,
+                'width' => (float) $settings['pdf_width'],
+                'height' => (float) $settings['pdf_height'],
+                'updated_at' => $pdfUpdatedAt,
+                'url' => $pdfPath !== '' ? $buildAssetUrl($pdfPath, $pdfUpdatedAt) : '',
+            ],
+            'watermark' => [
+                'path' => $watermarkPath,
+                'updated_at' => $watermarkUpdatedAt,
+                'url' => $watermarkPath !== '' ? $buildAssetUrl($watermarkPath, $watermarkUpdatedAt) : '',
+            ],
+            'has_dark_logo' => $darkPath !== '',
+        ],
+    ];
+
+    echo json_encode($response);
 } catch (Throwable $e) {
     http_response_code(500);
     log_message('Admin logo upload failed: ' . $e->getMessage(), 'ERROR');
-    echo json_encode(['error' => 'Nahrání loga selhalo: ' . $e->getMessage()]);
+    echo json_encode(['error' => 'Nahrání souboru selhalo: ' . $e->getMessage()]);
 }

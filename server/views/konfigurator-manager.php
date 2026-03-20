@@ -31,7 +31,6 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
 $konfiguratorUser = isset($currentUser) && is_array($currentUser) ? $currentUser : app_get_current_user();
 $userId = isset($konfiguratorUser['id']) ? (int) $konfiguratorUser['id'] : 0;
 if ($userId <= 0) {
-    echo $userId;
     echo '<h1>Přístup odepřen</h1>'
       . '<p>Nelze získat informace o vašem účtu.</p>';
     return;
