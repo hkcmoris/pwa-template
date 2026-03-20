@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
                 input: {
                     main: resolve(__dirname, 'src/main.ts'),
                     layout: resolve(__dirname, 'src/styles/layout.css'),
+                    subnav: resolve(__dirname, 'src/styles/subnav.css'),
                     // fonts: resolve(__dirname, 'src/styles/fonts.css'),
                     admin: resolve(__dirname, 'src/styles/admin.css'),
                     'konfigurator-breadcrumbs': resolve(
