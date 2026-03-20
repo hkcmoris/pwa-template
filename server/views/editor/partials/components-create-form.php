@@ -21,10 +21,10 @@ $dependencyPlaceholder = 'Vyberte komponentu';
   <fieldset>
     <legend class="sr-only">Formulář komponenty</legend>
     <div class="component-modal-tabs" data-component-tabs>
-      <div class="component-modal-tablist" role="tablist" aria-label="Sekce formuláře komponenty">
+      <div class="component-modal-tablist sub-nav-menu" role="tablist" aria-label="Sekce formuláře komponenty">
         <button
           type="button"
-          class="component-modal-tab is-active"
+          class="component-modal-tab sub-nav-link is-active"
           role="tab"
           id="component-tab-main"
           aria-controls="component-panel-main"
@@ -33,7 +33,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
         >Základní údaje</button>
         <button
           type="button"
-          class="component-modal-tab"
+          class="component-modal-tab sub-nav-link"
           role="tab"
           id="component-tab-price"
           aria-controls="component-panel-price"
@@ -43,7 +43,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
         >Cena</button>
         <button
           type="button"
-          class="component-modal-tab"
+          class="component-modal-tab sub-nav-link"
           role="tab"
           id="component-tab-media"
           aria-controls="component-panel-media"
@@ -53,7 +53,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
         >Barva / obrázky</button>
         <button
           type="button"
-          class="component-modal-tab"
+          class="component-modal-tab sub-nav-link"
           role="tab"
           id="component-tab-properties"
           aria-controls="component-panel-properties"
@@ -63,7 +63,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
         >Vlastnosti</button>
         <button
           type="button"
-          class="component-modal-tab"
+          class="component-modal-tab sub-nav-link"
           role="tab"
           id="component-tab-dependencies"
           aria-controls="component-panel-dependencies"

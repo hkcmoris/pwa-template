@@ -66,7 +66,7 @@ export const initAdminLogo = (root: HTMLElement) => {
     const feedback = root.querySelector<HTMLElement>('#admin-messages');
 
     const resultModal = root.querySelector<HTMLElement>(
-        '#admin-import-result-modal'
+        '#admin-logo-result-modal'
     );
     const resultMessage = resultModal?.querySelector<HTMLElement>(
         '#admin-import-result-message'

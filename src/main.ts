@@ -261,9 +261,6 @@ const registerLink = document.getElementById(
 const logoutBtn = document.getElementById(
     'logout-btn'
 ) as HTMLButtonElement | null;
-const usersLink = document.getElementById(
-    'users-link'
-) as HTMLAnchorElement | null;
 const configuratorLink = document.getElementById(
     'configurator-link'
 ) as HTMLAnchorElement | null;
@@ -371,9 +368,6 @@ const setRoleUI = (role: string | null) => {
     const allowed = role === 'admin' || role === 'superadmin';
     if (editorLink) {
         editorLink.classList.toggle('hidden', !allowed);
-    }
-    if (usersLink) {
-        usersLink.classList.toggle('hidden', !allowed);
     }
 };
 
@@ -540,6 +534,20 @@ const ensureEditorStyleSlot = () => {
     head.appendChild(link);
 };
 
+const ensureSubnavStyleSlot = () => {
+    if (typeof document === 'undefined') {
+        return;
+    }
+    const head = document.head;
+    if (!head || document.getElementById('subnav')) {
+        return;
+    }
+    const link = document.createElement('link');
+    link.id = 'subnav';
+    link.rel = 'stylesheet';
+    head.appendChild(link);
+};
+
 const ensureKonfiguratorStyleSlots = () => {
     if (typeof document === 'undefined') {
         return;
@@ -666,6 +674,7 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
 
     if (path.includes('/editor/') || queryRoute.startsWith('editor')) {
         ensureEditorStyleSlot();
+        ensureSubnavStyleSlot();
     }
     if (
         path.includes('/konfigurator') ||
@@ -675,6 +684,7 @@ document.body?.addEventListener('htmx:configRequest', (event) => {
     }
     if (path.includes('/admin') || queryRoute === 'admin') {
         ensureAdminStyleSlot();
+        ensureSubnavStyleSlot();
     }
 });
 

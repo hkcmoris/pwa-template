@@ -394,17 +394,6 @@ $cspNonceAttr = $cspNonce !== ''
             Administrace
           </a>
           <a
-            id="users-link"
-            href="<?= htmlspecialchars($BASE) ?>/users"
-            hx-get="<?= htmlspecialchars($BASE) ?>/users"
-            hx-push-url="true"
-            hx-target="#content"
-            hx-swap="innerHTML"
-            <?= $__editor_allowed ? '' : ' class="hidden"' ?>
-          >
-            Uživatelé
-          </a>
-          <a
             id="editor-link"
             data-active-root="editor"
             href="<?= htmlspecialchars($BASE) ?>/editor/definitions"

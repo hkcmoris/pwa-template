@@ -296,36 +296,11 @@
 }
 
 .component-modal-tablist {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 0.5rem;
-}
-
-.component-modal-tab {
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: transparent;
-    color: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.35rem 0.75rem;
-    box-shadow: 0 2px 4px var(--shadow);
-    cursor: pointer;
-}
-
-.component-modal-tab:hover,
-.component-modal-tab:focus-visible {
-    border-color: var(--primary);
-    color: var(--primary-contrast);
+    margin: 0;
 }
 
 .component-modal-tab.is-active {
-    border-color: var(--primary);
-    background: color-mix(in srgb, var(--primary) 15%, transparent);
-    color: var(--primary);
-    font-weight: 600;
+    font-weight: 900;
 }
 
 .component-modal-tabpanel {

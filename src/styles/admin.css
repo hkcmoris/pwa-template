@@ -2,6 +2,21 @@
     margin-bottom: 1.5rem;
 }
 
+.admin-tab-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.admin-tab-title {
+    margin: 0;
+}
+
+.admin-tab-description {
+    margin: 0;
+    color: var(--fg-muted);
+}
+
 .admin-panel-row,
 .admin-panel-col {
     display: flex;
@@ -15,6 +30,34 @@
 
 .admin-panel-col {
     flex-direction: column;
+}
+
+.admin-users table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.admin-users th,
+.admin-users td {
+    text-align: left;
+    padding: 0.5rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.admin-users thead th {
+    background: color-mix(in srgb, var(--bg) 90%, var(--fg) 10%);
+}
+
+.admin-users tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#users-message {
+    margin-top: 0.65rem;
+    color: var(--fg-muted);
 }
 
 #admin-sql-query-input {
