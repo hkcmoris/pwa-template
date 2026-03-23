@@ -124,7 +124,7 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
 
 <h1>Administrace</h1>
 
-<nav id="admin-nav-menu" class="sub-nav-menu" aria-label="Administrace sekce">
+<nav id="admin-nav-menu" class="sub-nav-menu shadow-bevel" aria-label="Administrace sekce">
   <?php foreach ($allowedTabs as $tabKey) : ?>
         <?php $isActive = $tabKey === $activeTab; ?>
         <?php $href = $tabHref($tabKey); ?>
