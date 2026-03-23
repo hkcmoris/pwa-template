@@ -42,6 +42,13 @@
     box-shadow: 0 2px 4px rgb(from var(--fg) r g b / 10%);
 }
 
+.configurations-list li.configuration-entry--recent {
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+    box-shadow:
+        0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent),
+        0 8px 20px rgb(from var(--primary) r g b / 20%);
+}
+
 [data-theme='dark'] .configurations-list li {
     border-color: rgb(255 255 255 / 20%);
     background: rgb(255 255 255 / 5%);
@@ -97,6 +104,19 @@
 .configuration-entry-action--solid:focus-visible {
     background: var(--primary-hover);
     border-color: var(--primary-hover);
+}
+
+.configuration-entry-action--pdf-highlight {
+    border-color: color-mix(in srgb, var(--primary) 75%, black);
+    box-shadow: 0 0 0 2px rgb(from var(--primary) r g b / 25%);
+    animation: manager-pdf-highlight 1.2s ease-in-out 2;
+}
+
+.configuration-entry-action--pdf-highlight:hover,
+.configuration-entry-action--pdf-highlight:focus-visible {
+    box-shadow:
+        0 0 0 2px rgb(from var(--primary) r g b / 35%),
+        0 4px 12px rgb(from var(--primary) r g b / 35%);
 }
 
 .configuration-entry-action--icon {
@@ -222,4 +242,19 @@
 .configurations-empty {
     color: var(--fg-muted, #6b7280);
     font-style: italic;
+}
+
+@keyframes manager-pdf-highlight {
+    0%,
+    100% {
+        transform: translateY(0);
+        box-shadow: 0 0 0 2px rgb(from var(--primary) r g b / 25%);
+    }
+
+    50% {
+        transform: translateY(-1px);
+        box-shadow:
+            0 0 0 4px rgb(from var(--primary) r g b / 20%),
+            0 6px 16px rgb(from var(--primary) r g b / 28%);
+    }
 }

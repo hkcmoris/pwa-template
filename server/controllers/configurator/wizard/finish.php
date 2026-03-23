@@ -78,9 +78,15 @@ try {
         return;
     }
 
+    $basePath = defined('BASE_PATH') ? rtrim((string) BASE_PATH, '/') : '';
+    $redirectUrl = ($basePath !== '' ? $basePath : '') . '/konfigurator-manager'
+        . '?completed_configuration_id=' . rawurlencode((string) $draftId);
+
     echo json_encode([
         'success' => true,
         'message' => 'Konfigurace byla úspěšně dokončena.',
+        'configuration_id' => $draftId,
+        'redirect_url' => $redirectUrl,
     ]);
 } catch (Throwable $e) {
     log_message('Wizard finish failed: ' . $e->getMessage(), 'ERROR');

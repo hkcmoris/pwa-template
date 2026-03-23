@@ -1,6 +1,12 @@
 /* eslint-disable no-undef */
 import { execSync } from 'node:child_process';
-import { readFileSync, mkdirSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
+import {
+    readFileSync,
+    mkdirSync,
+    existsSync,
+    readdirSync,
+    writeFileSync,
+} from 'node:fs';
 import { resolve, join } from 'node:path';
 
 function loadServerEnvForProductionBuild(mode) {

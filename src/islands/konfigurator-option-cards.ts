@@ -109,6 +109,7 @@ const finishConfiguration = async (
         const payload = (await response.json().catch(() => null)) as {
             success?: boolean;
             message?: string;
+            redirect_url?: string;
         } | null;
         const success = Boolean(response.ok && payload?.success);
         const message =
@@ -117,13 +118,19 @@ const finishConfiguration = async (
                 ? 'Konfigurace byla dokončena.'
                 : 'Dokončení konfigurace se nezdařilo.');
 
-        openFinishModal(modal, message, success);
-
         if (success) {
-            finishButton.textContent = 'Konfigurace dokončena';
+            const redirectUrl =
+                typeof payload?.redirect_url === 'string' &&
+                payload.redirect_url.trim() !== ''
+                    ? payload.redirect_url
+                    : `${base}/konfigurator-manager?completed_configuration_id=${encodeURIComponent(
+                          draftId
+                      )}`;
+            window.location.assign(redirectUrl);
             return;
         }
 
+        openFinishModal(modal, message, false);
         finishButton.disabled = false;
     } catch {
         openFinishModal(modal, 'Dokončení konfigurace se nezdařilo.', false);

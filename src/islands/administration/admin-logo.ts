@@ -1,340 +1,312 @@
 import { getCsrfToken } from '../../utils/api';
 
-type LogoUploadOk = {
-    message: string;
-    path: string;
-    width: number;
-    height: number;
-    updated_at: string;
+type LogoVariant = {
+    path?: string;
+    width?: number;
+    height?: number;
+    updated_at?: string;
+    url?: string;
 };
 
-function isLogoUploadOk(x: unknown): x is LogoUploadOk {
-    if (typeof x !== 'object' || x === null) return false;
-
-    const r = x as Record<string, unknown>;
-    return (
-        typeof r.path === 'string' &&
-        typeof r.width === 'number' &&
-        typeof r.height === 'number' &&
-        typeof r.updated_at === 'string' &&
-        typeof r.message === 'string'
-    );
-}
-
-function getLogoUploadError(x: unknown): string | null {
-    if (typeof x !== 'object' || x === null) return null;
-    const r = x as Record<string, unknown>;
-    return typeof r.error === 'string' ? r.error : null;
-}
+type LogoUploadOk = {
+    message?: string;
+    logos?: {
+        light?: LogoVariant;
+        dark?: LogoVariant;
+        pdf?: LogoVariant;
+        watermark?: LogoVariant;
+        has_dark_logo?: boolean;
+    };
+    error?: string;
+};
 
 const buildAdminUrl = (path: string) => {
     const base = document.documentElement?.dataset?.base ?? '';
     return `${base}${path}`;
 };
 
-const updateSubmitState = (
-    submitButton: HTMLButtonElement | null,
-    fileInput?: HTMLInputElement | null
-) => {
-    if (!submitButton) {
+const toPositiveInt = (value: unknown, fallback = 0) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+        return fallback;
+    }
+    return Math.round(parsed);
+};
+
+const applyHeaderLogoFromDataset = () => {
+    const root = document.documentElement;
+    const headerLogo =
+        document.querySelector<HTMLImageElement>('[data-app-logo]');
+    if (!headerLogo) {
         return;
     }
 
-    submitButton.disabled = !fileInput?.files?.length;
+    const theme = root.dataset.theme === 'dark' ? 'dark' : 'light';
+    const hasDark = root.dataset.logoHasDark === '1';
+
+    const lightSrc = root.dataset.logoLightSrc ?? '';
+    const darkSrc = root.dataset.logoDarkSrc ?? '';
+    const lightWidth = toPositiveInt(
+        root.dataset.logoLightWidth,
+        headerLogo.width
+    );
+    const lightHeight = toPositiveInt(
+        root.dataset.logoLightHeight,
+        headerLogo.height
+    );
+    const darkWidth = toPositiveInt(root.dataset.logoDarkWidth, lightWidth);
+    const darkHeight = toPositiveInt(root.dataset.logoDarkHeight, lightHeight);
+
+    const nextSrc = theme === 'dark' && hasDark && darkSrc ? darkSrc : lightSrc;
+    const nextWidth = theme === 'dark' && hasDark ? darkWidth : lightWidth;
+    const nextHeight = theme === 'dark' && hasDark ? darkHeight : lightHeight;
+
+    if (nextSrc && headerLogo.getAttribute('src') !== nextSrc) {
+        headerLogo.setAttribute('src', nextSrc);
+    }
+    if (nextWidth > 0) {
+        headerLogo.width = nextWidth;
+    }
+    if (nextHeight > 0) {
+        headerLogo.height = nextHeight;
+    }
 };
 
 export const initAdminLogo = (root: HTMLElement) => {
-    const modal = root.querySelector<HTMLElement>('#admin-logo-modal');
-    if (!modal) {
+    const form = root.querySelector<HTMLFormElement>('#admin-logo-form');
+    if (!form) {
         return;
     }
 
-    const title = modal.querySelector<HTMLHeadingElement>('#admin-logo-title');
-    const form = modal.querySelector<HTMLFormElement>('#admin-logo-form');
-    const dataFieldset = modal.querySelector<HTMLElement>('[data-admin-data]');
-    // const fileFieldset = modal.querySelector<HTMLElement>('[data-admin-file]');
-    const fileInput = modal.querySelector<HTMLInputElement>(
-        'input[name="svg_file"]'
-    );
-    const logoPreview = modal.querySelector<HTMLElement>('.admin-logo-preview');
-    const logoPreviewImg = modal.querySelector<HTMLImageElement>(
-        '#admin-logo-preview-img'
-    );
-    const submitButton = modal.querySelector<HTMLButtonElement>(
-        '[data-admin-submit]'
-    );
-    const feedback = root.querySelector<HTMLElement>('#admin-messages');
-
-    const resultModal = root.querySelector<HTMLElement>(
-        '#admin-import-result-modal'
-    );
-    const resultMessage = resultModal?.querySelector<HTMLElement>(
-        '#admin-import-result-message'
+    const feedback = root.querySelector<HTMLElement>('#admin-logo-feedback');
+    const submitButton = form.querySelector<HTMLButtonElement>(
+        '[data-admin-logo-submit]'
     );
 
-    const showFeedback = (message: string, status: 'success' | 'error') => {
+    const lightInput = form.querySelector<HTMLInputElement>(
+        'input[name="logo_light_svg"]'
+    );
+    const darkInput = form.querySelector<HTMLInputElement>(
+        'input[name="logo_dark_svg"]'
+    );
+    const pdfInput = form.querySelector<HTMLInputElement>(
+        'input[name="logo_pdf_svg"]'
+    );
+    const watermarkInput = form.querySelector<HTMLInputElement>(
+        'input[name="watermark_tile_svg"]'
+    );
+
+    const lightPreview = root.querySelector<HTMLImageElement>(
+        '#admin-logo-current-light'
+    );
+    const darkPreview = root.querySelector<HTMLImageElement>(
+        '#admin-logo-current-dark'
+    );
+    const pdfPreview = root.querySelector<HTMLImageElement>(
+        '#admin-logo-current-pdf'
+    );
+    const watermarkPreview = root.querySelector<HTMLImageElement>(
+        '#admin-logo-current-watermark'
+    );
+
+    const darkFallbackHint = root.querySelector<HTMLElement>(
+        '#admin-logo-dark-fallback-hint'
+    );
+    const pdfFallbackHint = root.querySelector<HTMLElement>(
+        '#admin-logo-pdf-fallback-hint'
+    );
+    const watermarkFallbackHint = root.querySelector<HTMLElement>(
+        '#admin-logo-watermark-fallback-hint'
+    );
+
+    const tempObjectUrls = new Set<string>();
+    const makeTemporaryPreview = (
+        input: HTMLInputElement | null,
+        image: HTMLImageElement | null
+    ) => {
+        if (!input || !image || !input.files?.length) {
+            return;
+        }
+        const file = input.files[0];
+        const objectUrl = URL.createObjectURL(file);
+        tempObjectUrls.add(objectUrl);
+        image.src = objectUrl;
+    };
+
+    const cleanupObjectUrls = () => {
+        tempObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+        tempObjectUrls.clear();
+    };
+
+    const hasAnyFile = () =>
+        Boolean(
+            lightInput?.files?.length ||
+            darkInput?.files?.length ||
+            pdfInput?.files?.length ||
+            watermarkInput?.files?.length
+        );
+
+    const setSubmitState = () => {
+        if (!submitButton) {
+            return;
+        }
+        submitButton.disabled = !hasAnyFile();
+    };
+
+    const showFeedback = (message: string, kind: 'success' | 'error') => {
         if (!feedback) {
             return;
         }
         feedback.textContent = message;
         feedback.classList.remove('hidden');
         feedback.classList.toggle(
-            'admin-feedback--success',
-            status === 'success'
+            'admin-address-feedback--success',
+            kind === 'success'
         );
-        feedback.classList.toggle('admin-feedback--error', status === 'error');
-    };
-
-    const openResultModal = (message: string, status: 'success' | 'error') => {
-        if (!resultModal || !resultMessage) {
-            showFeedback(message, status);
-            return;
-        }
-        resultMessage.textContent = message;
-        resultMessage.classList.toggle(
-            'admin-logo-result-message--success',
-            status === 'success'
-        );
-        resultMessage.classList.toggle(
-            'admin-logo-result-message--error',
-            status === 'error'
-        );
-        resultModal.classList.remove('hidden');
-        resultModal.setAttribute('aria-hidden', 'false');
-    };
-
-    const closeResultModal = () => {
-        if (!resultModal || !resultMessage) {
-            return;
-        }
-        resultModal.classList.add('hidden');
-        resultModal.setAttribute('aria-hidden', 'true');
-        resultMessage.textContent = '';
-        resultMessage.classList.remove(
-            'admin-logo-result-message--success',
-            'admin-logo-result-message--error'
+        feedback.classList.toggle(
+            'admin-address-feedback--error',
+            kind === 'error'
         );
     };
 
     const hideFeedback = () => {
-        feedback?.classList.add('hidden');
-        feedback?.classList.remove(
-            'admin-feedback--success',
-            'admin-feedback--error'
+        if (!feedback) {
+            return;
+        }
+        feedback.textContent = '';
+        feedback.classList.add('hidden');
+        feedback.classList.remove(
+            'admin-address-feedback--success',
+            'admin-address-feedback--error'
         );
-        if (feedback) {
-            feedback.textContent = '';
-        }
     };
 
-    const refreshSubmitState = () => updateSubmitState(submitButton, fileInput);
-
-    const toNumber = (v: string): number => {
-        if (!v) return 0;
-        const s = v.trim();
-
-        // Percent needs a viewport to resolve; treat as unknown
-        if (s.endsWith('%')) return 0;
-
-        const m = s.match(/-?\d+(\.\d+)?/);
-        if (!m) return 0;
-
-        const n = Number(m[0]);
-        return Number.isFinite(n) ? n : 0;
-    };
-
-    const getAndClampLogoDimensions = (
-        svg: string,
-        maxW = 130,
-        maxH = 30
-    ): [number, number] => {
-        const widthRegex = /<svg[^>]*\bwidth=["']([^"']+)["']/i;
-        const heightRegex = /<svg[^>]*\bheight=["']([^"']+)["']/i;
-        const viewBoxRegex =
-            /\bviewBox=["']\s*[-0-9.]+\s+[-0-9.]+\s+([0-9.]+)\s+([0-9.]+)\s*["']/i;
-
-        const wRaw = toNumber(widthRegex.exec(svg)?.[1] ?? '');
-        const hRaw = toNumber(heightRegex.exec(svg)?.[1] ?? '');
-
-        let w = wRaw;
-        let h = hRaw;
-
-        if (!(w > 0 && h > 0)) {
-            const vb = viewBoxRegex.exec(svg);
-            if (vb) {
-                w = toNumber(vb[1]);
-                h = toNumber(vb[2]);
-            }
-        }
-
-        // Still nothing? Give a sane default so UI doesn't explode
-        if (!(w > 0 && h > 0)) return [maxW, maxH];
-
-        // Contain within max box, preserve aspect ratio
-        const scale = Math.min(maxW / w, maxH / h, 1); // never upscale
-        const cw = Math.round(w * scale);
-        const ch = Math.round(h * scale);
-
-        return [cw, ch];
-    };
-
-    let lastOpener: HTMLElement | null = null;
-
-    const openModal = (opener?: HTMLElement) => {
-        lastOpener = opener ?? (document.activeElement as HTMLElement | null);
-
-        modal.classList.remove('hidden');
-        modal.removeAttribute('inert');
-        modal.setAttribute('aria-hidden', 'false');
-
-        const firstFocusable = modal.querySelector<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        firstFocusable?.focus();
-
-        if (title) {
-            title.textContent = 'Nahrání loga';
-        }
-        if (submitButton) {
-            submitButton.textContent = 'Nahrát logo';
-        }
-        if (fileInput) {
-            fileInput.value = '';
-            fileInput.required = true;
-        }
-        updateSubmitState(submitButton, fileInput);
-        hideFeedback();
-        requestAnimationFrame(() => {
-            fileInput?.click();
-        });
-    };
-
-    const closeModal = () => {
-        const active = document.activeElement as HTMLElement | null;
-        if (active && modal.contains(active)) {
-            (lastOpener ?? document.body).focus?.();
-        }
-
-        modal.classList.add('hidden');
-        modal.setAttribute('inert', '');
-        modal.setAttribute('aria-hidden', 'true');
-        modal.removeAttribute('data-mode');
-
-        if (!logoPreview) {
+    const applyResponse = (payload: LogoUploadOk) => {
+        const logos = payload.logos;
+        if (!logos) {
             return;
         }
 
-        logoPreview.classList.add('hidden');
-    };
+        const light = logos.light;
+        const dark = logos.dark;
+        const pdf = logos.pdf;
+        const watermark = logos.watermark;
+        const hasDarkLogo = Boolean(logos.has_dark_logo && dark?.url);
+        const hasPdfLogo = Boolean(pdf?.url);
+        const hasCustomWatermark = Boolean(watermark?.url);
 
-    root.querySelectorAll<HTMLButtonElement>('[data-admin-modal-logo]').forEach(
-        (button) => {
-            button.addEventListener('click', () => {
-                openModal(button);
-            });
+        if (light?.url && lightPreview) {
+            lightPreview.src = light.url;
         }
-    );
 
-    modal
-        .querySelectorAll<HTMLElement>('[data-admin-modal-close]')
-        .forEach((button) => {
-            button.addEventListener('click', () => closeModal());
-        });
-
-    resultModal
-        ?.querySelectorAll<HTMLElement>('[data-admin-result-close]')
-        .forEach((button) => {
-            button.addEventListener('click', () => closeResultModal());
-        });
-
-    resultModal?.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            closeResultModal();
-        }
-    });
-
-    fileInput?.addEventListener('change', () => {
-        refreshSubmitState();
-        if (!fileInput.files?.length) {
-            dataFieldset?.classList.add('hidden');
-            return;
-        }
-        const [file] = fileInput.files;
-        file.text()
-            .then((contents) => {
-                // TODO: read logo dimensions in php and store keys in the app_settings table in database.
-                if (logoPreview && logoPreviewImg) {
-                    const [w, h] = getAndClampLogoDimensions(contents, 130, 30);
-
-                    const blob = new Blob([contents], {
-                        type: 'image/svg+xml',
-                    });
-                    const url = URL.createObjectURL(blob);
-                    logoPreviewImg.src = url;
-
-                    // Optional: force exact clamped render size
-                    logoPreviewImg.width = w;
-                    logoPreviewImg.height = h;
-
-                    logoPreviewImg.onload = () => URL.revokeObjectURL(url);
-                    logoPreview.classList.remove('hidden');
-                }
-                dataFieldset?.classList.remove('hidden');
-                hideFeedback();
-                refreshSubmitState();
-            })
-            .catch(() => {
-                showFeedback('SVG soubor se nepodařilo načíst.', 'error');
-                dataFieldset?.classList.add('hidden');
-                refreshSubmitState();
-            });
-    });
-
-    const parseErrorMessage = async (response: Response) => {
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.includes('application/json')) {
-            const payload = (await response.json().catch(() => null)) as {
-                error?: string;
-            } | null;
-            if (payload?.error) {
-                return payload.error;
+        if (darkPreview) {
+            if (hasDarkLogo && dark?.url) {
+                darkPreview.src = dark.url;
+                darkPreview.classList.remove(
+                    'admin-logo-preview-image--fallback-invert'
+                );
+            } else if (light?.url) {
+                darkPreview.src = light.url;
+                darkPreview.classList.add(
+                    'admin-logo-preview-image--fallback-invert'
+                );
             }
         }
-        const text = await response.text().catch(() => '');
-        return text || 'Operaci se nepodařilo dokončit.';
+
+        if (pdfPreview) {
+            if (hasPdfLogo && pdf?.url) {
+                pdfPreview.src = pdf.url;
+            } else if (light?.url) {
+                pdfPreview.src = light.url;
+            }
+        }
+
+        if (watermarkPreview) {
+            if (hasCustomWatermark && watermark?.url) {
+                watermarkPreview.src = watermark.url;
+            }
+        }
+
+        darkFallbackHint?.classList.toggle('hidden', hasDarkLogo);
+        pdfFallbackHint?.classList.toggle('hidden', hasPdfLogo);
+        watermarkFallbackHint?.classList.toggle('hidden', hasCustomWatermark);
+
+        const doc = document.documentElement;
+        if (light?.url) {
+            doc.dataset.logoLightSrc = light.url;
+            doc.dataset.logoLightWidth = String(
+                toPositiveInt(
+                    light.width,
+                    toPositiveInt(doc.dataset.logoLightWidth, 130)
+                )
+            );
+            doc.dataset.logoLightHeight = String(
+                toPositiveInt(
+                    light.height,
+                    toPositiveInt(doc.dataset.logoLightHeight, 30)
+                )
+            );
+        }
+        doc.dataset.logoHasDark = hasDarkLogo ? '1' : '0';
+        if (hasDarkLogo && dark?.url) {
+            doc.dataset.logoDarkSrc = dark.url;
+            doc.dataset.logoDarkWidth = String(
+                toPositiveInt(
+                    dark.width,
+                    toPositiveInt(doc.dataset.logoDarkWidth, 130)
+                )
+            );
+            doc.dataset.logoDarkHeight = String(
+                toPositiveInt(
+                    dark.height,
+                    toPositiveInt(doc.dataset.logoDarkHeight, 30)
+                )
+            );
+        } else {
+            delete doc.dataset.logoDarkSrc;
+            delete doc.dataset.logoDarkWidth;
+            delete doc.dataset.logoDarkHeight;
+        }
+
+        applyHeaderLogoFromDataset();
     };
 
-    function updateLogoInLayout(payload: {
-        path: string;
-        width: number;
-        height: number;
-        updated_at: string;
-    }) {
-        const base = document.documentElement?.dataset?.base ?? '';
-        const url = `${base}/${payload.path}?v=${encodeURIComponent(payload.updated_at)}`;
+    const bindPreview = (
+        input: HTMLInputElement | null,
+        image: HTMLImageElement | null
+    ) => {
+        if (!input) {
+            return;
+        }
+        input.addEventListener('change', () => {
+            hideFeedback();
+            setSubmitState();
+            makeTemporaryPreview(input, image);
+        });
+    };
 
-        // pick whatever you use
-        const img = document.querySelector<HTMLImageElement>('[data-app-logo]');
-        if (!img) return;
+    bindPreview(lightInput, lightPreview);
+    bindPreview(darkInput, darkPreview);
+    bindPreview(pdfInput, pdfPreview);
+    bindPreview(watermarkInput, watermarkPreview);
+    setSubmitState();
 
-        img.src = url;
-        img.width = Math.round(payload.width);
-        img.height = Math.round(payload.height);
-
-        // if you also want to update any link preload etc, you can do that too
-    }
-
-    form?.addEventListener('submit', async (event) => {
+    form.addEventListener('submit', async (event) => {
         event.preventDefault();
-        if (!form) {
+        hideFeedback();
+
+        if (!hasAnyFile()) {
+            showFeedback(
+                'Vyberte alespoň jeden SVG soubor k nahrání.',
+                'error'
+            );
             return;
         }
-        if (!fileInput?.files?.length) {
-            showFeedback('Vyberte SVG soubor k nahrání.', 'error');
-            return;
-        }
+
         const formData = new FormData(form);
         const endpoint = buildAdminUrl('/admin/logo');
+
+        submitButton?.setAttribute('disabled', 'true');
         try {
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -344,39 +316,31 @@ export const initAdminLogo = (root: HTMLElement) => {
                     'X-CSRF-Token': getCsrfToken(),
                 },
             });
-            if (!response.ok) {
-                const message = await parseErrorMessage(response);
-                closeModal();
-                openResultModal(message, 'error');
-                return;
-            }
+
             const payload = (await response
                 .json()
-                .catch(() => null)) as unknown;
-            if (isLogoUploadOk(payload)) {
-                updateLogoInLayout(payload);
-                closeModal();
-                openResultModal(payload.message, 'success');
+                .catch(() => null)) as LogoUploadOk | null;
+            if (!response.ok) {
+                showFeedback(
+                    payload?.error ?? 'Nahrání souborů se nezdařilo.',
+                    'error'
+                );
                 return;
             }
 
-            const err = getLogoUploadError(payload);
-            closeModal();
-            openResultModal(
-                err ?? 'Nahrání loga proběhlo úspěšně.',
-                err ? 'error' : 'success'
+            applyResponse(payload ?? {});
+            showFeedback(
+                payload?.message ?? 'Soubory byly úspěšně nahrány.',
+                'success'
             );
-            return;
-        } catch {
-            closeModal();
-            openResultModal('Operaci se nepodařilo dokončit.', 'error');
-            return;
-        }
-    });
 
-    modal.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            closeModal();
+            form.reset();
+            cleanupObjectUrls();
+            setSubmitState();
+        } catch {
+            showFeedback('Nahrání souborů se nezdařilo.', 'error');
+        } finally {
+            submitButton?.removeAttribute('disabled');
         }
     });
 };

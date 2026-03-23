@@ -15,8 +15,6 @@ $sanitizedPath = $repository->sanitizeRelative((string) $pathInput);
 [$currentAbsolute, $currentPath] = $repository->resolve($sanitizedPath);
 $beforeSwapHandler = 'htmx:beforeSwap: if (event.detail.xhr && event.detail.xhr.status'
     . ' && event.detail.xhr.status >= 400) { event.detail.shouldSwap = false; }';
-$uploadHxVals = 'js:{ path: document.getElementById("images-root")?.dataset.currentPath'
-    . ' || "" }';
 $currentVersion = (int) @filemtime($currentAbsolute);
 if ($currentVersion <= 0) {
     $currentVersion = time();
@@ -63,10 +61,14 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
         class="upload"
         enctype="multipart/form-data"
         hx-post="<?= htmlspecialchars($BASE) ?>/editor/images/upload"
-        hx-vals="<?= htmlspecialchars($uploadHxVals, ENT_QUOTES, 'UTF-8') ?>"
         hx-target="#image-grid"
         hx-swap="innerHTML">
         <?= csrf_field() ?>
+        <input
+            type="hidden"
+            id="upload-path"
+            name="path"
+            value="<?= htmlspecialchars($currentPath, ENT_QUOTES, 'UTF-8') ?>">
         <label>
             <span>Nahrát obrázky</span>
             <input type="file" name="images[]" accept="image/*" multiple required>
@@ -92,4 +94,3 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
     <!-- Modal container for image preview -->
     <div id="img-modal" class="hidden" aria-hidden="true"></div>
 </div>
-

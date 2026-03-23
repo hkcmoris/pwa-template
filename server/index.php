@@ -95,6 +95,17 @@ if ($requiresAdminView && !$hasAdminPrivileges) {
     $forcedView = '403';
 }
 
+if ($route === 'users' && $forcedView === null) {
+    $target = ($basePath !== '' ? $basePath : '') . '/admin?tab=users';
+    if ($isHx) {
+        header('HX-Redirect: ' . $target);
+        http_response_code(204);
+        exit;
+    }
+    header('Location: ' . $target, true, 302);
+    exit;
+}
+
 // For controller calls (usually POST HTMX), deny early if not admin
 if ($requiresAdmin && !in_array($role, ['admin','superadmin'], true) && $method !== 'GET') {
     if ($isHx) {
@@ -135,6 +146,7 @@ $controllerRoutes = [
 
     'POST configurator/configuration/create'     => __DIR__ . '/controllers/configurator/configuration/create.php',
     'POST configurator/configuration/update'     => __DIR__ . '/controllers/configurator/configuration/update.php',
+    'POST configurator/configuration/rename'     => __DIR__ . '/controllers/configurator/configuration/rename.php',
     'POST configurator/configuration/delete'     => __DIR__ . '/controllers/configurator/configuration/delete.php',
     'GET configurator/configuration/page'        => __DIR__ . '/controllers/configurator/configuration/page.php',
     'GET configurator/configuration/pdf'         => __DIR__ . '/controllers/configurator/configuration/pdf.php',
@@ -148,12 +160,14 @@ $controllerRoutes = [
     'POST admin/export'                          => __DIR__ . '/controllers/admin/export.php',
     'POST admin/import'                          => __DIR__ . '/controllers/admin/import.php',
     'POST admin/logo'                            => __DIR__ . '/controllers/admin/logo.php',
+    'POST admin/address'                         => __DIR__ . '/controllers/admin/address.php',
 ];
 
 $nonHtmxControllers = [
     'POST admin/export',
     'POST admin/import',
     'POST admin/logo',
+    'POST admin/address',
     'GET configurator/configuration/pdf',
 ];
 
@@ -235,10 +249,22 @@ $descMap = [
 $description = $descMap[$view] ?? 'HAGEMANN konfigurátor';
 
 $viewStylesMap = [
-    'admin' => ['admin' => 'src/styles/admin.css'],
-    'editor/definitions' => ['editor-partial-style' => 'src/styles/editor/definitions.css'],
-    'editor/components' => ['editor-partial-style' => 'src/styles/editor/components.css'],
-    'editor/images' => ['editor-partial-style' => 'src/styles/editor/images.css'],
+    'admin' => [
+        'subnav' => 'src/styles/subnav.css',
+        'admin' => 'src/styles/admin.css',
+    ],
+    'editor/definitions' => [
+        'subnav' => 'src/styles/subnav.css',
+        'editor-partial-style' => 'src/styles/editor/definitions.css',
+    ],
+    'editor/components' => [
+        'subnav' => 'src/styles/subnav.css',
+        'editor-partial-style' => 'src/styles/editor/components.css',
+    ],
+    'editor/images' => [
+        'subnav' => 'src/styles/subnav.css',
+        'editor-partial-style' => 'src/styles/editor/images.css',
+    ],
     'konfigurator' => [
         'konfigurator-breadcrumbs' => 'src/styles/konfigurator/breadcrumbs.css',
         'konfigurator-configuration-wizard' => 'src/styles/konfigurator/configuration-wizard.css',

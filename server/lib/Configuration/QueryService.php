@@ -21,6 +21,7 @@ final class QueryService
      * @return array<int, array{
      *    id: int,
      *    user_id: int,
+     *    title: string|null,
      *    status: string,
      *    created_at: string,
      *    updated_at: string
@@ -32,6 +33,7 @@ final class QueryService
         SELECT
             c.id,
             c.user_id,
+            c.title,
             c.status,
             c.created_at,
             c.updated_at
@@ -107,6 +109,7 @@ final class QueryService
      * @return array{
      *     id: int,
      *     user_id: int,
+     *     title: string|null,
      *     created_at: string,
      *     updated_at: string
      * }|null
@@ -114,7 +117,7 @@ final class QueryService
     public function find(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, user_id, created_at, updated_at FROM configurations WHERE id = :id'
+            'SELECT id, user_id, title, created_at, updated_at FROM configurations WHERE id = :id'
         );
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();

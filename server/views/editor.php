@@ -3,6 +3,22 @@
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
+
+$subnavStyleEntry = 'src/styles/subnav.css';
+if (isset($_SERVER['HTTP_HX_REQUEST'])) {
+    $subnavCssHref = vite_asset_href($subnavStyleEntry, $isDevEnv ?? false, $BASE);
+    if ($subnavCssHref !== null) {
+        ?>
+<link
+  rel="stylesheet"
+  id="subnav"
+  href="<?= htmlspecialchars($subnavCssHref, ENT_QUOTES, 'UTF-8') ?>"
+  hx-swap-oob="true"
+>
+        <?php
+    }
+}
+
 // Access control: only admin or superadmin may access the editor
 $__editorUser = isset($currentUser) && is_array($currentUser) ? $currentUser : app_get_current_user();
 $__editorRole = isset($__editorUser['role']) ? $__editorUser['role'] : (isset($role) ? $role : 'guest');
@@ -51,9 +67,11 @@ if ($isHtmxEditorContentRequest) {
 <div id="editor-root" data-island="editor">
   <nav
     id="editor-nav-menu"
+    class="sub-nav-menu"
     aria-label="Editor navigace"
   >
     <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
+       class="sub-nav-link"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
        hx-push-url="true"
        hx-target="#editor-content"
@@ -61,6 +79,7 @@ if ($isHtmxEditorContentRequest) {
     >Definice</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/components"
+       class="sub-nav-link"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/components"
        hx-push-url="true"
        hx-target="#editor-content"
@@ -68,6 +87,7 @@ if ($isHtmxEditorContentRequest) {
     >Komponenty</a>
 
     <a href="<?= htmlspecialchars($BASE) ?>/editor/images"
+       class="sub-nav-link"
        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images"
        hx-push-url="true"
        hx-target="#editor-content"
