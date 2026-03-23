@@ -132,6 +132,7 @@ function mount(el: HTMLElement) {
     const menu = qs<HTMLElement>(el, '#img-context-menu')!;
     const newFolderBtn = qs<HTMLButtonElement>(el, '#new-folder-btn');
     const uploadForm = qs<HTMLFormElement>(el, '#upload-form');
+    const uploadPathInput = qs<HTMLInputElement>(el, '#upload-path');
     const showUploadOverlay = () => {
         uploadOverlay?.show();
     };
@@ -193,7 +194,11 @@ function mount(el: HTMLElement) {
         );
         const currentPath = state?.dataset.currentPath || '';
         el.dataset.currentPath = currentPath;
+        if (uploadPathInput) {
+            uploadPathInput.value = currentPath;
+        }
     };
+    syncCurrentFromGrid();
     document.body.addEventListener('htmx:afterSwap', (evt) => {
         const target = (evt as CustomEvent).detail?.target as
             | HTMLElement
