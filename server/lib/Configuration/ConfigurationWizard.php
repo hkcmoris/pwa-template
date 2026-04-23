@@ -326,8 +326,7 @@ final class ConfigurationWizard
         if ($nextRoot !== null) {
             $newCurrent = (int) $nextRoot['id'];
         } else {
-            $lastSelectedId = end($normalisedIds);
-            $newCurrent = $lastSelectedId !== false ? (int) $lastSelectedId : null;
+            $newCurrent = (int) $normalisedIds[count($normalisedIds) - 1];
         }
         $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
         $this->currentComponentId = $newCurrent;
