@@ -231,6 +231,17 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             placeholder="Krátký popis komponenty"
           ></textarea>
         </div>
+        <div class="component-field component-field--full">
+          <label class="component-checkbox">
+            <input
+              type="checkbox"
+              id="component-modal-allow-multi-select"
+              name="allow_multi_select"
+              value="1"
+            >
+            <span>Více možností</span>
+          </label>
+        </div>
       </section>
 
       <section

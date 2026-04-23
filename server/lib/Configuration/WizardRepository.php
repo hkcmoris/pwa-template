@@ -254,6 +254,7 @@ final class WizardRepository
                 c.description,
                 c.images,
                 c.color,
+                c.allow_multi_select,
                 c.properties,
                 c.dependency_tree,
                 c.position,
@@ -274,6 +275,7 @@ final class WizardRepository
             $row['dependency_tree'] = $this->componentsFormatter->normaliseDependencyTree(
                 $row['dependency_tree'] ?? null
             );
+            $row['allow_multi_select'] = !empty($row['allow_multi_select']);
             $row['properties'] = $this->componentsFormatter->normaliseProperties($row['properties'] ?? null);
             $images = $this->componentsFormatter->normaliseImages($row['images'] ?? null);
             $row['images'] = $images;

@@ -151,6 +151,7 @@ $controllerRoutes = [
     'GET configurator/configuration/page'        => __DIR__ . '/controllers/configurator/configuration/page.php',
     'GET configurator/configuration/pdf'         => __DIR__ . '/controllers/configurator/configuration/pdf.php',
     'POST configurator/wizard/select'            => __DIR__ . '/controllers/configurator/wizard/select.php',
+    'POST configurator/wizard/select-multiple'   => __DIR__ . '/controllers/configurator/wizard/select-multiple.php',
     'POST configurator/wizard/back'              => __DIR__ . '/controllers/configurator/wizard/back.php',
     'POST configurator/wizard/goto-step'         => __DIR__ . '/controllers/configurator/wizard/goto-step.php',
     'POST configurator/wizard/rename'            => __DIR__ . '/controllers/configurator/wizard/rename.php',

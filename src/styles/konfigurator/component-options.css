@@ -91,6 +91,18 @@
     width: 100%;
 }
 
+.options-card-checkbox {
+    align-items: center;
+    display: inline-flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.component-options-multi-select-form {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .options-card-properties {
     margin: 0;
     padding-left: 1rem;
@@ -236,6 +248,10 @@
     font-weight: 700;
     cursor: pointer;
     padding: 10px 18px;
+}
+
+.component-options-multi-select-form .component-options-finish {
+    margin-top: 0;
 }
 
 .component-options-finish:disabled {
