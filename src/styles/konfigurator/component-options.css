@@ -89,6 +89,7 @@
     cursor: pointer;
     padding: 6px 16px;
     width: 100%;
+    font-size: 0.85rem;
 }
 
 .options-card-checkbox {
@@ -96,6 +97,29 @@
     display: inline-flex;
     gap: 8px;
     margin-top: 4px;
+    background: var(--primary);
+    color: var(--primary-contrast);
+    text-transform: uppercase;
+    font-family:
+        Montserrat,
+        "Segoe UI",
+        Roboto,
+        Ubuntu,
+        Cantarell,
+        "Noto Sans",
+        "Helvetica Neue",
+        Arial,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        "Segoe UI Symbol",
+        system-ui,
+        -apple-system,
+        sans-serif;
+    font-weight: 500;
+}
+
+.options-card-checkbox span {
+    margin: auto;
 }
 
 .component-options-multi-select-form {

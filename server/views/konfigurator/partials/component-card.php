@@ -160,7 +160,7 @@ $hasMultipleImages = count($optionImages) > 1;
                 </table>
         <?php endif; ?>
         <?php if ($isMultiSelectMode) : ?>
-            <label class="options-card-checkbox">
+            <label class="options-card-action options-card-checkbox">
                 <input
                     type="checkbox"
                     name="component_ids[]"
