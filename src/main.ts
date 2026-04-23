@@ -214,8 +214,59 @@ const initNavActions = (root: Document | HTMLElement = document) => {
     icon.setAttribute('data-nav-actions-mounted', '');
 };
 
+const initBreadcrumbOverflowHints = (
+    root: Document | HTMLElement = document
+) => {
+    root.querySelectorAll<HTMLElement>('#breadcrumbs .breadcrumb-item-title').forEach(
+        (titleEl) => {
+            const fullTitle = titleEl.textContent?.replace(/\s+/g, ' ').trim() ?? '';
+            const itemEl = titleEl.closest<HTMLElement>('.breadcrumb-item');
+            const tooltipEl = titleEl
+                .closest<HTMLElement>('.breadcrumb-item-inner')
+                ?.querySelector<HTMLElement>('.breadcrumb-item-tooltip');
+
+            titleEl.removeAttribute('title');
+            if (!itemEl || !tooltipEl || fullTitle === '') {
+                itemEl?.removeAttribute('data-overflow-tooltip');
+                if (tooltipEl) {
+                    tooltipEl.textContent = '';
+                    tooltipEl.style.setProperty('--tooltip-shift', '0px');
+                }
+                return;
+            }
+
+            const isOverflowing = titleEl.scrollWidth > titleEl.clientWidth;
+            if (!isOverflowing) {
+                itemEl.removeAttribute('data-overflow-tooltip');
+                tooltipEl.textContent = '';
+                tooltipEl.style.setProperty('--tooltip-shift', '0px');
+                return;
+            }
+
+            itemEl.setAttribute('data-overflow-tooltip', '1');
+            tooltipEl.textContent = fullTitle;
+            tooltipEl.style.setProperty('--tooltip-shift', '0px');
+
+            const tooltipRect = tooltipEl.getBoundingClientRect();
+            const viewportPadding = 8;
+            let shift = 0;
+            if (tooltipRect.left < viewportPadding) {
+                shift = viewportPadding - tooltipRect.left;
+            } else if (tooltipRect.right > window.innerWidth - viewportPadding) {
+                shift = window.innerWidth - viewportPadding - tooltipRect.right;
+            }
+            tooltipEl.style.setProperty('--tooltip-shift', `${shift}px`);
+        }
+    );
+};
+
 // Run initially (non-blocking)
 onIdle(() => initNavActions());
+onIdle(() => initBreadcrumbOverflowHints());
+
+window.addEventListener('resize', () => {
+    initBreadcrumbOverflowHints();
+});
 
 const themeToggle = document.getElementById('theme-toggle');
 const THEME_KEY = 'theme';
@@ -570,6 +621,7 @@ document.body.addEventListener('htmx:historyRestore', () => {
     resetMountedIslands();
     mountIslands();
     initNavActions();
+    initBreadcrumbOverflowHints();
     highlightNav();
     updateBodyRoute();
 });
@@ -769,6 +821,7 @@ document.body.addEventListener('htmx:afterSwap', (e) => {
 
     mountIslands();
     initNavActions();
+    initBreadcrumbOverflowHints();
     highlightNav();
     updateBodyRoute();
 });
@@ -781,9 +834,11 @@ document.body.addEventListener('htmx:oobAfterSwap', (event) => {
     if (swapped instanceof HTMLElement) {
         mountIslands(swapped as HTMLElement);
         initNavActions(swapped as HTMLElement);
+        initBreadcrumbOverflowHints(swapped as HTMLElement);
     } else {
         mountIslands();
         initNavActions();
+        initBreadcrumbOverflowHints();
     }
 });
 
