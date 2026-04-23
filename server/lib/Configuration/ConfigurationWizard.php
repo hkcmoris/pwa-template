@@ -22,6 +22,7 @@ use RuntimeException;
  *   description: string|null,
  *   images: list<string>,
  *   color: string|null,
+ *   allow_multi_select: bool,
  *   dependency_tree: array<string, mixed>|list<mixed>,
  *   position: int,
  *   created_at: string,

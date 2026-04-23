@@ -192,7 +192,6 @@ final class WriteService
                 $componentId,
                 null,
                 null,
-                false,
                 [],
                 null,
                 false,

@@ -36,6 +36,9 @@ $optionProperties = isset($option['properties']) && is_array($option['properties
 $baseCandidate = defined('BASE_PATH') ? (string) BASE_PATH : '';
 $BASE = isset($BASE) && $BASE !== '' ? (string) $BASE : $baseCandidate;
 $BASE = rtrim($BASE, '/');
+$singleSelectAttrs = 'hx-post="' . htmlspecialchars($BASE) . '/configurator/wizard/select"'
+    . ' hx-target="#konfigurator-wizard"'
+    . ' hx-swap="outerHTML"';
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 if ($optionImage !== null && !in_array($optionImage, $optionImages, true)) {
     array_unshift($optionImages, (string) $optionImage);
@@ -46,7 +49,7 @@ $hasMultipleImages = count($optionImages) > 1;
     <form
         method="post"
         class="options-card-inner"
-        <?= $isMultiSelectMode ? '' : 'hx-post="' . htmlspecialchars($BASE) . '/configurator/wizard/select" hx-target="#konfigurator-wizard" hx-swap="outerHTML"' ?>
+        <?= $isMultiSelectMode ? '' : $singleSelectAttrs ?>
     >
         <?php if (!$isMultiSelectMode) : ?>
             <input type="hidden" name="component_id" value="<?= $optionId ?>">
