@@ -111,14 +111,7 @@ final class ConfigurationWizard
 
         if ($wizard->currentComponentId === null) {
             $path = $wizard->getSelectedPath();
-            if (!empty($path)) {
-                $last = end($path);
-                $componentId = isset($last['component_id']) ? (int) $last['component_id'] : null;
-                if ($componentId) {
-                    $wizard->currentComponentId = $componentId;
-                    $wizard->repository->updateCurrentComponent($wizard->configurationId, $componentId);
-                }
-            } else {
+            if (empty($path)) {
                 $rootComponent = $wizard->findStartRootComponent($path);
                 if ($rootComponent !== null) {
                     $wizard->currentComponentId = (int) $rootComponent['id'];
@@ -214,6 +207,9 @@ final class ConfigurationWizard
     {
         if ($this->currentComponentId === null) {
             $this->ensureStartRootComponent();
+            if ($this->currentComponentId === null) {
+                return [];
+            }
         }
 
         $children = $this->components->fetchChildren($this->currentComponentId);
@@ -315,10 +311,6 @@ final class ConfigurationWizard
             }
         }
 
-        if ($normalisedIds === []) {
-            throw new RuntimeException('Vyberte alespoň jednu možnost.');
-        }
-
         foreach ($normalisedIds as $optionId) {
             $option = $availableMap[$optionId] ?? null;
             if ($option === null) {
@@ -338,11 +330,20 @@ final class ConfigurationWizard
             );
         }
 
-        $this->selectedPath = null;
         $updatedPath = $this->getSelectedPath();
+        if ($normalisedIds !== []) {
+            $this->selectedPath = null;
+            $updatedPath = $this->getSelectedPath();
+        }
+
         $nextRoot = $this->findNextEligibleRootAfter($this->currentComponentId, $updatedPath);
         if ($nextRoot !== null) {
             $newCurrent = (int) $nextRoot['id'];
+        } elseif ($normalisedIds === []) {
+            $fallbackNextRoot = $this->findNextRootAfter($this->currentComponentId);
+            $newCurrent = $fallbackNextRoot !== null
+                ? (int) $fallbackNextRoot['id']
+                : null;
         } else {
             $newCurrent = (int) $normalisedIds[count($normalisedIds) - 1];
         }
@@ -456,7 +457,11 @@ final class ConfigurationWizard
     {
         $selected = $this->getSelectedPath();
         $current = $this->getCurrentComponent();
-        $isComplete = $current !== null && $this->getAvailableOptions() === [];
+        $availableOptions = $this->getAvailableOptions();
+        $isComplete = $current !== null && $availableOptions === [];
+        if (!$isComplete && $current === null && $selected !== []) {
+            $isComplete = true;
+        }
 
         return [
             'configuration_id' => $this->configurationId,
@@ -485,7 +490,12 @@ final class ConfigurationWizard
             return;
         }
 
-        $rootComponent = $this->findStartRootComponent($this->getSelectedPath());
+        $path = $this->getSelectedPath();
+        if (!empty($path)) {
+            return;
+        }
+
+        $rootComponent = $this->findStartRootComponent($path);
         if ($rootComponent === null) {
             return;
         }
@@ -596,6 +606,38 @@ final class ConfigurationWizard
 
                 return null;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ComponentRow|null
+     */
+    private function findNextRootAfter(int $componentId): ?array
+    {
+        $rootComponent = $this->resolveRootComponent($componentId);
+        if ($rootComponent === null) {
+            return null;
+        }
+
+        $roots = $this->components->fetchChildren(null);
+        if ($roots === []) {
+            return null;
+        }
+
+        $rootId = (int) $rootComponent['id'];
+        foreach ($roots as $index => $root) {
+            if ((int) $root['id'] !== $rootId) {
+                continue;
+            }
+
+            $nextIndex = $index + 1;
+            if ($nextIndex >= count($roots)) {
+                return null;
+            }
+
+            return $roots[$nextIndex];
         }
 
         return null;
