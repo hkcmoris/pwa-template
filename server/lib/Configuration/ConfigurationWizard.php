@@ -256,6 +256,71 @@ final class ConfigurationWizard
         $this->selectedPath = null;
     }
 
+    /**
+     * @param array<int, int> $componentIds
+     */
+    public function selectMultipleComponents(array $componentIds): void
+    {
+        if ($this->currentComponentId === null) {
+            $this->ensureStartRootComponent();
+        }
+
+        if ($this->currentComponentId === null) {
+            throw new RuntimeException('Aktuální krok nebyl nalezen.');
+        }
+
+        $current = $this->getCurrentComponent();
+        if ($current === null || empty($current['allow_multi_select'])) {
+            throw new RuntimeException('Aktuální krok nepodporuje výběr více možností.');
+        }
+
+        $availableOptions = $this->getAvailableOptions();
+        $availableMap = [];
+        foreach ($availableOptions as $option) {
+            $optionId = isset($option['id']) ? (int) $option['id'] : 0;
+            if ($optionId > 0) {
+                $availableMap[$optionId] = $option;
+            }
+        }
+
+        $normalisedIds = [];
+        foreach ($componentIds as $componentId) {
+            $id = (int) $componentId;
+            if ($id > 0 && !in_array($id, $normalisedIds, true)) {
+                $normalisedIds[] = $id;
+            }
+        }
+
+        if ($normalisedIds === []) {
+            throw new RuntimeException('Vyberte alespoň jednu možnost.');
+        }
+
+        foreach ($normalisedIds as $optionId) {
+            $option = $availableMap[$optionId] ?? null;
+            if ($option === null) {
+                throw new RuntimeException('Některé vybrané možnosti nejsou na aktuálním kroku dostupné.');
+            }
+
+            $definitionId = isset($option['definition_id']) ? (int) $option['definition_id'] : 0;
+            if ($definitionId <= 0) {
+                throw new RuntimeException('Některé vybrané možnosti nejsou validní.');
+            }
+
+            $this->repository->insertSelection(
+                $this->configurationId,
+                $optionId,
+                $definitionId,
+                $this->currentComponentId
+            );
+        }
+
+        $this->selectedPath = null;
+        $nextRoot = $this->findNextEligibleRootAfter($this->currentComponentId, $this->getSelectedPath());
+        $newCurrent = $nextRoot !== null ? (int) $nextRoot['id'] : null;
+        $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
+        $this->currentComponentId = $newCurrent;
+    }
+
     public function goBack(): void
     {
         $last = $this->repository->deleteLastSelection($this->configurationId);
@@ -374,6 +439,16 @@ final class ConfigurationWizard
         ];
     }
 
+    public function currentComponentAllowsMultiSelect(): bool
+    {
+        $current = $this->getCurrentComponent();
+        if ($current === null) {
+            return false;
+        }
+
+        return !empty($current['allow_multi_select']);
+    }
+
     private function ensureStartRootComponent(): void
     {
         if ($this->currentComponentId !== null) {
@@ -440,22 +515,7 @@ final class ConfigurationWizard
             return null;
         }
 
-        $path = $this->getSelectedPath();
-        $rootId = (int) $rootComponent['id'];
-        foreach ($roots as $index => $root) {
-            if ((int) $root['id'] === $rootId) {
-                for ($nextIndex = $index + 1; $nextIndex < count($roots); $nextIndex++) {
-                    $nextRoot = $roots[$nextIndex];
-                    if ($this->rules->allowsComponent($nextRoot, $path)) {
-                        return $nextRoot;
-                    }
-                }
-
-                return null;
-            }
-        }
-
-        return null;
+        return $this->findNextEligibleRootAfter($componentId, $this->getSelectedPath());
     }
 
     /**
@@ -476,6 +536,39 @@ final class ConfigurationWizard
         }
 
         return $component;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $path
+     * @return ComponentRow|null
+     */
+    private function findNextEligibleRootAfter(int $componentId, array $path): ?array
+    {
+        $rootComponent = $this->resolveRootComponent($componentId);
+        if ($rootComponent === null) {
+            return null;
+        }
+
+        $roots = $this->components->fetchChildren(null);
+        if ($roots === []) {
+            return null;
+        }
+
+        $rootId = (int) $rootComponent['id'];
+        foreach ($roots as $index => $root) {
+            if ((int) $root['id'] === $rootId) {
+                for ($nextIndex = $index + 1; $nextIndex < count($roots); $nextIndex++) {
+                    $nextRoot = $roots[$nextIndex];
+                    if ($this->rules->allowsComponent($nextRoot, $path)) {
+                        return $nextRoot;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        return null;
     }
 
     /**

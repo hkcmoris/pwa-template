@@ -62,6 +62,7 @@ final class QueryService
             c.description,
             c.images,
             c.color,
+            c.allow_multi_select,
             c.properties,
             c.dependency_tree,
             c.position,
@@ -103,6 +104,7 @@ final class QueryService
 
         foreach ($rows as $row) {
             $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+            $row['allow_multi_select'] = !empty($row['allow_multi_select']);
             $row['properties'] = $this->formatter->normaliseProperties($row['properties'] ?? null);
             $images = $this->formatter->normaliseImages($row['images'] ?? null);
             $row['images'] = $images;
@@ -134,6 +136,7 @@ final class QueryService
             c.description,
             c.images,
             c.color,
+            c.allow_multi_select,
             c.properties,
             c.dependency_tree,
             c.position,
@@ -162,6 +165,7 @@ final class QueryService
 
         foreach ($rows as $row) {
             $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+            $row['allow_multi_select'] = !empty($row['allow_multi_select']);
             $row['properties'] = $this->formatter->normaliseProperties($row['properties'] ?? null);
             $images = $this->formatter->normaliseImages($row['images'] ?? null);
             $row['images'] = $images;
@@ -254,6 +258,7 @@ final class QueryService
             c.description,
             c.images,
             c.color,
+            c.allow_multi_select,
             c.properties,
             c.dependency_tree,
             c.position,
@@ -276,6 +281,7 @@ final class QueryService
         }
 
         $row['dependency_tree'] = $this->formatter->normaliseDependencyTree($row['dependency_tree'] ?? null);
+        $row['allow_multi_select'] = !empty($row['allow_multi_select']);
         $row['properties'] = $this->formatter->normaliseProperties($row['properties'] ?? null);
         $row['pos_path'] = $row['pos_path'] ?? null;
         $images = $this->formatter->normaliseImages($row['images'] ?? null);

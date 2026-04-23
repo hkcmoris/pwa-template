@@ -69,6 +69,7 @@ export type ComponentModalOptions = {
     priceHistory?: PriceHistoryItem[];
     dependencyTree?: string;
     properties?: ComponentProperty[];
+    allowMultiSelect?: boolean;
 };
 
 export type MediaMode = 'image' | 'color';

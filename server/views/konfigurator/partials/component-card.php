@@ -2,7 +2,12 @@
 
 /** @var array<string, mixed> $option */
 /** @var array<string, mixed>|null $summary */
+/** @var string|null $selectionMode */
+/** @var string|null $multiSelectFormId */
 $option = $option ?? [];
+$selectionMode = $selectionMode ?? 'single';
+$isMultiSelectMode = $selectionMode === 'multiple';
+$multiSelectFormId = $multiSelectFormId ?? '';
 $optionId = isset($option['id']) ? (int) $option['id'] : 0;
 $optionTitle = (string) ($option['effective_title'] ?? $option['definition_title'] ?? '');
 $optionImage = $option['image'];
@@ -41,11 +46,11 @@ $hasMultipleImages = count($optionImages) > 1;
     <form
         method="post"
         class="options-card-inner"
-        hx-post="<?= htmlspecialchars($BASE) ?>/configurator/wizard/select"
-        hx-target="#konfigurator-wizard"
-        hx-swap="outerHTML"
+        <?= $isMultiSelectMode ? '' : 'hx-post="' . htmlspecialchars($BASE) . '/configurator/wizard/select" hx-target="#konfigurator-wizard" hx-swap="outerHTML"' ?>
     >
-        <input type="hidden" name="component_id" value="<?= $optionId ?>">
+        <?php if (!$isMultiSelectMode) : ?>
+            <input type="hidden" name="component_id" value="<?= $optionId ?>">
+        <?php endif; ?>
         <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
         <?php if (!empty($optionImages)) : ?>
             <div class="options-card-media">
@@ -151,6 +156,18 @@ $hasMultipleImages = count($optionImages) > 1;
                 <?php endforeach; ?>
                 </table>
         <?php endif; ?>
-        <button type="submit" class="options-card-action">Vybrat</button>
+        <?php if ($isMultiSelectMode) : ?>
+            <label class="options-card-checkbox">
+                <input
+                    type="checkbox"
+                    name="component_ids[]"
+                    value="<?= $optionId ?>"
+                    form="<?= htmlspecialchars($multiSelectFormId) ?>"
+                >
+                <span>Vybrat možnost</span>
+            </label>
+        <?php else : ?>
+            <button type="submit" class="options-card-action">Vybrat</button>
+        <?php endif; ?>
     </form>
 </div>

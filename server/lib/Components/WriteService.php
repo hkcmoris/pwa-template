@@ -43,6 +43,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        bool $allowMultiSelect,
         array $properties,
         array $dependencyTree,
         int $position
@@ -81,6 +82,7 @@ final class WriteService
                 description,
                 images,
                 color,
+                allow_multi_select,
                 dependency_tree,
                 properties,
                 position
@@ -91,6 +93,7 @@ final class WriteService
                 :description,
                 :images,
                 :color,
+                :allow_multi_select,
                 :dependency,
                 :properties,
                 :position
@@ -126,6 +129,7 @@ final class WriteService
             $stmt->bindValue(':color', $colorValue, PDO::PARAM_STR);
         }
 
+        $stmt->bindValue(':allow_multi_select', $allowMultiSelect ? 1 : 0, PDO::PARAM_INT);
         $stmt->bindValue(':dependency', json_encode($dependencyTree), PDO::PARAM_STR);
         $stmt->bindValue(':properties', json_encode($properties), PDO::PARAM_STR);
         $stmt->bindValue(':position', $position, PDO::PARAM_INT);
@@ -188,8 +192,10 @@ final class WriteService
                 $componentId,
                 null,
                 null,
+                false,
                 [],
                 null,
+                false,
                 [],
                 [],
                 $position
@@ -213,6 +219,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        bool $allowMultiSelect,
         array $properties,
         array $dependencyTree,
         int $position,
@@ -232,6 +239,7 @@ final class WriteService
                 $description,
                 $images,
                 $color,
+                $allowMultiSelect,
                 $properties,
                 $dependencyTree,
                 $position
@@ -265,6 +273,7 @@ final class WriteService
         ?string $description,
         array $images,
         ?string $color,
+        bool $allowMultiSelect,
         array $properties,
         array $dependencyTree,
         ?int $position,
@@ -390,6 +399,7 @@ final class WriteService
                     description = :description,
                     images = :images,
                     color = :color,
+                    allow_multi_select = :allow_multi_select,
                     dependency_tree = :dependency,
                     properties = :properties,
                     position = :position
@@ -425,6 +435,7 @@ final class WriteService
                 $update->bindValue(':color', $colorValue, PDO::PARAM_STR);
             }
 
+            $update->bindValue(':allow_multi_select', $allowMultiSelect ? 1 : 0, PDO::PARAM_INT);
             $update->bindValue(':dependency', json_encode($dependencyTree), PDO::PARAM_STR);
             $update->bindValue(':properties', json_encode($properties), PDO::PARAM_STR);
             $update->bindValue(':position', $position, PDO::PARAM_INT);
@@ -518,6 +529,7 @@ final class WriteService
         $description = isset($source['description']) ? (string) $source['description'] : null;
         $images = isset($source['images']) && is_array($source['images']) ? $source['images'] : [];
         $color = isset($source['color']) ? (string) $source['color'] : null;
+        $allowMultiSelect = !empty($source['allow_multi_select']);
         $properties = isset($source['properties']) && is_array($source['properties'])
             ? $source['properties']
             : [];
@@ -532,6 +544,7 @@ final class WriteService
             $description,
             $images,
             $color,
+            $allowMultiSelect,
             $properties,
             $dependencyTree,
             $position

@@ -16,6 +16,8 @@ $stepTitle = $currentComponent['effective_title'] ?? $currentComponent['definiti
 $hasSelections = !empty($selectedPath);
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 $isComplete = !empty($summary['is_complete']);
+$allowsMultiSelect = !empty($currentComponent['allow_multi_select']);
+$multiSelectFormId = 'wizard-multi-select-form-' . $configurationId;
 ?>
 <div id="component-options" data-island="konfigurator-option-cards">
     <div class="component-options-header">
@@ -42,6 +44,7 @@ $isComplete = !empty($summary['is_complete']);
     <?php if (!empty($availableOptions)) : ?>
         <div class="component-options-grid">
             <?php foreach ($availableOptions as $option) :
+                $selectionMode = $allowsMultiSelect ? 'multiple' : 'single';
                 $componentCard = __DIR__ . '/component-card.php';
                 if (is_file($componentCard)) {
                     require $componentCard;
@@ -50,6 +53,19 @@ $isComplete = !empty($summary['is_complete']);
                 }
             endforeach; ?>
         </div>
+        <?php if ($allowsMultiSelect) : ?>
+            <form
+                id="<?= htmlspecialchars($multiSelectFormId) ?>"
+                method="post"
+                hx-post="<?= htmlspecialchars($BASE) ?>/configurator/wizard/select-multiple"
+                hx-target="#konfigurator-wizard"
+                hx-swap="outerHTML"
+                class="component-options-multi-select-form"
+            >
+                <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
+                <button type="submit" class="component-options-finish">Vybrat označené možnosti</button>
+            </form>
+        <?php endif; ?>
     <?php else : ?>
         <div class="component-options-summary">
             <h3>Shrnutí</h3>

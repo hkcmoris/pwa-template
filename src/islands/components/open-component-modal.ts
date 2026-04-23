@@ -205,6 +205,9 @@ export const createOpenComponentModal = ({
         const propertiesField = form.querySelector<HTMLInputElement>(
             '[data-properties-input]'
         );
+        const allowMultiSelectField = form.querySelector<HTMLInputElement>(
+            '#component-modal-allow-multi-select'
+        );
         const imagesField = form.querySelector<HTMLInputElement>(
             '[data-images-input]'
         );
@@ -273,6 +276,9 @@ export const createOpenComponentModal = ({
             propertiesField.value = JSON.stringify(
                 normaliseProperties(options.properties)
             );
+        }
+        if (allowMultiSelectField) {
+            allowMultiSelectField.checked = options.allowMultiSelect === true;
         }
         let selectedImages: SelectedImageEntry[] =
             mediaMode === 'image'
