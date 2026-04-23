@@ -174,8 +174,8 @@ final class ConfigurationWizard
                     if ($parentComponent !== null) {
                         $breadcrumbPath[] = [
                             'id' => $selection['id'] ?? null,
-                            'effective_title' => $parentComponent['effective_title'] ?? null,
-                            'definition_title' => $parentComponent['definition_title'] ?? null,
+                            'effective_title' => $parentComponent['effective_title'],
+                            'definition_title' => $parentComponent['definition_title'],
                         ];
                         $multiSelectParentsInBreadcrumb[$parentComponentId] = true;
                     }

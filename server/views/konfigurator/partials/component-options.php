@@ -82,14 +82,20 @@ $groupedSelectedPath = isset($summary['grouped_selected_path']) && is_array($sum
                             <li>
                                 <?= htmlspecialchars((string) ($group['parent_title'] ?? '')) ?>
                                 <?php
-                                $options = isset($group['options']) && is_array($group['options']) ? $group['options'] : [];
+                                $options = isset($group['options']) && is_array($group['options'])
+                                    ? $group['options']
+                                    : [];
                                 ?>
                                 <?php if (!empty($options)) : ?>
                                     <ul>
                                         <?php foreach ($options as $option) : ?>
                                             <li>
                                                 <?= htmlspecialchars(
-                                                    (string) ($option['effective_title'] ?? $option['definition_title'] ?? '')
+                                                    (string) (
+                                                        $option['effective_title']
+                                                        ?? $option['definition_title']
+                                                        ?? ''
+                                                    )
                                                 ) ?>
                                             </li>
                                         <?php endforeach; ?>
@@ -107,7 +113,8 @@ $groupedSelectedPath = isset($summary['grouped_selected_path']) && is_array($sum
                                     (string) ($selection['effective_title'] ?? $selection['definition_title'] ?? '')
                                 ) ?>
                                 <?php
-                                $selectionProperties = isset($selection['properties']) && is_array($selection['properties'])
+                                $selectionProperties = isset($selection['properties'])
+                                    && is_array($selection['properties'])
                                     ? $selection['properties']
                                     : [];
                                 ?>
