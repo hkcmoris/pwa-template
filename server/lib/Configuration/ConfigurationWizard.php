@@ -159,9 +159,27 @@ final class ConfigurationWizard
 
         $breadcrumbPath = [];
         $pathPrefix = [];
+        $multiSelectParentsInBreadcrumb = [];
 
         foreach ($selectedPath as $selection) {
             if ($this->selectionBelongsToMultiSelectStep($selection)) {
+                $parentComponentId = isset($selection['parent_component_id'])
+                    ? (int) $selection['parent_component_id']
+                    : 0;
+                if (
+                    $parentComponentId > 0
+                    && !isset($multiSelectParentsInBreadcrumb[$parentComponentId])
+                ) {
+                    $parentComponent = $this->components->find($parentComponentId);
+                    if ($parentComponent !== null) {
+                        $breadcrumbPath[] = [
+                            'id' => $selection['id'] ?? null,
+                            'effective_title' => $parentComponent['effective_title'],
+                            'definition_title' => $parentComponent['definition_title'],
+                        ];
+                        $multiSelectParentsInBreadcrumb[$parentComponentId] = true;
+                    }
+                }
                 $pathPrefix[] = $selection;
                 continue;
             }
@@ -445,6 +463,7 @@ final class ConfigurationWizard
             'configuration_title' => $this->configurationTitle,
             'configuration_draft_number' => $this->draftNumber,
             'selected_path' => $selected,
+            'grouped_selected_path' => $this->buildGroupedSelectedPath($selected),
             'current_component' => $current,
             'is_complete' => $isComplete,
         ];
@@ -629,5 +648,53 @@ final class ConfigurationWizard
         }
 
         return !empty($parentComponent['allow_multi_select']);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $selectedPath
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildGroupedSelectedPath(array $selectedPath): array
+    {
+        $grouped = [];
+        $multiSelectGroupIndexByParentId = [];
+
+        foreach ($selectedPath as $selection) {
+            if (!$this->selectionBelongsToMultiSelectStep($selection)) {
+                $grouped[] = [
+                    'type' => 'single',
+                    'selection' => $selection,
+                ];
+                continue;
+            }
+
+            $parentComponentId = isset($selection['parent_component_id'])
+                ? (int) $selection['parent_component_id']
+                : 0;
+            if ($parentComponentId <= 0) {
+                $grouped[] = [
+                    'type' => 'single',
+                    'selection' => $selection,
+                ];
+                continue;
+            }
+
+            if (!isset($multiSelectGroupIndexByParentId[$parentComponentId])) {
+                $parentComponent = $this->components->find($parentComponentId);
+                $grouped[] = [
+                    'type' => 'multi',
+                    'parent_title' => $parentComponent['effective_title']
+                        ?? $parentComponent['definition_title']
+                        ?? '',
+                    'options' => [],
+                ];
+                $multiSelectGroupIndexByParentId[$parentComponentId] = count($grouped) - 1;
+            }
+
+            $groupIndex = $multiSelectGroupIndexByParentId[$parentComponentId];
+            $grouped[$groupIndex]['options'][] = $selection;
+        }
+
+        return $grouped;
     }
 }
