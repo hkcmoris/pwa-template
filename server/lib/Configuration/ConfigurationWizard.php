@@ -161,6 +161,11 @@ final class ConfigurationWizard
         $pathPrefix = [];
 
         foreach ($selectedPath as $selection) {
+            if ($this->selectionBelongsToMultiSelectStep($selection)) {
+                $pathPrefix[] = $selection;
+                continue;
+            }
+
             $availableOptions = $this->resolveAvailableOptionsForSelectionParent($selection, $pathPrefix);
             if (count($availableOptions) !== 1) {
                 $breadcrumbPath[] = $selection;
@@ -316,8 +321,13 @@ final class ConfigurationWizard
         }
 
         $this->selectedPath = null;
-        $nextRoot = $this->findNextEligibleRootAfter($this->currentComponentId, $this->getSelectedPath());
-        $newCurrent = $nextRoot !== null ? (int) $nextRoot['id'] : null;
+        $updatedPath = $this->getSelectedPath();
+        $nextRoot = $this->findNextEligibleRootAfter($this->currentComponentId, $updatedPath);
+        if ($nextRoot !== null) {
+            $newCurrent = (int) $nextRoot['id'];
+        } else {
+            $newCurrent = (int) $normalisedIds[count($normalisedIds) - 1];
+        }
         $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
         $this->currentComponentId = $newCurrent;
     }
@@ -599,5 +609,25 @@ final class ConfigurationWizard
         }
 
         return $available;
+    }
+
+    /**
+     * @param array<string, mixed> $selection
+     */
+    private function selectionBelongsToMultiSelectStep(array $selection): bool
+    {
+        $parentComponentId = isset($selection['parent_component_id'])
+            ? (int) $selection['parent_component_id']
+            : 0;
+        if ($parentComponentId <= 0) {
+            return false;
+        }
+
+        $parentComponent = $this->components->find($parentComponentId);
+        if ($parentComponent === null) {
+            return false;
+        }
+
+        return !empty($parentComponent['allow_multi_select']);
     }
 }
