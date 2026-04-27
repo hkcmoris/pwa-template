@@ -22,6 +22,7 @@ use RuntimeException;
  *   description: string|null,
  *   images: list<string>,
  *   color: string|null,
+ *   allow_multi_select: bool,
  *   dependency_tree: array<string, mixed>|list<mixed>,
  *   position: int,
  *   created_at: string,
@@ -110,14 +111,7 @@ final class ConfigurationWizard
 
         if ($wizard->currentComponentId === null) {
             $path = $wizard->getSelectedPath();
-            if (!empty($path)) {
-                $last = end($path);
-                $componentId = isset($last['component_id']) ? (int) $last['component_id'] : null;
-                if ($componentId) {
-                    $wizard->currentComponentId = $componentId;
-                    $wizard->repository->updateCurrentComponent($wizard->configurationId, $componentId);
-                }
-            } else {
+            if (empty($path)) {
                 $rootComponent = $wizard->findStartRootComponent($path);
                 if ($rootComponent !== null) {
                     $wizard->currentComponentId = (int) $rootComponent['id'];
@@ -158,8 +152,31 @@ final class ConfigurationWizard
 
         $breadcrumbPath = [];
         $pathPrefix = [];
+        $multiSelectParentsInBreadcrumb = [];
 
         foreach ($selectedPath as $selection) {
+            if ($this->selectionBelongsToMultiSelectStep($selection)) {
+                $parentComponentId = isset($selection['parent_component_id'])
+                    ? (int) $selection['parent_component_id']
+                    : 0;
+                if (
+                    $parentComponentId > 0
+                    && !isset($multiSelectParentsInBreadcrumb[$parentComponentId])
+                ) {
+                    $parentComponent = $this->components->find($parentComponentId);
+                    if ($parentComponent !== null) {
+                        $breadcrumbPath[] = [
+                            'id' => $selection['id'] ?? null,
+                            'effective_title' => $parentComponent['effective_title'],
+                            'definition_title' => $parentComponent['definition_title'],
+                        ];
+                        $multiSelectParentsInBreadcrumb[$parentComponentId] = true;
+                    }
+                }
+                $pathPrefix[] = $selection;
+                continue;
+            }
+
             $availableOptions = $this->resolveAvailableOptionsForSelectionParent($selection, $pathPrefix);
             if (count($availableOptions) !== 1) {
                 $breadcrumbPath[] = $selection;
@@ -190,6 +207,9 @@ final class ConfigurationWizard
     {
         if ($this->currentComponentId === null) {
             $this->ensureStartRootComponent();
+            if ($this->currentComponentId === null) {
+                return [];
+            }
         }
 
         $children = $this->components->fetchChildren($this->currentComponentId);
@@ -254,6 +274,81 @@ final class ConfigurationWizard
             $this->repository->updateCurrentComponent($this->configurationId, $this->currentComponentId);
         }
         $this->selectedPath = null;
+    }
+
+    /**
+     * @param array<int, int> $componentIds
+     */
+    public function selectMultipleComponents(array $componentIds): void
+    {
+        if ($this->currentComponentId === null) {
+            $this->ensureStartRootComponent();
+        }
+
+        if ($this->currentComponentId === null) {
+            throw new RuntimeException('Aktuální krok nebyl nalezen.');
+        }
+
+        $current = $this->getCurrentComponent();
+        if ($current === null || empty($current['allow_multi_select'])) {
+            throw new RuntimeException('Aktuální krok nepodporuje výběr více možností.');
+        }
+
+        $availableOptions = $this->getAvailableOptions();
+        $availableMap = [];
+        foreach ($availableOptions as $option) {
+            $optionId = isset($option['id']) ? (int) $option['id'] : 0;
+            if ($optionId > 0) {
+                $availableMap[$optionId] = $option;
+            }
+        }
+
+        $normalisedIds = [];
+        foreach ($componentIds as $componentId) {
+            $id = (int) $componentId;
+            if ($id > 0 && !in_array($id, $normalisedIds, true)) {
+                $normalisedIds[] = $id;
+            }
+        }
+
+        foreach ($normalisedIds as $optionId) {
+            $option = $availableMap[$optionId] ?? null;
+            if ($option === null) {
+                throw new RuntimeException('Některé vybrané možnosti nejsou na aktuálním kroku dostupné.');
+            }
+
+            $definitionId = isset($option['definition_id']) ? (int) $option['definition_id'] : 0;
+            if ($definitionId <= 0) {
+                throw new RuntimeException('Některé vybrané možnosti nejsou validní.');
+            }
+
+            $this->repository->insertSelection(
+                $this->configurationId,
+                $optionId,
+                $definitionId,
+                $this->currentComponentId
+            );
+        }
+
+        $updatedPath = $this->getSelectedPath();
+        if ($normalisedIds !== []) {
+            $this->selectedPath = null;
+            $updatedPath = $this->getSelectedPath();
+        }
+
+        $nextRoot = $this->findNextEligibleRootAfter($this->currentComponentId, $updatedPath);
+        if ($nextRoot !== null) {
+            $newCurrent = (int) $nextRoot['id'];
+        } elseif ($normalisedIds === []) {
+            $fallbackNextRoot = $this->findNextRootAfter($this->currentComponentId);
+            $newCurrent = $fallbackNextRoot !== null
+                ? (int) $fallbackNextRoot['id']
+                : null;
+        } else {
+            $newCurrent = (int) $normalisedIds[count($normalisedIds) - 1];
+        }
+        $this->repository->updateCurrentComponent($this->configurationId, $newCurrent);
+        $this->currentComponentId = $newCurrent;
     }
 
     public function goBack(): void
@@ -362,16 +457,31 @@ final class ConfigurationWizard
     {
         $selected = $this->getSelectedPath();
         $current = $this->getCurrentComponent();
-        $isComplete = $current !== null && $this->getAvailableOptions() === [];
+        $availableOptions = $this->getAvailableOptions();
+        $isComplete = $current !== null && $availableOptions === [];
+        if (!$isComplete && $current === null && $selected !== []) {
+            $isComplete = true;
+        }
 
         return [
             'configuration_id' => $this->configurationId,
             'configuration_title' => $this->configurationTitle,
             'configuration_draft_number' => $this->draftNumber,
             'selected_path' => $selected,
+            'grouped_selected_path' => $this->buildGroupedSelectedPath($selected),
             'current_component' => $current,
             'is_complete' => $isComplete,
         ];
+    }
+
+    public function currentComponentAllowsMultiSelect(): bool
+    {
+        $current = $this->getCurrentComponent();
+        if ($current === null) {
+            return false;
+        }
+
+        return !empty($current['allow_multi_select']);
     }
 
     private function ensureStartRootComponent(): void
@@ -380,7 +490,12 @@ final class ConfigurationWizard
             return;
         }
 
-        $rootComponent = $this->findStartRootComponent($this->getSelectedPath());
+        $path = $this->getSelectedPath();
+        if (!empty($path)) {
+            return;
+        }
+
+        $rootComponent = $this->findStartRootComponent($path);
         if ($rootComponent === null) {
             return;
         }
@@ -440,22 +555,7 @@ final class ConfigurationWizard
             return null;
         }
 
-        $path = $this->getSelectedPath();
-        $rootId = (int) $rootComponent['id'];
-        foreach ($roots as $index => $root) {
-            if ((int) $root['id'] === $rootId) {
-                for ($nextIndex = $index + 1; $nextIndex < count($roots); $nextIndex++) {
-                    $nextRoot = $roots[$nextIndex];
-                    if ($this->rules->allowsComponent($nextRoot, $path)) {
-                        return $nextRoot;
-                    }
-                }
-
-                return null;
-            }
-        }
-
-        return null;
+        return $this->findNextEligibleRootAfter($componentId, $this->getSelectedPath());
     }
 
     /**
@@ -476,6 +576,71 @@ final class ConfigurationWizard
         }
 
         return $component;
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $path
+     * @return ComponentRow|null
+     */
+    private function findNextEligibleRootAfter(int $componentId, array $path): ?array
+    {
+        $rootComponent = $this->resolveRootComponent($componentId);
+        if ($rootComponent === null) {
+            return null;
+        }
+
+        $roots = $this->components->fetchChildren(null);
+        if ($roots === []) {
+            return null;
+        }
+
+        $rootId = (int) $rootComponent['id'];
+        foreach ($roots as $index => $root) {
+            if ((int) $root['id'] === $rootId) {
+                for ($nextIndex = $index + 1; $nextIndex < count($roots); $nextIndex++) {
+                    $nextRoot = $roots[$nextIndex];
+                    if ($this->rules->allowsComponent($nextRoot, $path)) {
+                        return $nextRoot;
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return ComponentRow|null
+     */
+    private function findNextRootAfter(int $componentId): ?array
+    {
+        $rootComponent = $this->resolveRootComponent($componentId);
+        if ($rootComponent === null) {
+            return null;
+        }
+
+        $roots = $this->components->fetchChildren(null);
+        if ($roots === []) {
+            return null;
+        }
+
+        $rootId = (int) $rootComponent['id'];
+        foreach ($roots as $index => $root) {
+            if ((int) $root['id'] !== $rootId) {
+                continue;
+            }
+
+            $nextIndex = $index + 1;
+            if ($nextIndex >= count($roots)) {
+                return null;
+            }
+
+            return $roots[$nextIndex];
+        }
+
+        return null;
     }
 
     /**
@@ -505,5 +670,73 @@ final class ConfigurationWizard
         }
 
         return $available;
+    }
+
+    /**
+     * @param array<string, mixed> $selection
+     */
+    private function selectionBelongsToMultiSelectStep(array $selection): bool
+    {
+        $parentComponentId = isset($selection['parent_component_id'])
+            ? (int) $selection['parent_component_id']
+            : 0;
+        if ($parentComponentId <= 0) {
+            return false;
+        }
+
+        $parentComponent = $this->components->find($parentComponentId);
+        if ($parentComponent === null) {
+            return false;
+        }
+
+        return !empty($parentComponent['allow_multi_select']);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $selectedPath
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildGroupedSelectedPath(array $selectedPath): array
+    {
+        $grouped = [];
+        $multiSelectGroupIndexByParentId = [];
+
+        foreach ($selectedPath as $selection) {
+            if (!$this->selectionBelongsToMultiSelectStep($selection)) {
+                $grouped[] = [
+                    'type' => 'single',
+                    'selection' => $selection,
+                ];
+                continue;
+            }
+
+            $parentComponentId = isset($selection['parent_component_id'])
+                ? (int) $selection['parent_component_id']
+                : 0;
+            if ($parentComponentId <= 0) {
+                $grouped[] = [
+                    'type' => 'single',
+                    'selection' => $selection,
+                ];
+                continue;
+            }
+
+            if (!isset($multiSelectGroupIndexByParentId[$parentComponentId])) {
+                $parentComponent = $this->components->find($parentComponentId);
+                $grouped[] = [
+                    'type' => 'multi',
+                    'parent_title' => $parentComponent['effective_title']
+                        ?? $parentComponent['definition_title']
+                        ?? '',
+                    'options' => [],
+                ];
+                $multiSelectGroupIndexByParentId[$parentComponentId] = count($grouped) - 1;
+            }
+
+            $groupIndex = $multiSelectGroupIndexByParentId[$parentComponentId];
+            $grouped[$groupIndex]['options'][] = $selection;
+        }
+
+        return $grouped;
     }
 }

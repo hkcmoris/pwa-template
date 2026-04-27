@@ -86,6 +86,7 @@
     flex-direction: column;
     margin: auto;
     z-index: 2;
+    position: relative;
     transform: skew(21deg);
 }
 
@@ -97,4 +98,74 @@
     white-space: nowrap;
     font-family: Montserrat, sans-serif;
     font-weight: 500;
+}
+
+#breadcrumbs .breadcrumb-item-tooltip {
+    --tooltip-shift: 0px;
+
+    display: block;
+    white-space: normal;
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    width: max-content;
+    max-width: min(24rem, calc(100vw - 16px));
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    padding: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+    z-index: 10;
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    text-transform: none;
+    letter-spacing: normal;
+    transform-origin: top center;
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(-4px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease,
+        visibility 0s linear 120ms;
+}
+
+#breadcrumbs .breadcrumb-item-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid var(--bg);
+}
+
+#breadcrumbs .breadcrumb-item-tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid var(--border);
+}
+
+[data-theme='dark'] #breadcrumbs .breadcrumb-item-tooltip {
+    color: #cbd5e1;
+}
+
+#breadcrumbs .breadcrumb-item[data-overflow-tooltip]:hover .breadcrumb-item-tooltip,
+#breadcrumbs
+    .breadcrumb-item[data-overflow-tooltip]:focus-within
+    .breadcrumb-item-tooltip {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(0);
+    transition-delay: 0s;
 }

@@ -63,6 +63,8 @@ $position = null;
 $priceValue = null;
 $dependencyTree = [];
 $properties = [];
+$allowMultiSelect = isset($_POST['allow_multi_select'])
+    && in_array((string) $_POST['allow_multi_select'], ['1', 'true', 'on'], true);
 
 if (is_string($imagesParam)) {
     $decoded = json_decode($imagesParam, true);
@@ -212,6 +214,7 @@ try {
         $description !== '' ? $description : null,
         $imageList,
         $color !== '' ? strtoupper($color) : null,
+        $allowMultiSelect,
         $properties,
         $dependencyTree,
         $position,

@@ -16,6 +16,11 @@ $stepTitle = $currentComponent['effective_title'] ?? $currentComponent['definiti
 $hasSelections = !empty($selectedPath);
 $configurationId = isset($summary['configuration_id']) ? (int) $summary['configuration_id'] : 0;
 $isComplete = !empty($summary['is_complete']);
+$allowsMultiSelect = !empty($currentComponent['allow_multi_select']);
+$multiSelectFormId = 'wizard-multi-select-form-' . $configurationId;
+$groupedSelectedPath = isset($summary['grouped_selected_path']) && is_array($summary['grouped_selected_path'])
+    ? $summary['grouped_selected_path']
+    : [];
 ?>
 <div id="component-options" data-island="konfigurator-option-cards">
     <div class="component-options-header">
@@ -42,6 +47,7 @@ $isComplete = !empty($summary['is_complete']);
     <?php if (!empty($availableOptions)) : ?>
         <div class="component-options-grid">
             <?php foreach ($availableOptions as $option) :
+                $selectionMode = $allowsMultiSelect ? 'multiple' : 'single';
                 $componentCard = __DIR__ . '/component-card.php';
                 if (is_file($componentCard)) {
                     require $componentCard;
@@ -50,41 +56,89 @@ $isComplete = !empty($summary['is_complete']);
                 }
             endforeach; ?>
         </div>
+        <?php if ($allowsMultiSelect) : ?>
+            <form
+                id="<?= htmlspecialchars($multiSelectFormId) ?>"
+                method="post"
+                hx-post="<?= htmlspecialchars($BASE) ?>/configurator/wizard/select-multiple"
+                hx-target="#konfigurator-wizard"
+                hx-swap="outerHTML"
+                class="component-options-multi-select-form"
+            >
+                <input type="hidden" name="draft_id" value="<?= $configurationId ?>">
+                <button type="submit" class="component-options-finish">Vybrat označené možnosti</button>
+            </form>
+        <?php endif; ?>
     <?php else : ?>
         <div class="component-options-summary">
             <h3>Shrnutí</h3>
-            <?php if (!empty($summary['selected_path'])) : ?>
+            <?php if (!empty($groupedSelectedPath)) : ?>
                 <ul>
-                    <?php foreach ($summary['selected_path'] as $selection) : ?>
-                        <li>
-                            <?= htmlspecialchars(
-                                (string) ($selection['effective_title'] ?? $selection['definition_title'] ?? '')
-                            ) ?>
+                    <?php foreach ($groupedSelectedPath as $group) : ?>
+                        <?php
+                        $groupType = isset($group['type']) ? (string) $group['type'] : '';
+                        ?>
+                        <?php if ($groupType === 'multi') : ?>
+                            <li>
+                                <?= htmlspecialchars((string) ($group['parent_title'] ?? '')) ?>
+                                <?php
+                                $options = isset($group['options']) && is_array($group['options'])
+                                    ? $group['options']
+                                    : [];
+                                ?>
+                                <?php if (!empty($options)) : ?>
+                                    <ul>
+                                        <?php foreach ($options as $option) : ?>
+                                            <li>
+                                                <?= htmlspecialchars(
+                                                    (string) (
+                                                        $option['effective_title']
+                                                        ?? $option['definition_title']
+                                                        ?? ''
+                                                    )
+                                                ) ?>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </li>
+                        <?php else : ?>
                             <?php
-                            $selectionProperties = isset($selection['properties']) && is_array($selection['properties'])
-                                ? $selection['properties']
+                            $selection = isset($group['selection']) && is_array($group['selection'])
+                                ? $group['selection']
                                 : [];
                             ?>
-                            <?php if (!empty($selectionProperties)) : ?>
-                                <ul class="component-options-summary-properties">
-                                    <?php foreach ($selectionProperties as $property) : ?>
-                                        <?php
-                                        if (!is_array($property)) {
-                                            continue;
-                                        }
-                                        $name = isset($property['name']) ? trim((string) $property['name']) : '';
-                                        $value = isset($property['value']) ? trim((string) $property['value']) : '';
-                                        $unit = isset($property['unit']) ? trim((string) $property['unit']) : '';
-                                        $label = trim($name . ' ' . $value . ' ' . $unit);
-                                        if ($label === '') {
-                                            continue;
-                                        }
-                                        ?>
-                                        <li><?= htmlspecialchars($label) ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            <?php endif; ?>
-                        </li>
+                            <li>
+                                <?= htmlspecialchars(
+                                    (string) ($selection['effective_title'] ?? $selection['definition_title'] ?? '')
+                                ) ?>
+                                <?php
+                                $selectionProperties = isset($selection['properties'])
+                                    && is_array($selection['properties'])
+                                    ? $selection['properties']
+                                    : [];
+                                ?>
+                                <?php if (!empty($selectionProperties)) : ?>
+                                    <ul class="component-options-summary-properties">
+                                        <?php foreach ($selectionProperties as $property) : ?>
+                                            <?php
+                                            if (!is_array($property)) {
+                                                continue;
+                                            }
+                                            $name = isset($property['name']) ? trim((string) $property['name']) : '';
+                                            $value = isset($property['value']) ? trim((string) $property['value']) : '';
+                                            $unit = isset($property['unit']) ? trim((string) $property['unit']) : '';
+                                            $label = trim($name . ' ' . $value . ' ' . $unit);
+                                            if ($label === '') {
+                                                continue;
+                                            }
+                                            ?>
+                                            <li><?= htmlspecialchars($label) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                <?php endif; ?>
+                            </li>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </ul>
             <?php else : ?>

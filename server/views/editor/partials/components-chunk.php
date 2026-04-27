@@ -133,6 +133,7 @@ foreach ($items as $node) {
         ? (string) $latestPrice['currency']
         : 'CZK';
     $latestCurrency = strtoupper($latestCurrencyRaw);
+    $allowMultiSelect = !empty($node['allow_multi_select']);
     $priceHistory = isset($node['price_history']) && is_array($node['price_history'])
         ? array_slice($node['price_history'], 0, 10)
         : [];
@@ -177,6 +178,7 @@ foreach ($items as $node) {
       data-price-history="<?= $priceHistoryJson ?>"
       data-properties="<?= $propertiesJson ?>"
       data-dependency-tree="<?= $dependencyTreeJson ?>"
+      data-allow-multi-select="<?= $allowMultiSelect ? '1' : '0' ?>"
       <?= $depthAttr ?>
     >
       <div class="component-node" draggable="true">
@@ -194,6 +196,7 @@ foreach ($items as $node) {
               !empty($rawImages) ||
               $color !== '' ||
               $dependencyCount > 0 ||
+              $allowMultiSelect ||
               !empty($propertiesRaw) ||
               $latestPrice !== null;
             ?>
@@ -312,6 +315,9 @@ foreach ($items as $node) {
                 <?php endif; ?>
                 <?php if ($dependencyCount > 0) : ?>
                   <div><dt>Závislosti</dt><dd><?= $dependencyCount ?></dd></div>
+                <?php endif; ?>
+                <?php if ($allowMultiSelect) : ?>
+                  <div><dt>Výběr možností</dt><dd>Více možností</dd></div>
                 <?php endif; ?>
               </dl>
             <?php endif; ?>

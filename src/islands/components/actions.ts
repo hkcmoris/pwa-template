@@ -94,6 +94,7 @@ export const setupNodeActions = (
                 priceHistory,
                 dependencyTree: item.dataset.dependencyTree ?? '',
                 properties,
+                allowMultiSelect: item.dataset.allowMultiSelect === '1',
             });
         } else if (action === 'clone') {
             api.cloneComponent(id);

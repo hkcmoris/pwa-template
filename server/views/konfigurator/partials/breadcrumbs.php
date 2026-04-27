@@ -25,6 +25,7 @@ if ($configurationTitle == '') {
                     <small><?= htmlspecialchars($configurationTitle) ?></small>
                 <?php endif; ?>
             </span>
+            <span class="breadcrumb-item-tooltip" aria-hidden="true"></span>
         </span>
     </div>
     <?php foreach ($breadcrumbPath as $crumb) : ?>
@@ -45,6 +46,7 @@ if ($configurationTitle == '') {
                     <span class="breadcrumb-item-title">
                         <?= htmlspecialchars($crumbTitle) ?>
                     </span>
+                    <span class="breadcrumb-item-tooltip" aria-hidden="true"></span>
                 </button>
             </form>
         </div>
