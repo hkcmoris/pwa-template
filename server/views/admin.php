@@ -147,7 +147,7 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
 
     <div data-island="admin">
       <div class="admin-panel admin-panel-row">
-        <section class="admin-transfer">
+        <section class="admin-transfer shadow-bevel">
           <h3>Import a export databáze</h3>
           <p>Vyberte, která data chcete importovat nebo exportovat.</p>
           <div class="admin-transfer-actions">
@@ -263,7 +263,7 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
 
     <div class="admin-panel admin-panel-row" data-island="admin">
       <div class="admin-panel-col">
-        <section class="admin-logo">
+        <section class="admin-logo shadow-bevel">
           <h3>Loga a vodoznak</h3>
           <p>
             Nahrajte varianty loga ve formátu SVG. Pokud tmavé logo není nastavené, použije se invertované hlavní logo.
@@ -368,7 +368,7 @@ $tabHref = static function (string $tabKey) use ($BASE): string {
         </section>
       </div>
 
-      <section class="admin-address">
+      <section class="admin-address shadow-bevel">
         <h3>Firemní adresa</h3>
         <p>Nastavte adresu společnosti pro tisk výstupů a další administrativu.</p>
         <form id="admin-address-form" class="admin-address-form" novalidate>
