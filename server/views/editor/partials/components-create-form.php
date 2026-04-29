@@ -21,7 +21,7 @@ $dependencyPlaceholder = 'Vyberte komponentu';
   <fieldset>
     <legend class="sr-only">Formulář komponenty</legend>
     <div class="component-modal-tabs" data-component-tabs>
-      <div class="component-modal-tablist sub-nav-menu" role="tablist" aria-label="Sekce formuláře komponenty">
+      <div class="component-modal-tablist sub-nav-menu shadow-bevel" role="tablist" aria-label="Sekce formuláře komponenty">
         <button
           type="button"
           class="component-modal-tab sub-nav-link is-active"
