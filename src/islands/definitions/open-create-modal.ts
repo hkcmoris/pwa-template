@@ -54,6 +54,7 @@ export const createOpenCreateModal = ({
             clone.removeAttribute('data-island');
             clone.removeAttribute('hx-on');
             clone.removeAttribute('hx-on:select:change');
+            clone.classList.remove('hidden');
 
             hiddenInput = clone.querySelector<HTMLInputElement>(
                 'input[name="parent_id"]'

@@ -1,4 +1,4 @@
-@import './shadows.css';
+@import url('./shadows.css');
 
 :root {
     --bg: #fff;

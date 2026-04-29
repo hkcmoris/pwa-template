@@ -307,8 +307,20 @@
 
 @media (width >= 720px) {
     .component-modal-tabpanel {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         align-items: start;
+    }
+
+    .component-modal-tabpanel > .component-field {
+        grid-column: span 2;
+    }
+
+    .component-modal-tabpanel > .component-field--full {
+        grid-column: 1 / -1;
+    }
+
+    .component-modal-tabpanel > .component-field--half {
+        grid-column: span 1;
     }
 }
 
@@ -332,6 +344,24 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+}
+
+.component-field .component-checkbox {
+    min-height: calc(1.5em + 0.8rem + 2px);
+    border: 1px solid var(--border);
+    border-radius: 0.35rem;
+    padding: 0.4rem 0.5rem;
+    background: transparent;
+    font-weight: 400;
+}
+
+.component-field .component-checkbox:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+.component-field .component-checkbox input[type='checkbox'] {
+    margin: 0;
 }
 
 .info-wrapper {
@@ -708,6 +738,10 @@
     font: inherit;
     background: transparent;
     color: inherit;
+}
+
+#component-modal-description {
+    resize: vertical;
 }
 
 .component-select .select {

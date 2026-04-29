@@ -160,7 +160,9 @@
     color: #cbd5e1;
 }
 
-#breadcrumbs .breadcrumb-item[data-overflow-tooltip]:hover .breadcrumb-item-tooltip,
+#breadcrumbs
+    .breadcrumb-item[data-overflow-tooltip]:hover
+    .breadcrumb-item-tooltip,
 #breadcrumbs
     .breadcrumb-item[data-overflow-tooltip]:focus-within
     .breadcrumb-item-tooltip {

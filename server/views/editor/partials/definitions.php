@@ -89,7 +89,18 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
       <fieldset>
         <legend>Přidat novou definici</legend>
         <div class="definition-field">
-          <label for="definition-modal-title">Název</label>
+          <label for="definition-modal-title">
+            Název
+            <span class="info-wrapper">
+              <img
+                width="24px"
+                height="24px"
+                src="<?= htmlspecialchars($BASE) ?>/public/assets/images/info.svg"
+                alt=""
+              />
+              <span class="definition-help">Povinné pole. Název se používá jako základní popisek definice.</span>
+            </span>
+          </label>
           <input
             type="text"
             id="definition-modal-title"
@@ -100,15 +111,38 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
           />
         </div>
         <div class="definition-field">
-          <label id="definition-parent-label">Rodič</label>
+          <label id="definition-parent-label">
+            Rodič
+            <span class="info-wrapper">
+              <img
+                width="24px"
+                height="24px"
+                src="<?= htmlspecialchars($BASE) ?>/public/assets/images/info.svg"
+                alt=""
+              />
+              <span class="definition-help">
+                Vyberte rodičovský uzel, nebo ponechte možnost Kořen pro položku nejvyšší úrovně.
+              </span>
+            </span>
+          </label>
           <div data-definition-select-slot></div>
-          <p class="definition-help">
-            Vyberte rodičovský uzel, nebo ponechte možnost Kořen pro položku nejvyšší úrovně.
-          </p>
         </div>
         <div class="definition-field">
-          <label for="definition-modal-position">Pozice</label>
-                  <input
+          <label for="definition-modal-position">
+            Pozice
+            <span class="info-wrapper">
+              <img
+                width="24px"
+                height="24px"
+                src="<?= htmlspecialchars($BASE) ?>/public/assets/images/info.svg"
+                alt=""
+              />
+              <span class="definition-help">
+                Pořadí mezi sourozenci (0 = první). Prázdné pole přidá uzel na konec.
+              </span>
+            </span>
+          </label>
+          <input
             type="number"
             id="definition-modal-position"
             name="position"
@@ -116,9 +150,6 @@ if (isset($_SERVER['HTTP_HX_REQUEST'])) {
             step="1"
             placeholder="automaticky"
           />
-          <p class="definition-help">
-            Pořadí mezi sourozenci (0 = první). Prázdné pole přidá uzel na konec.
-          </p>
         </div>
       </fieldset>
       <div class="definition-modal-actions">

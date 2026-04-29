@@ -102,16 +102,16 @@
     text-transform: uppercase;
     font-family:
         Montserrat,
-        "Segoe UI",
+        'Segoe UI',
         Roboto,
         Ubuntu,
         Cantarell,
-        "Noto Sans",
-        "Helvetica Neue",
+        'Noto Sans',
+        'Helvetica Neue',
         Arial,
         'Apple Color Emoji',
         'Segoe UI Emoji',
-        "Segoe UI Symbol",
+        'Segoe UI Symbol',
         system-ui,
         -apple-system,
         sans-serif;

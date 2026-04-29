@@ -21,7 +21,11 @@ $dependencyPlaceholder = 'Vyberte komponentu';
   <fieldset>
     <legend class="sr-only">Formulář komponenty</legend>
     <div class="component-modal-tabs" data-component-tabs>
-      <div class="component-modal-tablist sub-nav-menu shadow-bevel" role="tablist" aria-label="Sekce formuláře komponenty">
+      <div
+        class="component-modal-tablist sub-nav-menu shadow-bevel"
+        role="tablist"
+        aria-label="Sekce formuláře komponenty"
+      >
         <button
           type="button"
           class="component-modal-tab sub-nav-link is-active"
@@ -187,7 +191,32 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             </div>
           </div>
         </div>
-        <div class="component-field">
+        <div class="component-field component-field--half">
+          <label for="component-modal-allow-multi-select">
+            Více možností
+            <span class="info-wrapper">
+              <img
+                width="24px"
+                height="24px"
+                src="<?= htmlspecialchars($BASE) ?>/public/assets/images/info.svg"
+                alt=""
+              />
+              <span class="component-help">
+                Umožní v konfigurátoru vybrat více možností této komponenty najednou.
+              </span>
+            </span>
+          </label>
+          <label class="component-checkbox" for="component-modal-allow-multi-select">
+            <input
+              type="checkbox"
+              id="component-modal-allow-multi-select"
+              name="allow_multi_select"
+              value="1"
+            >
+            <span>Povoleno</span>
+          </label>
+        </div>
+        <div class="component-field component-field--half">
           <label for="component-modal-position">
             Pozice
             <span class="info-wrapper">
@@ -230,17 +259,6 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             rows="4"
             placeholder="Krátký popis komponenty"
           ></textarea>
-        </div>
-        <div class="component-field component-field--full">
-          <label class="component-checkbox">
-            <input
-              type="checkbox"
-              id="component-modal-allow-multi-select"
-              name="allow_multi_select"
-              value="1"
-            >
-            <span>Více možností</span>
-          </label>
         </div>
       </section>
 
