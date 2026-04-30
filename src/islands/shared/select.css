@@ -24,7 +24,6 @@
 
 .select-button::after {
     content: '';
-    display: inline-block;
     width: 0;
     height: 0;
     border-top: 0.35rem solid currentcolor;
@@ -57,8 +56,34 @@
 }
 
 .select-option {
+    position: relative;
     padding: 0.25rem 0.5rem;
+    padding-left: calc(0.5rem + (var(--depth, 0) * 1rem));
     cursor: pointer;
+}
+
+.select-option-tree {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: var(--tree-width);
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+.select-option-tree path {
+    fill: none;
+    stroke: var(--border);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
+}
+
+.select-option-meta {
+    color: var(--fg-muted, #6b7280);
+    font-size: 0.7rem;
+    margin-left: 0.25rem;
 }
 
 .select-option[aria-selected='true'] {
@@ -69,6 +94,12 @@
 .select-option[data-active] {
     background: var(--primary-hover);
     color: #fff;
+}
+
+.select-option:hover .select-option-meta,
+.select-option[data-active] .select-option-meta {
+    color: currentcolor;
+    opacity: 0.82;
 }
 
 html[data-theme='dark'] .select-button:hover,

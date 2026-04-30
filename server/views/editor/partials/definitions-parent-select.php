@@ -13,6 +13,11 @@ if ($selectedParent !== null) {
         }
     }
 }
+
+require_once __DIR__ . '/select-tree-helpers.php';
+
+$definitionSiblingTotals = editor_select_tree_sibling_totals($flat);
+$definitionTreeState = editor_select_tree_initial_state();
 ?>
 <input
   type="hidden"
@@ -45,18 +50,30 @@ if ($selectedParent !== null) {
     <?php foreach ($flat as $item) : ?>
         <?php
         $value = (string) $item['id'];
-        $label = $item['title'] . ' (ID ' . (int) $item['id'] . ')';
-        $indent = $item['depth'] > 0 ? str_repeat('— ', (int) $item['depth']) : '';
-        $display = $indent . $label;
+        $title = (string) $item['title'];
+        $id = (int) $item['id'];
+        $label = $title . ' (ID ' . $id . ')';
+        $depth = isset($item['depth']) ? (int) $item['depth'] : 0;
+        $depth = max(0, min($depth, 12));
+        $optionClass = editor_select_tree_option_class(
+            $item,
+            $depth,
+            $definitionSiblingTotals,
+            $definitionTreeState
+        );
         $selected = $value === $currentValue ? 'true' : 'false';
         ?>
       <li
         role="option"
-        class="select-option"
+        class="select-option <?= $optionClass ?>"
+        data-depth="<?= $depth ?>"
         data-value="<?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8') ?>"
         data-label="<?= htmlspecialchars($label, ENT_QUOTES, 'UTF-8') ?>"
         aria-selected="<?= $selected ?>"
-      ><?= htmlspecialchars($display, ENT_QUOTES, 'UTF-8') ?></li>
+      >
+        <?= editor_select_tree_svg($depth, $optionClass) ?>
+        <?= editor_select_tree_label($title, $id) ?>
+      </li>
     <?php endforeach; ?>
   </ul>
 </div>
