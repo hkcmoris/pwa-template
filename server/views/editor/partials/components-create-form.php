@@ -231,15 +231,25 @@ $componentSiblingTotals = editor_select_tree_sibling_totals($componentOptions);
               </span>
             </span>
           </label>
-          <label class="component-checkbox" for="component-modal-allow-multi-select">
-            <input
-              type="checkbox"
-              id="component-modal-allow-multi-select"
-              name="allow_multi_select"
-              value="1"
-            >
-            <span>Povoleno</span>
-          </label>
+          <div class="component-checkbox">
+            <div class="checkbox-wrapper-46">
+              <input
+                class="inp-cbx"
+                id="component-modal-allow-multi-select"
+                name="allow_multi_select"
+                type="checkbox"
+                value="1"
+              >
+              <label class="cbx" for="component-modal-allow-multi-select">
+                <span>
+                  <svg width="16px" height="14px" viewBox="0 0 12 10">
+                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                  </svg>
+                </span>
+                <span>Povoleno</span>
+              </label>
+            </div>
+          </div>
         </div>
         <div class="component-field component-field--half">
           <label for="component-modal-position">
