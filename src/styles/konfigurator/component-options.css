@@ -38,6 +38,13 @@
 
 .component-card {
     display: flex;
+    border-radius: 12px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, scale 0.2s ease;
+}
+
+.component-card:hover {
+    box-shadow: 0 12px 18px -4px rgba(0 0 0 / 30%);
+    transform: translateY(-6px) scale(1.03);
 }
 
 .options-card-inner {
