@@ -38,6 +38,13 @@
 
 .component-card {
     display: flex;
+    border-radius: 12px;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, scale 0.2s ease;
+}
+
+.component-card:hover {
+    box-shadow: 0 12px 18px -4px rgba(0 0 0 / 30%);
+    transform: translateY(-6px) scale(1.03);
 }
 
 .options-card-inner {
@@ -102,16 +109,16 @@
     text-transform: uppercase;
     font-family:
         Montserrat,
-        "Segoe UI",
+        'Segoe UI',
         Roboto,
         Ubuntu,
         Cantarell,
-        "Noto Sans",
-        "Helvetica Neue",
+        'Noto Sans',
+        'Helvetica Neue',
         Arial,
         'Apple Color Emoji',
         'Segoe UI Emoji',
-        "Segoe UI Symbol",
+        'Segoe UI Symbol',
         system-ui,
         -apple-system,
         sans-serif;

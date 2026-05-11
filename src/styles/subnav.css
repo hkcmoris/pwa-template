@@ -8,7 +8,6 @@
     background: rgb(127 127 127 / 10%);
     border: 1px solid var(--border);
     border-radius: 999px;
-    box-shadow: 0 2px 4px var(--shadow);
 }
 
 .sub-nav-link {

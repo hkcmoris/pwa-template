@@ -219,6 +219,89 @@
 .definition-field label {
     font-weight: 600;
     font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.info-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: help;
+}
+
+.info-wrapper img {
+    color: var(--fg);
+}
+
+.info-wrapper svg path {
+    fill: var(--fg);
+}
+
+.info-wrapper .definition-help {
+    --tooltip-shift: 0px;
+
+    display: block;
+    white-space: normal;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    width: max-content;
+    max-width: min(24rem, calc(100vw - 16px));
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin: 0;
+    padding: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 35%);
+    z-index: 10;
+    visibility: hidden;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(4px);
+    transition:
+        opacity 120ms ease,
+        transform 120ms ease,
+        visibility 0s linear 120ms;
+}
+
+.info-wrapper .definition-help::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid var(--bg);
+}
+
+.info-wrapper .definition-help::before {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: clamp(10px, calc(50% - var(--tooltip-shift)), calc(100% - 10px));
+    transform: translateX(-50%);
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid var(--border);
+}
+
+[data-theme='dark'] .info-wrapper .definition-help {
+    color: #cbd5e1;
+}
+
+.info-wrapper:hover .definition-help,
+.info-wrapper:focus-within .definition-help {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(calc(-50% + var(--tooltip-shift))) translateY(0);
+    transition-delay: 0s;
 }
 
 .definition-form--modal input,
@@ -231,6 +314,11 @@
     color: inherit;
     width: 100%;
     text-align: left;
+}
+
+.definition-form--modal .definition-parent-select,
+.definition-form--modal .select {
+    width: 100%;
 }
 
 .definition-form--modal input:focus,

@@ -8,6 +8,11 @@ $componentOptions = $componentsFlat ?? [];
 $definitionPlaceholder = 'Vyberte definici';
 $parentPlaceholder = 'Kořenová komponenta';
 $dependencyPlaceholder = 'Vyberte komponentu';
+
+require_once __DIR__ . '/select-tree-helpers.php';
+
+$definitionSiblingTotals = editor_select_tree_sibling_totals($definitionOptions);
+$componentSiblingTotals = editor_select_tree_sibling_totals($componentOptions);
 ?>
 <form
   class="component-form component-form--modal"
@@ -21,7 +26,11 @@ $dependencyPlaceholder = 'Vyberte komponentu';
   <fieldset>
     <legend class="sr-only">Formulář komponenty</legend>
     <div class="component-modal-tabs" data-component-tabs>
-      <div class="component-modal-tablist sub-nav-menu" role="tablist" aria-label="Sekce formuláře komponenty">
+      <div
+        class="component-modal-tablist sub-nav-menu shadow-bevel"
+        role="tablist"
+        aria-label="Sekce formuláře komponenty"
+      >
         <button
           type="button"
           class="component-modal-tab sub-nav-link is-active"
@@ -113,22 +122,32 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                   data-label="<?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
                   aria-selected="true"
                 ><?= htmlspecialchars($definitionPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php $definitionTreeState = editor_select_tree_initial_state(); ?>
                 <?php foreach ($definitionOptions as $definition) : ?>
                     <?php
                     $depth = isset($definition['depth']) ? (int) $definition['depth'] : 0;
-                    $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                    $depth = max(0, min($depth, 12));
+                    $optionClass = editor_select_tree_option_class(
+                        $definition,
+                        $depth,
+                        $definitionSiblingTotals,
+                        $definitionTreeState
+                    );
                     $rawTitle = (string) ($definition['title'] ?? '');
                     $id = (int) ($definition['id'] ?? 0);
                     $labelText = $rawTitle . ' (ID ' . $id . ')';
-                    $displayText = $indent . $labelText;
                     ?>
                   <li
                     role="option"
-                    class="select-option"
+                    class="select-option <?= $optionClass ?>"
+                    data-depth="<?= $depth ?>"
                     data-value="<?= $id ?>"
                     data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
                     aria-selected="false"
-                  ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                  >
+                    <?= editor_select_tree_svg($depth, $optionClass) ?>
+                    <?= editor_select_tree_label($rawTitle, $id) ?>
+                  </li>
                 <?php endforeach; ?>
               </ul>
             </div>
@@ -166,28 +185,73 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                   data-label="<?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
                   aria-selected="true"
                 ><?= htmlspecialchars($parentPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+                <?php $componentTreeState = editor_select_tree_initial_state(); ?>
                 <?php foreach ($componentOptions as $component) : ?>
                     <?php
                     $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
-                    $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                    $depth = max(0, min($depth, 12));
+                    $optionClass = editor_select_tree_option_class(
+                        $component,
+                        $depth,
+                        $componentSiblingTotals,
+                        $componentTreeState
+                    );
                     $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
                     $id = (int) ($component['id'] ?? 0);
                     $labelText = $rawTitle . ' (ID ' . $id . ')';
-                    $displayText = $indent . $labelText;
                     ?>
                   <li
                     role="option"
-                    class="select-option"
+                    class="select-option <?= $optionClass ?>"
+                    data-depth="<?= $depth ?>"
                     data-value="<?= $id ?>"
                     data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
                     aria-selected="false"
-                  ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                  >
+                    <?= editor_select_tree_svg($depth, $optionClass) ?>
+                    <?= editor_select_tree_label($rawTitle, $id) ?>
+                  </li>
                 <?php endforeach; ?>
               </ul>
             </div>
           </div>
         </div>
-        <div class="component-field">
+        <div class="component-field component-field--half">
+          <label for="component-modal-allow-multi-select">
+            Více možností
+            <span class="info-wrapper">
+              <img
+                width="24px"
+                height="24px"
+                src="<?= htmlspecialchars($BASE) ?>/public/assets/images/info.svg"
+                alt=""
+              />
+              <span class="component-help">
+                Umožní v konfigurátoru vybrat více možností této komponenty najednou.
+              </span>
+            </span>
+          </label>
+          <div class="component-checkbox">
+            <div class="checkbox-wrapper-46">
+              <input
+                class="inp-cbx"
+                id="component-modal-allow-multi-select"
+                name="allow_multi_select"
+                type="checkbox"
+                value="1"
+              >
+              <label class="cbx" for="component-modal-allow-multi-select">
+                <span>
+                  <svg width="16px" height="14px" viewBox="0 0 12 10">
+                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                  </svg>
+                </span>
+                <span>Povoleno</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="component-field component-field--half">
           <label for="component-modal-position">
             Pozice
             <span class="info-wrapper">
@@ -230,17 +294,6 @@ $dependencyPlaceholder = 'Vyberte komponentu';
             rows="4"
             placeholder="Krátký popis komponenty"
           ></textarea>
-        </div>
-        <div class="component-field component-field--full">
-          <label class="component-checkbox">
-            <input
-              type="checkbox"
-              id="component-modal-allow-multi-select"
-              name="allow_multi_select"
-              value="1"
-            >
-            <span>Více možností</span>
-          </label>
         </div>
       </section>
 
@@ -585,22 +638,32 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                       data-label="<?= htmlspecialchars($dependencyPlaceholder, ENT_QUOTES, 'UTF-8') ?>"
                       aria-selected="true"
                     ><?= htmlspecialchars($dependencyPlaceholder, ENT_QUOTES, 'UTF-8') ?></li>
+                    <?php $dependencyComponentTreeState = editor_select_tree_initial_state(); ?>
                     <?php foreach ($componentOptions as $component) : ?>
                         <?php
                         $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
-                        $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                        $depth = max(0, min($depth, 12));
+                        $optionClass = editor_select_tree_option_class(
+                            $component,
+                            $depth,
+                            $componentSiblingTotals,
+                            $dependencyComponentTreeState
+                        );
                         $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
                         $id = (int) ($component['id'] ?? 0);
                         $labelText = $rawTitle . ' (ID ' . $id . ')';
-                        $displayText = $indent . $labelText;
                         ?>
                       <li
                         role="option"
-                        class="select-option"
+                        class="select-option <?= $optionClass ?>"
+                        data-depth="<?= $depth ?>"
                         data-value="<?= $id ?>"
                         data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
                         aria-selected="false"
-                      ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                      >
+                        <?= editor_select_tree_svg($depth, $optionClass) ?>
+                        <?= editor_select_tree_label($rawTitle, $id) ?>
+                      </li>
                     <?php endforeach; ?>
                   </ul>
                 </div>
@@ -637,22 +700,32 @@ $dependencyPlaceholder = 'Vyberte komponentu';
                       data-label="Vyberte zakázanou komponentu"
                       aria-selected="true"
                     >Vyberte zakázanou komponentu</li>
+                    <?php $forbiddenComponentTreeState = editor_select_tree_initial_state(); ?>
                     <?php foreach ($componentOptions as $component) : ?>
                         <?php
                         $depth = isset($component['depth']) ? (int) $component['depth'] : 0;
-                        $indent = $depth > 0 ? str_repeat('-- ', $depth) : '';
+                        $depth = max(0, min($depth, 12));
+                        $optionClass = editor_select_tree_option_class(
+                            $component,
+                            $depth,
+                            $componentSiblingTotals,
+                            $forbiddenComponentTreeState
+                        );
                         $rawTitle = (string) ($component['effective_title'] ?? $component['alternate_title'] ?? '');
                         $id = (int) ($component['id'] ?? 0);
                         $labelText = $rawTitle . ' (ID ' . $id . ')';
-                        $displayText = $indent . $labelText;
                         ?>
                       <li
                         role="option"
-                        class="select-option"
+                        class="select-option <?= $optionClass ?>"
+                        data-depth="<?= $depth ?>"
                         data-value="<?= $id ?>"
                         data-label="<?= htmlspecialchars($labelText, ENT_QUOTES, 'UTF-8') ?>"
                         aria-selected="false"
-                      ><?= htmlspecialchars($displayText, ENT_QUOTES, 'UTF-8') ?></li>
+                      >
+                        <?= editor_select_tree_svg($depth, $optionClass) ?>
+                        <?= editor_select_tree_label($rawTitle, $id) ?>
+                      </li>
                     <?php endforeach; ?>
                   </ul>
                 </div>

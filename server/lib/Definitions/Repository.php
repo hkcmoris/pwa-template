@@ -45,7 +45,7 @@ final class Repository
     public function fetchRows(?int $limit = null, int $offset = 0): array
     {
         $sql = <<<SQL
-        SELECT id, parent_id, title, position, meta, created_at, updated_at
+        SELECT id, parent_id, title, position, created_at, updated_at
         FROM definitions
         ORDER BY (parent_id IS NULL) DESC, parent_id, position, id
         SQL;
@@ -97,7 +97,7 @@ final class Repository
     public function find(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id = :id'
+            'SELECT id, parent_id, title, position, created_at, updated_at FROM definitions WHERE id = :id'
         );
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -145,68 +145,12 @@ final class Repository
 
     public function updateValueRange(int $id, ?int $min, ?int $max): void
     {
-        $this->pdo->beginTransaction();
-        try {
-            $row = $this->find($id);
-            if (!$row) {
-                throw new RuntimeException('Definice neexistuje.');
-            }
-
-            $hasChildren = $this->childrenCount($id) > 0;
-            if ($hasChildren && ($min !== null || $max !== null)) {
-                throw new RuntimeException('Definice s potomky nelze změnit na rozsah hodnot.');
-            }
-
-            $metaData = [];
-            if (isset($row['meta'])) {
-                $existing = $row['meta'];
-                if (is_string($existing) && $existing !== '') {
-                    $decoded = json_decode($existing, true);
-                    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                        $metaData = $decoded;
-                    }
-                } elseif (is_array($existing)) {
-                    $metaData = $existing;
-                }
-            }
-
-            unset(
-                $metaData['value_min'],
-                $metaData['value_max'],
-                $metaData['min'],
-                $metaData['max'],
-                $metaData['from'],
-                $metaData['to']
-            );
-
-            if ($min === null && $max === null) {
-                unset($metaData['value_range']);
-            } else {
-                $metaData['value_range'] = ['min' => $min, 'max' => $max];
-            }
-
-            $metaJson = null;
-            if (!empty($metaData)) {
-                $metaJson = json_encode($metaData, JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION);
-                if (!is_string($metaJson)) {
-                    throw new RuntimeException('Nepodařilo se serializovat meta data.');
-                }
-            }
-
-            $stmt = $this->pdo->prepare('UPDATE definitions SET meta = :meta WHERE id = :id');
-            if ($metaJson === null) {
-                $stmt->bindValue(':meta', null, PDO::PARAM_NULL);
-            } else {
-                $stmt->bindValue(':meta', $metaJson, PDO::PARAM_STR);
-            }
-            $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-            $stmt->execute();
-
-            $this->pdo->commit();
-        } catch (Throwable $e) {
-            $this->pdo->rollBack();
-            throw $e;
+        $row = $this->find($id);
+        if (!$row) {
+            throw new RuntimeException('Definice neexistuje.');
         }
+
+        throw new RuntimeException('Rozsah hodnot už není pro definice podporovaný.');
     }
 
     /**
@@ -233,7 +177,7 @@ final class Repository
                 $this->positionService->openGap($parentId, $position);
             }
             $stmt = $this->pdo->prepare(
-                'INSERT INTO definitions (parent_id, title, position, meta) VALUES (:parent, :title, :position, NULL)'
+                'INSERT INTO definitions (parent_id, title, position) VALUES (:parent, :title, :position)'
             );
             $this->bindParent($stmt, $parentId);
             $stmt->bindValue(':title', $title, PDO::PARAM_STR);
@@ -314,7 +258,7 @@ final class Repository
     public function fetchChildren(int $parentId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, parent_id, title, position, meta, created_at, updated_at
+            'SELECT id, parent_id, title, position, created_at, updated_at
                FROM definitions
               WHERE parent_id = :parent
            ORDER BY position, id'

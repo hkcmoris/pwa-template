@@ -79,7 +79,7 @@ class FakePDO extends PDO
     {
         $this->executions[] = ['sql' => $query, 'params' => $params];
         $normalizedQuery = trim(preg_replace('/\s+/', ' ', $query) ?? '');
-        $prefix = 'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id =';
+        $prefix = 'SELECT id, parent_id, title, position, created_at, updated_at FROM definitions WHERE id =';
         if (
             strncmp(
                 $normalizedQuery,

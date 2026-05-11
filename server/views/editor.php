@@ -67,7 +67,7 @@ if ($isHtmxEditorContentRequest) {
 <div id="editor-root" data-island="editor">
   <nav
     id="editor-nav-menu"
-    class="sub-nav-menu"
+    class="sub-nav-menu shadow-bevel"
     aria-label="Editor navigace"
   >
     <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"

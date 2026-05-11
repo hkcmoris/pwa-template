@@ -63,7 +63,7 @@ describe('definitions_move integration SQL harness', () => {
 
         const firstSelect = queries[0];
         expect(firstSelect.sql).toBe(
-            'SELECT id, parent_id, title, position, meta, created_at, updated_at FROM definitions WHERE id = :id'
+            'SELECT id, parent_id, title, position, created_at, updated_at FROM definitions WHERE id = :id'
         );
 
         const lockQueries = queries.filter(
