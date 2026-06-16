@@ -171,14 +171,14 @@ $resolveLocalImagePath = static function (string $image): string {
     if ($basePath !== '') {
         $basePath = '/' . trim($basePath, '/');
         $prefixedPath = $basePath . $path;
-        $strippedPath = str_starts_with($path, $basePath . '/')
+        $strippedPath = (strpos($path, $basePath . '/') === 0)
             ? substr($path, strlen($basePath))
             : null;
 
         if ($strippedPath !== null && $strippedPath !== '') {
             $pathVariants[] = $strippedPath;
         }
-        if (!str_starts_with($path, $basePath . '/')) {
+        if (strpos($path, $basePath . '/') !== 0) {
             $pathVariants[] = $prefixedPath;
         }
     }
