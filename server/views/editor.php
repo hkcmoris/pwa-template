@@ -65,35 +65,37 @@ if ($isHtmxEditorContentRequest) {
 
 <h1>Editor</h1>
 <div id="editor-root" data-island="editor">
-  <nav
-    id="editor-nav-menu"
-    class="sub-nav-menu shadow-bevel"
-    aria-label="Editor navigace"
-  >
-    <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
-       class="sub-nav-link"
-       hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
-       hx-push-url="true"
-       hx-target="#editor-content"
-       hx-swap="innerHTML"
-    >Definice</a>
+  <div id="editor-nav-menu-backdrop" class="sub-nav-menu-backdrop">
+    <nav
+      id="editor-nav-menu"
+      class="sub-nav-menu shadow-bevel"
+      aria-label="Editor navigace"
+    >
+      <a href="<?= htmlspecialchars($BASE) ?>/editor/definitions"
+        class="sub-nav-link"
+        hx-get="<?= htmlspecialchars($BASE) ?>/editor/definitions"
+        hx-push-url="true"
+        hx-target="#editor-content"
+        hx-swap="innerHTML"
+      >Definice</a>
 
-    <a href="<?= htmlspecialchars($BASE) ?>/editor/components"
-       class="sub-nav-link"
-       hx-get="<?= htmlspecialchars($BASE) ?>/editor/components"
-       hx-push-url="true"
-       hx-target="#editor-content"
-       hx-swap="innerHTML"
-    >Komponenty</a>
+      <a href="<?= htmlspecialchars($BASE) ?>/editor/components"
+        class="sub-nav-link"
+        hx-get="<?= htmlspecialchars($BASE) ?>/editor/components"
+        hx-push-url="true"
+        hx-target="#editor-content"
+        hx-swap="innerHTML"
+      >Komponenty</a>
 
-    <a href="<?= htmlspecialchars($BASE) ?>/editor/images"
-       class="sub-nav-link"
-       hx-get="<?= htmlspecialchars($BASE) ?>/editor/images"
-       hx-push-url="true"
-       hx-target="#editor-content"
-       hx-swap="innerHTML"
-    >Správce galerie</a>
-  </nav>
+      <a href="<?= htmlspecialchars($BASE) ?>/editor/images"
+        class="sub-nav-link"
+        hx-get="<?= htmlspecialchars($BASE) ?>/editor/images"
+        hx-push-url="true"
+        hx-target="#editor-content"
+        hx-swap="innerHTML"
+      >Správce galerie</a>
+    </nav>
+  </div>
 
   <section id="editor-content-wrapper">
     <svg
