@@ -349,7 +349,9 @@
 
 .component-field .component-checkbox {
     min-height: calc(1.5em + 0.8rem + 2px);
+
     /* border: 1px solid var(--border); */
+
     /* border-radius: 0.35rem; */
     padding: 0.4rem 0;
     background: transparent;
