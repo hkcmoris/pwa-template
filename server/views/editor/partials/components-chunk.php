@@ -357,6 +357,24 @@ foreach ($items as $node) {
           <button
             type="button"
             class="component-action"
+            data-action="copy"
+            aria-label="Kopírovat vlastnosti"
+            title="Kopírovat vlastnosti"
+          >
+            Kopírovat
+          </button>
+          <button
+            type="button"
+            class="component-action hidden"
+            data-action="paste"
+            aria-label="Vložit zkopírované vlastnosti"
+            title="Vložit zkopírované vlastnosti"
+          >
+            Vložit
+          </button>
+          <button
+            type="button"
+            class="component-action"
             data-action="clone"
           >
             <svg
